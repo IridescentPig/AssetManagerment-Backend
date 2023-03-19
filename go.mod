@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 module asset-management
 
 go 1.20
@@ -28,4 +29,17 @@ require (
 	golang.org/x/text v0.7.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
+=======
+module backend
+
+go 1.20
+
+require gorm.io/gorm v1.24.6
+
+require (
+	github.com/go-sql-driver/mysql v1.7.0 // indirect
+	github.com/jinzhu/inflection v1.0.0 // indirect
+	github.com/jinzhu/now v1.1.5 // indirect
+	gorm.io/driver/mysql v1.4.7 // indirect
+>>>>>>> 39f35d2 (Add: initialize layer structure)
 )
