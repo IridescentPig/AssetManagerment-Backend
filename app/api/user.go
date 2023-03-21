@@ -1,9 +1,9 @@
 package api
 
 import (
-	"backend/app/define"
-	"backend/app/service"
-	"backend/utils"
+	"asset-management/app/define"
+	"asset-management/app/service"
+	"asset-management/utils"
 
 	"github.com/gin-gonic/gin"
 )

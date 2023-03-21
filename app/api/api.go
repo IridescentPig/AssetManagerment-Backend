@@ -1,6 +1,6 @@
 package api
 
-import "backend/app/service"
+import "asset-management/app/service"
 
 func Init() {
 	service.Init()

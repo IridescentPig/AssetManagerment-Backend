@@ -23,7 +23,7 @@ func NewResponseJson(ctx *gin.Context) *responseJson {
 }
 
 func (r *responseJson) Success(info string, data interface{}) {
-	r.context.Json(http.StatusOK, ResponseData{
+	r.context.JSON(http.StatusOK, ResponseData{
 		Code: 0,
 		Info: info,
 		Data: data,

@@ -1,8 +1,8 @@
 package service
 
 import (
-	"backend/app/dao"
-	"backend/app/define"
+	"asset-management/app/dao"
+	"asset-management/app/define"
 )
 
 type userService struct{}

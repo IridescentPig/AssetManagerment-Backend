@@ -1,7 +1,7 @@
 package service
 
 import (
-	"backend/app/dao"
+	"asset-management/app/dao"
 )
 
 func Init() {
