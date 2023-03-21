@@ -1,0 +1,7 @@
+README.md
+.git
+.gitignore
+
+.gitlab-ci.yml
+
+go.sum
