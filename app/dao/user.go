@@ -13,9 +13,17 @@ type userDao struct {
 
 var UserDao *userDao
 
+func newUserDao() *userDao {
+	return &userDao{}
+}
+
+func init() {
+	UserDao = newUserDao()
+}
+
 func (user *userDao) Create(username string, password string) {
-	new_user := User{UserName: username, Password: password}
-	err := db.Create(&new_user)
+	newUser := User{UserName: username, Password: password}
+	err := db.Create(&newUser)
 	if err != nil {
 		log.Fatal(err)
 	}
