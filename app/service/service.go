@@ -4,6 +4,6 @@ import (
 	"asset-management/app/dao"
 )
 
-func Init() {
-	dao.Init()
+func Initial() {
+	dao.Initial()
 }

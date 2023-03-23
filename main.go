@@ -1,11 +1,14 @@
 package main
 
 import (
+	"asset-management/app/api"
 	"asset-management/routers"
+
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
+	api.Initial()
 	r := gin.Default()
 
 	routers.Router.Init(r)

@@ -2,6 +2,6 @@ package api
 
 import "asset-management/app/service"
 
-func Init() {
-	service.Init()
+func Initial() {
+	service.Initial()
 }

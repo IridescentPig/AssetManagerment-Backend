@@ -2,7 +2,6 @@ package dao
 
 import (
 	"database/sql"
-	_ "database/sql"
 	"log"
 
 	"gorm.io/driver/mysql"
@@ -11,9 +10,9 @@ import (
 
 var db *gorm.DB
 
-func Init() {
+func Initial() {
 	var err error
-	db, err = gorm.Open(mysql.Open("root@localhost:3306"), nil)
+	db, err = gorm.Open(mysql.Open("root:management123@tcp(localhost:3306)/management"), nil)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -26,5 +25,8 @@ func Init() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	db.AutoMigrate(&User{})
+	if !db.Migrator().HasTable(&User{}) {
+		log.Fatal("database error")
+	}
 }
-
