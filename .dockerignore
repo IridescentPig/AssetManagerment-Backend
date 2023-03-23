@@ -5,3 +5,5 @@ README.md
 .gitlab-ci.yml
 
 go.sum
+
+dev/
