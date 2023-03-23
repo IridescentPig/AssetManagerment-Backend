@@ -12,7 +12,7 @@ var db *gorm.DB
 
 func Initial() {
 	var err error
-	db, err = gorm.Open(mysql.Open("root:management123@tcp(localhost:3306)/management"), nil)
+	db, err = gorm.Open(mysql.Open("manager:BinaryAbstract@tcp(AssetManagement-Database-dev-BinaryAbstract.app.secoder.net:3306)/asset"), nil)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -3,6 +3,7 @@ package main
 import (
 	"asset-management/app/api"
 	"asset-management/routers"
+	"os"
 
 	"github.com/gin-gonic/gin"
 )
@@ -18,5 +19,10 @@ func main() {
 			"message": "pong",
 		})
 	})
-	r.Run() // 监听并在 0.0.0.0:8080 上启动服务
+	if len(os.Getenv("DEBUG")) == 0 {
+		r.Run("0.0.0.0:8080")
+	} else {
+		r.Run("0.0.0.0:80")
+	}
+	// 监听并在 0.0.0.0:8080 上启动服务
 }
