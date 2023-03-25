@@ -19,10 +19,13 @@ func main() {
 			"message": "pong",
 		})
 	})
-	if len(os.Getenv("DEBUG")) == 0 {
-		r.Run("0.0.0.0:8080")
+	if gin.Mode() == gin.DebugMode {
+		if os.Getenv("DEBUG") == "" {
+			r.Run("0.0.0.0:8080")
+		} else {
+			r.Run("0.0.0.0:80")
+		}
 	} else {
-		r.Run("0.0.0.0:80")
+		r.Run("0.0.0.0:8080")
 	}
-	// 监听并在 0.0.0.0:8080 上启动服务
 }

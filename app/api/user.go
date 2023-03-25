@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 )
 
 type userApi struct {
@@ -25,7 +26,7 @@ func init() {
 func (user *userApi) UserRegister(context *gin.Context) {
 	var req define.UserRegisterReq
 
-	if err := context.BindJSON(&req); err != nil {
+	if err := context.MustBindWith(&req, binding.Form); err != nil {
 		utils.NewResponseJson(context).Error(http.StatusBadRequest, -1, "Invalid request body.", nil)
 		return
 	}
@@ -37,7 +38,7 @@ func (user *userApi) UserRegister(context *gin.Context) {
 func (user *userApi) UserLogin(context *gin.Context) {
 	var req define.UserLoginReq
 
-	if err := context.BindJSON(&req); err != nil {
+	if err := context.MustBindWith(&req, binding.Form); err != nil {
 		utils.NewResponseJson(context).Error(http.StatusBadRequest, -1, "Invalid request body.", nil)
 		return
 	}
