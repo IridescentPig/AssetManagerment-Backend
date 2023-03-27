@@ -37,7 +37,7 @@ func Initial() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	db.AutoMigrate(&User{})
+	db.AutoMigrate(&User{}, &Entity{}, &Department{})
 	if !db.Migrator().HasTable(&User{}) {
 		log.Fatal("database error")
 	}
