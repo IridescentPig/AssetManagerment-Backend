@@ -30,7 +30,11 @@ func (user *userApi) UserRegister(context *gin.Context) {
 		utils.NewResponseJson(context).Error(http.StatusBadRequest, -1, "Invalid request body.", nil)
 		return
 	}
-	service.UserService.Create(&req)
+	code, info := service.UserService.Register(&req)
+	if code != 0 {
+		utils.NewResponseJson(context).Error(http.StatusBadRequest, code, info, nil)
+		return
+	}
 
 	utils.NewResponseJson(context).Success("Successfully register.", nil)
 }
@@ -41,6 +45,10 @@ func (user *userApi) UserLogin(context *gin.Context) {
 	if err := context.MustBindWith(&req, binding.Form); err != nil {
 		utils.NewResponseJson(context).Error(http.StatusBadRequest, -1, "Invalid request body.", nil)
 		return
+	}
+	code, info := service.UserService.Login(&req)
+	if code != 0 {
+		utils.NewResponseJson(context).Error(http.StatusBadRequest, code, info, nil)
 	}
 
 	utils.NewResponseJson(context).Success("Successfully login.", nil)
