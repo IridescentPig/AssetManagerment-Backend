@@ -2,8 +2,7 @@ package service
 
 import (
 	"asset-management/app/dao"
-	"asset-management/app/define"
-	"asset-management/utils"
+	"asset-management/app/model"
 )
 
 type userService struct{}
@@ -18,22 +17,29 @@ func init() {
 	UserService = newUserService()
 }
 
-func (user *userService) Register(req *define.UserRegisterReq) (code int, info string) {
-	err := dao.UserDao.Create(req.UserName, req.Password)
-	if err != nil {
-		return utils.Service_error(1, "Duplicated Name")
-	}
-	return
+func (user *userService) CreateUser(username, password string) error {
+	return dao.UserDao.Create(model.User{
+		UserName: username,
+		Password: password,
+		Ban:      false,
+	})
 }
 
-func (user *userService) Login(req *define.UserLoginReq) (code int, info string) {
-	this_user, err := dao.UserDao.OneUserWhere("username = ? and password = ?", req.UserName, req.Password)
+func (user *userService) VerifyPasswordAndGetUser(username, password string) (*model.User, error) {
+	this_user, err := dao.UserDao.GetUserByName(username)
 	if err != nil {
-		return utils.Service_error(2, "Wrong UserName Or Password")
+		return nil, err
 	}
+	if this_user == nil || this_user.Password != password {
+		return nil, nil
+	}
+	return this_user, nil
+}
 
-	if this_user.Ban {
-		return utils.Service_error(3, "User was banned")
+func (user *userService) ExistsUser(username string) (bool, error) {
+	this_user, err := dao.UserDao.GetUserByName(username)
+	if err != nil || this_user == nil {
+		return false, err
 	}
-	return
+	return true, nil
 }

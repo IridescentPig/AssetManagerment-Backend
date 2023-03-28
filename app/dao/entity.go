@@ -1,11 +1,9 @@
 package dao
 
-import "asset-management/utils"
-
-type Entity struct {
-	ID   uint   `gorm:"primaryKey;column:id;AUTO_INCREMENT" json:"id"`
-	Name string `gorm:"column:name" json:"name"`
-}
+import (
+	"asset-management/app/model"
+	"asset-management/utils"
+)
 
 type entityDao struct {
 }
@@ -21,47 +19,47 @@ func init() {
 }
 
 func (entity *entityDao) Create(entityname string) error {
-	newEntity := Entity{Name: entityname}
-	result := db.Model(&Entity{}).Create(&newEntity)
+	newEntity := model.Entity{Name: entityname}
+	result := db.Model(&model.Entity{}).Create(&newEntity)
 	return utils.DB_error(result)
 }
 
 func (entity *entityDao) Update(id uint, data map[string]interface{}) error {
-	result := db.Model(&Entity{}).Where("id = ?", id).Updates(data)
+	result := db.Model(&model.Entity{}).Where("id = ?", id).Updates(data)
 	return utils.DB_error(result)
 }
 
 func (entity *entityDao) Delete(id []uint) error {
-	result := db.Model(&Entity{}).Where("id in (?)", id).Delete(&Entity{})
+	result := db.Model(&model.Entity{}).Where("id in (?)", id).Delete(&model.Entity{})
 	return utils.DB_error(result)
 }
 
-func (entity *entityDao) AllEntity() (list []Entity, err error) {
-	result := db.Model(&Entity{}).Find(&list)
+func (entity *entityDao) AllEntity() (list []model.Entity, err error) {
+	result := db.Model(&model.Entity{}).Find(&list)
 	err = utils.DB_error(result)
 	return
 }
 
-func (entity *entityDao) AllEntityWhere(query interface{}, args ...interface{}) (list []Entity, err error) {
-	result := db.Model(&Entity{}).Where(query, args...).Find(&list)
+func (entity *entityDao) AllEntityWhere(query interface{}, args ...interface{}) (list []model.Entity, err error) {
+	result := db.Model(&model.Entity{}).Where(query, args...).Find(&list)
 	err = utils.DB_error(result)
 	return
 }
 
-func (entity *entityDao) OneEntityWhere(query interface{}, args ...interface{}) (record Entity, err error) {
-	result := db.Model(&Entity{}).Where(query, args...).First(&record)
+func (entity *entityDao) OneEntityWhere(query interface{}, args ...interface{}) (record model.Entity, err error) {
+	result := db.Model(&model.Entity{}).Where(query, args...).First(&record)
 	err = utils.DB_error(result)
 	return
 }
 
 func (entity *entityDao) EntityCount() (count int64, err error) {
-	result := db.Model(&Entity{}).Count(&count)
+	result := db.Model(&model.Entity{}).Count(&count)
 	err = utils.DB_error(result)
 	return
 }
 
 func (entity *entityDao) EntityCountWhere(query interface{}, args ...interface{}) (count int64, err error) {
-	result := db.Model(&Entity{}).Where(query, args...).Count(&count)
+	result := db.Model(&model.Entity{}).Where(query, args...).Count(&count)
 	err = utils.DB_error(result)
 	return
 }

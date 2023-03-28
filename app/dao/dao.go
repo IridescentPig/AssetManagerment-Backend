@@ -1,6 +1,7 @@
 package dao
 
 import (
+	"asset-management/app/model"
 	"database/sql"
 	"log"
 	"os"
@@ -38,9 +39,9 @@ func Initial() {
 		log.Fatal(err)
 	}
 
-	db.AutoMigrate(&Entity{}, &Department{}, &User{})
+	db.AutoMigrate(&model.Entity{}, &model.Department{}, &model.User{})
 
-	if !db.Migrator().HasTable(&User{}) {
+	if !db.Migrator().HasTable(&model.User{}) {
 		log.Fatal("database error")
 	}
 }

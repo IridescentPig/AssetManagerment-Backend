@@ -2,7 +2,6 @@ package routers
 
 import (
 	"asset-management/utils"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -20,18 +19,18 @@ func init() {
 }
 
 func (router *router) Init(r *gin.Engine) *gin.Engine {
-	r.NoRoute(routeNotFound)
-	r.NoMethod(methodNotFound)
+	r.NoRoute(utils.Handler(routeNotFound))
+	r.NoMethod(utils.Handler(methodNotFound))
 
 	UserRouter.Init(r.Group("/user"))
 
 	return r
 }
 
-func routeNotFound(context *gin.Context) {
-	utils.NewResponseJson(context).Error(http.StatusNotFound, 1, "Router not found.", nil)
+func routeNotFound(ctx *utils.Context) {
+	ctx.NotFound(1, "Router not found.")
 }
 
-func methodNotFound(context *gin.Context) {
-	utils.NewResponseJson(context).Error(http.StatusNotFound, 1, "Method not found.", nil)
+func methodNotFound(ctx *utils.Context) {
+	ctx.NotFound(1, "Method not found.")
 }

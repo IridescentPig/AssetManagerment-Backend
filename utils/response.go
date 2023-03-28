@@ -6,39 +6,61 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type responseJson struct {
-	context *gin.Context
+type Context struct {
+	*gin.Context
+}
+
+type ErrorData struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
 }
 
 type ResponseData struct {
-	Code int         `json:"code"`
-	Info string      `json:"info"`
-	Data interface{} `json:"data"`
+	Error ErrorData   `json:"error"`
+	Data  interface{} `json:"data"`
 }
 
-func NewResponseJson(ctx *gin.Context) *responseJson {
-	return &responseJson{
-		context: ctx,
+var NoError = ErrorData{0, ""}
+
+func (ctx *Context) BadRequest(code int, err string) {
+	ctx.JSON(http.StatusBadRequest, ResponseData{
+		ErrorData{code, err},
+		nil,
+	})
+}
+
+func (ctx *Context) Forbidden(code int, err string) {
+	ctx.JSON(http.StatusForbidden, ResponseData{
+		ErrorData{code, err},
+		nil,
+	})
+}
+
+func (ctx *Context) NotFound(code int, err string) {
+	ctx.JSON(http.StatusNotFound, ResponseData{
+		ErrorData{code, err},
+		nil,
+	})
+}
+
+func (ctx *Context) Success(data interface{}) {
+	ctx.JSON(http.StatusOK, ResponseData{
+		NoError,
+		data,
+	})
+}
+
+func (ctx *Context) InternalError(err string) {
+	ctx.JSON(http.StatusInternalServerError, ResponseData{
+		ErrorData{-1, err},
+		nil,
+	})
+}
+
+type HandlerFunc func(ctx *Context)
+
+func Handler(f HandlerFunc) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		f(&Context{ctx})
 	}
-}
-
-func (r *responseJson) Success(info string, data interface{}) {
-	r.context.JSON(http.StatusOK, ResponseData{
-		Code: 0,
-		Info: info,
-		Data: data,
-	})
-}
-
-/*
-return an error response
-method: http status code, example: http.StatusBadRequest
-*/
-func (r *responseJson) Error(method int, code int, info string, data interface{}) {
-	r.context.Abort()
-	r.context.JSON(method, ResponseData{
-		Code: code,
-		Info: info,
-		Data: data,
-	})
 }
