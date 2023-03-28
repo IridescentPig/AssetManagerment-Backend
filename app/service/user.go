@@ -31,9 +31,7 @@ func (user *userService) Login(req *define.UserLoginReq) (code int, info string)
 	if err != nil {
 		return utils.Service_error(2, "Wrong UserName Or Password")
 	}
-	if this_user.HasLogin {
-		return utils.Service_error(1, "User Has Logged In")
-	}
+
 	if this_user.Ban {
 		return utils.Service_error(3, "User was banned")
 	}

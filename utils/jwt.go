@@ -1,8 +1,10 @@
 package utils
 
 import (
+	"asset-management/app/define"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/dgrijalva/jwt-go"
 )
@@ -14,7 +16,22 @@ var (
 	ErrTokenExpire  = errors.New("token expire")
 )
 
-func CreateToken(claims jwt.MapClaims) (token string, err error) {
+const (
+	ATokenExpiredDuration = time.Hour
+)
+
+func CreateToken(userInfo define.UserBasicInfo) (token string, err error) {
+	nowTime := time.Now()
+	expiredTime := nowTime.Add(ATokenExpiredDuration)
+	stdClaims := jwt.StandardClaims{
+		IssuedAt:  nowTime.Unix(),
+		NotBefore: nowTime.Unix(),
+		ExpiresAt: expiredTime.Unix(),
+	}
+	claims := define.UserClaims{
+		UserBasicInfo:  userInfo,
+		StandardClaims: stdClaims,
+	}
 	tokenObj := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	token, err = tokenObj.SignedString([]byte(secretTokenSalt))
 	return
@@ -38,11 +55,18 @@ func ParseToken(token string) (claims jwt.MapClaims, err error) {
 
 	var isOK bool
 	claims, isOK = tokenObj.Claims.(jwt.MapClaims)
-
 	if !isOK {
 		err = ErrTokenInvalid
 		return
 	}
 
 	return
+}
+
+func IsTokenInvalidError(err error) bool {
+	return err == ErrTokenInvalid
+}
+
+func IsTokenExpiredError(err error) bool {
+	return err == ErrTokenExpire
 }
