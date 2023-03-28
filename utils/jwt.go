@@ -18,8 +18,14 @@ var (
 
 const (
 	ATokenExpiredDuration = time.Hour
+	/*
+		TODO: Add a refresh token
+	*/
 )
 
+/*
+Create a token from the given user info, expired at an hour later
+*/
 func CreateToken(userInfo define.UserBasicInfo) (token string, err error) {
 	nowTime := time.Now()
 	expiredTime := nowTime.Add(ATokenExpiredDuration)
@@ -28,7 +34,7 @@ func CreateToken(userInfo define.UserBasicInfo) (token string, err error) {
 		NotBefore: nowTime.Unix(),
 		ExpiresAt: expiredTime.Unix(),
 	}
-	claims := define.UserClaims{
+	claims := &define.UserClaims{
 		UserBasicInfo:  userInfo,
 		StandardClaims: stdClaims,
 	}
@@ -37,8 +43,8 @@ func CreateToken(userInfo define.UserBasicInfo) (token string, err error) {
 	return
 }
 
-func ParseToken(token string) (claims jwt.MapClaims, err error) {
-	tokenObj, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
+func ParseToken(token string) (claims *define.UserClaims, err error) {
+	tokenObj, err := jwt.ParseWithClaims(token, &define.UserClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
@@ -46,15 +52,17 @@ func ParseToken(token string) (claims jwt.MapClaims, err error) {
 	})
 
 	if err != nil {
-		validationErr, ok := err.(jwt.ValidationError)
+		validationErr, ok := err.(*jwt.ValidationError)
 		if ok && (validationErr.Errors&(jwt.ValidationErrorExpired) != 0) {
 			err = ErrTokenExpire
 			return
 		}
+		err = ErrTokenInvalid
+		return
 	}
 
 	var isOK bool
-	claims, isOK = tokenObj.Claims.(jwt.MapClaims)
+	claims, isOK = tokenObj.Claims.(*define.UserClaims)
 	if !isOK {
 		err = ErrTokenInvalid
 		return

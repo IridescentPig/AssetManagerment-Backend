@@ -28,11 +28,11 @@ func JWTMiddleware() gin.HandlerFunc {
 		}
 
 		userInfo := define.UserBasicInfo{
-			UserID:          uint(claims["UserID"].(float64)),
-			UserName:        claims["UserName"].(string),
-			EntitySuper:     claims["EntitySuper"].(bool),
-			DepartmentSuper: claims["DepartmentSuper"].(bool),
-			SystemSuper:     claims["SystemSuper"].(bool),
+			UserID:          claims.UserID,
+			UserName:        claims.UserName,
+			EntitySuper:     claims.EntitySuper,
+			DepartmentSuper: claims.DepartmentSuper,
+			SystemSuper:     claims.SystemSuper,
 		}
 
 		context.Set("user", userInfo)
