@@ -2,7 +2,9 @@ package service
 
 import (
 	"asset-management/app/dao"
+	"asset-management/app/define"
 	"asset-management/app/model"
+	"asset-management/utils"
 )
 
 type userService struct{}
@@ -17,7 +19,8 @@ func init() {
 	UserService = newUserService()
 }
 
-func (user *userService) CreateUser(username, password string) error {
+// 为保证注册功能能用，暂时留着，后面必须改API，否则不传用户类型怎么设置用户权限？
+func (user *userService) CreateUser(username string, password string) error {
 	return dao.UserDao.Create(model.User{
 		UserName: username,
 		Password: password,
@@ -42,4 +45,42 @@ func (user *userService) ExistsUser(username string) (bool, error) {
 		return false, err
 	}
 	return true, nil
+}
+
+func (user *userService) SystemSuper(ctx *utils.Context) bool {
+	userInfo, exists := ctx.Get("user")
+	if exists {
+		if userInfo, ok := userInfo.(define.UserBasicInfo); ok {
+			if userInfo.SystemSuper {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func (user *userService) EntitySuper(ctx *utils.Context) bool {
+	userInfo, exists := ctx.Get("user")
+	if exists {
+		if userInfo, ok := userInfo.(define.UserBasicInfo); ok {
+			if userInfo.EntitySuper || userInfo.SystemSuper {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func (user *userService) DepartmentSuper(ctx *utils.Context) bool {
+	userInfo, exists := ctx.Get("user")
+	if exists {
+		if userInfo, ok := userInfo.(define.UserBasicInfo); ok {
+			if userInfo.DepartmentSuper ||
+				userInfo.EntitySuper ||
+				userInfo.SystemSuper {
+				return true
+			}
+		}
+	}
+	return false
 }

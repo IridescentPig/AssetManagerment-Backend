@@ -31,4 +31,7 @@ func (user *userRouter) routerNotNeedLogin(group *gin.RouterGroup) {
 }
 func (user *userRouter) routerNeedLogin(group *gin.RouterGroup) {
 	group.POST("/logout", utils.Handler(middleware.JWTMiddleware()), utils.Handler(api.UserApi.UserLogout))
+	group.POST("", utils.Handler(middleware.JWTMiddleware()), utils.Handler(api.UserApi.UserCreate))
+	// TODO:
+	group.PATCH("/:username", utils.Handler(middleware.JWTMiddleware()), utils.Handler((api.UserApi.UserCreate)))
 }

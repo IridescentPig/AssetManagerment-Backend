@@ -15,8 +15,14 @@ type UserLoginReq struct {
 	Password string `form:"password" binding:"required" json:"password"`
 }
 
-type UserLogoutHeader struct {
-	Authorization string `header:"Authorization" binding:"required"`
+type UriInfo struct {
+	UserName string `uri:"username"`
+}
+
+type ResetReq struct {
+	Method   string `json:"method"   binding:"required"`
+	Identity int    `json:"identity" binding:"required"`
+	Password string `json:"password" binding:"required"`
 }
 
 /*
