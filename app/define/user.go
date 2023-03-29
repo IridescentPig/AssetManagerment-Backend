@@ -20,7 +20,7 @@ type UriInfo struct {
 }
 
 type ResetReq struct {
-	Method   int    `json:"method"   binding:"required"`
+	Method   int    `json:"method"`
 	Identity int    `json:"identity"`
 	Password string `json:"password"`
 }

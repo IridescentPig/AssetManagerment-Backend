@@ -113,16 +113,15 @@ func (user *userApi) UserCreate(ctx *utils.Context) {
 }
 
 func (user *userApi) ResetContent(ctx *utils.Context) {
-	var info define.UriInfo
 	var req define.ResetReq
-	errInfo := ctx.ShouldBindUri(&info)
+	username := ctx.Param("username")
 	errReq := ctx.MustBindWith(&req, binding.JSON)
-	if errInfo != nil || errReq != nil {
+	if errReq != nil {
 		ctx.BadRequest(-1, "Invalid request body.")
 		return
 	}
 	//查找用户是否存在
-	exists, err := service.UserService.ExistsUser(info.UserName)
+	exists, err := service.UserService.ExistsUser(username)
 	if err != nil {
 		ctx.InternalError(err.Error())
 		return
@@ -137,7 +136,7 @@ func (user *userApi) ResetContent(ctx *utils.Context) {
 			ctx.Forbidden(2, "Permission Denied.")
 			return
 		} else {
-			err = service.UserService.ModifyUserIdentity(info.UserName, req.Identity)
+			err = service.UserService.ModifyUserIdentity(username, req.Identity)
 			if err != nil {
 				ctx.InternalError(err.Error())
 				return
@@ -148,16 +147,16 @@ func (user *userApi) ResetContent(ctx *utils.Context) {
 		// 超级用户和自己都应该可以修改密码
 		// 自己修改密码需要验证是否为本人
 		if !service.UserService.SystemSuper(ctx) {
-			username, err := service.UserService.UserName(ctx)
+			get_username, err := service.UserService.UserName(ctx)
 			if err != nil {
 				ctx.InternalError(err.Error())
 				return
 			}
-			if username != info.UserName {
+			if username != get_username {
 				ctx.Forbidden(2, "Permission Denied.")
 			}
 		}
-		err = service.UserService.ModifyUserPassword(info.UserName, req.Password)
+		err = service.UserService.ModifyUserPassword(username, req.Password)
 		if err != nil {
 			ctx.InternalError(err.Error())
 			return
@@ -170,19 +169,14 @@ func (user *userApi) ResetContent(ctx *utils.Context) {
 }
 
 func (user *userApi) LockUser(ctx *utils.Context) {
-	var info define.UriInfo
-	errInfo := ctx.ShouldBindUri(&info)
-	if errInfo != nil {
-		ctx.InternalError(errInfo.Error())
-		return
-	}
+	username := ctx.Param("username")
 
 	if !service.UserService.SystemSuper(ctx) {
 		ctx.Forbidden(2, "Permission Denied.")
 		return
 	}
 
-	exists, err := service.UserService.ExistsUser(info.UserName)
+	exists, err := service.UserService.ExistsUser(username)
 	if err != nil {
 		ctx.InternalError(err.Error())
 		return
@@ -191,7 +185,7 @@ func (user *userApi) LockUser(ctx *utils.Context) {
 		return
 	}
 
-	err = service.UserService.ModifyUserBanstate(info.UserName, true)
+	err = service.UserService.ModifyUserBanstate(username, true)
 	if err != nil {
 		ctx.InternalError(err.Error())
 		return
@@ -201,19 +195,14 @@ func (user *userApi) LockUser(ctx *utils.Context) {
 }
 
 func (user *userApi) UnlockUser(ctx *utils.Context) {
-	var info define.UriInfo
-	errInfo := ctx.ShouldBindUri(&info)
-	if errInfo != nil {
-		ctx.InternalError(errInfo.Error())
-		return
-	}
+	username := ctx.Param("username")
 
 	if !service.UserService.SystemSuper(ctx) {
 		ctx.Forbidden(2, "Permission Denied.")
 		return
 	}
 
-	exists, err := service.UserService.ExistsUser(info.UserName)
+	exists, err := service.UserService.ExistsUser(username)
 	if err != nil {
 		ctx.InternalError(err.Error())
 		return
@@ -222,7 +211,7 @@ func (user *userApi) UnlockUser(ctx *utils.Context) {
 		return
 	}
 
-	err = service.UserService.ModifyUserBanstate(info.UserName, false)
+	err = service.UserService.ModifyUserBanstate(username, false)
 	if err != nil {
 		ctx.InternalError(err.Error())
 		return
