@@ -60,3 +60,41 @@ func (user *userService) ExistsUser(username string) (bool, error) {
 	}
 	return true, nil
 }
+
+func (user *userService) SystemSuper(ctx *utils.Context) bool {
+	userInfo, exists := ctx.Get("user")
+	if exists {
+		if userInfo, ok := userInfo.(define.UserBasicInfo); ok {
+			if userInfo.SystemSuper {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func (user *userService) EntitySuper(ctx *utils.Context) bool {
+	userInfo, exists := ctx.Get("user")
+	if exists {
+		if userInfo, ok := userInfo.(define.UserBasicInfo); ok {
+			if userInfo.EntitySuper || userInfo.SystemSuper {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func (user *userService) DepartmentSuper(ctx *utils.Context) bool {
+	userInfo, exists := ctx.Get("user")
+	if exists {
+		if userInfo, ok := userInfo.(define.UserBasicInfo); ok {
+			if userInfo.DepartmentSuper ||
+				userInfo.EntitySuper ||
+				userInfo.SystemSuper {
+				return true
+			}
+		}
+	}
+	return false
+}
