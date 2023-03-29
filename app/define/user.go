@@ -15,6 +15,10 @@ type UserLoginReq struct {
 	Password string `form:"password" binding:"required" json:"password"`
 }
 
+type UserLogoutHeader struct {
+	Authorization string `header:"Authorization" binding:"required"`
+}
+
 /*
 Basic info of user, can be included in other info struct
 */

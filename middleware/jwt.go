@@ -7,20 +7,23 @@ import (
 )
 
 func JWTMiddleware() utils.HandlerFunc {
-	return func(context *utils.Context) {
-		token := context.GetHeader("Authorization")
+	return func(ctx *utils.Context) {
+		token := ctx.GetHeader("Authorization")
 		if token == "" {
-			context.Unauthorized(myerror.TOKEN_EMPTY, "Cannot find token in request header.")
+			ctx.Unauthorized(myerror.TOKEN_EMPTY, "Cannot find token in request header.")
+			ctx.Abort()
 			return
 		}
 
 		claims, err := utils.ParseToken(token)
 		if utils.IsTokenExpiredError(err) {
-			context.Unauthorized(myerror.TOKEN_EXPIRED, "Token has expired.")
+			ctx.Unauthorized(myerror.TOKEN_EXPIRED, "Token has expired.")
+			ctx.Abort()
 			return
 		}
 		if utils.IsTokenInvalidError(err) {
-			context.Unauthorized(myerror.TOKEN_INVALID, "Invaild token.")
+			ctx.Unauthorized(myerror.TOKEN_INVALID, "Invaild token.")
+			ctx.Abort()
 			return
 		}
 
@@ -32,8 +35,8 @@ func JWTMiddleware() utils.HandlerFunc {
 			SystemSuper:     claims.SystemSuper,
 		}
 
-		context.Set("user", userInfo)
-		context.Set("token", token)
-		context.Next()
+		ctx.Set("user", userInfo)
+		ctx.Set("token", token)
+		ctx.Next()
 	}
 }

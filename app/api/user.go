@@ -46,6 +46,8 @@ func (user *userApi) UserRegister(ctx *utils.Context) {
 }
 
 func (user *userApi) UserLogin(ctx *utils.Context) {
+	// 是否需要加密传输？
+	// 是否需要通过中间件处理？
 	var req define.UserLoginReq
 	var this_user *model.User
 
@@ -77,6 +79,7 @@ func (user *userApi) UserLogin(ctx *utils.Context) {
 	ctx.Success(data)
 }
 
-func (user *userApi) Logout(ctx *utils.Context) {
-	//clear session
+func (user *userApi) UserLogout(ctx *utils.Context) {
+	// 使用中间件验证 token 是否正确
+	ctx.Success(nil)
 }
