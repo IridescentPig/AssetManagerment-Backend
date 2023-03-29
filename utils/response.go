@@ -29,6 +29,13 @@ func (ctx *Context) BadRequest(code int, err string) {
 	})
 }
 
+func (ctx *Context) Unauthorized(code int, err string) {
+	ctx.JSON(http.StatusUnauthorized, ResponseData{
+		ErrorData{code, err},
+		nil,
+	})
+}
+
 func (ctx *Context) Forbidden(code int, err string) {
 	ctx.JSON(http.StatusForbidden, ResponseData{
 		ErrorData{code, err},

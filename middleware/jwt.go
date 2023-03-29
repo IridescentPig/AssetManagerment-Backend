@@ -4,26 +4,26 @@ import (
 	"asset-management/app/define"
 	"asset-management/myerror"
 	"asset-management/utils"
-	"net/http"
-
-	"github.com/gin-gonic/gin"
 )
 
-func JWTMiddleware() gin.HandlerFunc {
-	return func(context *gin.Context) {
-		token := context.GetHeader("Authorization")
+func JWTMiddleware() utils.HandlerFunc {
+	return func(ctx *utils.Context) {
+		token := ctx.GetHeader("Authorization")
 		if token == "" {
-			utils.NewResponseJson(context).Error(http.StatusUnauthorized, myerror.TOKEN_EMPTY, "Cannot find token in request header.", nil)
+			ctx.Unauthorized(myerror.TOKEN_EMPTY, "Cannot find token in request header.")
+			ctx.Abort()
 			return
 		}
 
 		claims, err := utils.ParseToken(token)
 		if utils.IsTokenExpiredError(err) {
-			utils.NewResponseJson(context).Error(http.StatusUnauthorized, myerror.TOKEN_EXPIRED, "Token has expired.", nil)
+			ctx.Unauthorized(myerror.TOKEN_EXPIRED, "Token has expired.")
+			ctx.Abort()
 			return
 		}
 		if utils.IsTokenInvalidError(err) {
-			utils.NewResponseJson(context).Error(http.StatusUnauthorized, myerror.TOKEN_INVALID, "Invaild token.", nil)
+			ctx.Unauthorized(myerror.TOKEN_INVALID, "Invaild token.")
+			ctx.Abort()
 			return
 		}
 
@@ -35,8 +35,8 @@ func JWTMiddleware() gin.HandlerFunc {
 			SystemSuper:     claims.SystemSuper,
 		}
 
-		context.Set("user", userInfo)
-		context.Set("token", token)
-		context.Next()
+		ctx.Set("user", userInfo)
+		ctx.Set("token", token)
+		ctx.Next()
 	}
 }
