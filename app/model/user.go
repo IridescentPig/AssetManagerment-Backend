@@ -10,6 +10,6 @@ type User struct {
 	DepartmentID    *uint       `gorm:"column:department_id;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"department_id"`
 	Department      *Department `gorm:"foreignKey:DepartmentID;references:ID;default:null" json:"department"`
 	DepartmentSuper bool        `gorm:"column:department_super;default:false" json:"department_super"`
-	SystemSuper     bool        `gorm:"column:system_super;default:false" json:"syestem_super"`
+	SystemSuper     bool        `gorm:"column:system_super;default:false" json:"system_super"`
 	Ban             bool        `gorm:"column:ban;default:false" json:"-"`
 }
