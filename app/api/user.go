@@ -54,7 +54,8 @@ func (user *userApi) UserLogin(ctx *utils.Context) {
 		return
 	}
 	var err error
-	this_user, err = service.UserService.VerifyPasswordAndGetUser(req.UserName, req.Password)
+	var token string
+	token, this_user, err = service.UserService.VerifyPasswordAndGetUser(req.UserName, req.Password)
 	if err != nil {
 		ctx.InternalError(err.Error())
 		return
@@ -64,8 +65,16 @@ func (user *userApi) UserLogin(ctx *utils.Context) {
 	} else if this_user.Ban {
 		ctx.BadRequest(3, "User Banned")
 	}
-	//todo
-	ctx.Success(nil)
+
+	data := struct {
+		Token string      `json:"token"`
+		User  *model.User `json:"user"`
+	}{
+		Token: token,
+		User:  this_user,
+	}
+
+	ctx.Success(data)
 }
 
 func (user *userApi) Logout(ctx *utils.Context) {
