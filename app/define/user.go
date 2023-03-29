@@ -15,6 +15,16 @@ type UserLoginReq struct {
 	Password string `form:"password" binding:"required" json:"password"`
 }
 
+type UriInfo struct {
+	UserName string `uri:"userName"`
+}
+
+type ResetReq struct {
+	Method   int    `json:"method"`
+	Identity int    `json:"identity"`
+	Password string `json:"password"`
+}
+
 /*
 Basic info of user, can be included in other info struct
 */

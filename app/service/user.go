@@ -5,6 +5,7 @@ import (
 	"asset-management/app/define"
 	"asset-management/app/model"
 	"asset-management/utils"
+	"errors"
 )
 
 type userService struct{}
@@ -59,4 +60,64 @@ func (user *userService) ExistsUser(username string) (bool, error) {
 		return false, err
 	}
 	return true, nil
+}
+
+func (user *userService) SystemSuper(ctx *utils.Context) bool {
+	userInfo, exists := ctx.Get("user")
+	if exists {
+		if userInfo, ok := userInfo.(define.UserBasicInfo); ok {
+			if userInfo.SystemSuper {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func (user *userService) EntitySuper(ctx *utils.Context) bool {
+	userInfo, exists := ctx.Get("user")
+	if exists {
+		if userInfo, ok := userInfo.(define.UserBasicInfo); ok {
+			if userInfo.EntitySuper || userInfo.SystemSuper {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func (user *userService) DepartmentSuper(ctx *utils.Context) bool {
+	userInfo, exists := ctx.Get("user")
+	if exists {
+		if userInfo, ok := userInfo.(define.UserBasicInfo); ok {
+			if userInfo.DepartmentSuper ||
+				userInfo.EntitySuper ||
+				userInfo.SystemSuper {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func (user *userService) UserName(ctx *utils.Context) (string, error) {
+	userInfo, exists := ctx.Get("user")
+	if exists {
+		if userInfo, ok := userInfo.(define.UserBasicInfo); ok {
+			return userInfo.UserName, nil
+		}
+	}
+	return "", errors.New("no user vertification info")
+}
+
+func (user *userService) ModifyUserIdentity(username string, identity int) error {
+	return dao.UserDao.ModifyUserIdentity(username, identity)
+}
+
+func (user *userService) ModifyUserPassword(username string, password string) error {
+	return dao.UserDao.ModifyUserPassword(username, password)
+}
+
+func (user *userService) ModifyUserBanstate(username string, ban bool) error {
+	return dao.UserDao.ModifyUserBanstate(username, ban)
 }
