@@ -57,6 +57,13 @@ func (ctx *Context) InternalError(err string) {
 	})
 }
 
+func (ctx *Context) Unauthorized(code int, err string) {
+	ctx.JSON(http.StatusUnauthorized, ResponseData{
+		ErrorData{code, err},
+		nil,
+	})
+}
+
 type HandlerFunc func(ctx *Context)
 
 func Handler(f HandlerFunc) gin.HandlerFunc {

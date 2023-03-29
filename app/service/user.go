@@ -2,7 +2,9 @@ package service
 
 import (
 	"asset-management/app/dao"
+	"asset-management/app/define"
 	"asset-management/app/model"
+	"asset-management/utils"
 )
 
 type userService struct{}
@@ -19,21 +21,34 @@ func init() {
 
 func (user *userService) CreateUser(username, password string) error {
 	return dao.UserDao.Create(model.User{
-		UserName: username,
-		Password: password,
-		Ban:      false,
+		UserName:     username,
+		Password:     password,
+		EntityID:     nil,
+		DepartmentID: nil,
+		Ban:          false,
 	})
 }
 
-func (user *userService) VerifyPasswordAndGetUser(username, password string) (*model.User, error) {
+func (user *userService) VerifyPasswordAndGetUser(username, password string) (string, *model.User, error) {
 	this_user, err := dao.UserDao.GetUserByName(username)
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
 	if this_user == nil || this_user.Password != password {
-		return nil, nil
+		return "", nil, nil
 	}
-	return this_user, nil
+	userInfo := define.UserBasicInfo{
+		UserID:          this_user.ID,
+		UserName:        this_user.UserName,
+		EntitySuper:     this_user.EntitySuper,
+		DepartmentSuper: this_user.DepartmentSuper,
+		SystemSuper:     this_user.SystemSuper,
+	}
+	token, err := utils.CreateToken(userInfo)
+	if err != nil {
+		return "", nil, err
+	}
+	return token, this_user, nil
 }
 
 func (user *userService) ExistsUser(username string) (bool, error) {

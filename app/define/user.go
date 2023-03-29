@@ -33,3 +33,10 @@ type UserClaims struct {
 	UserBasicInfo
 	jwt.StandardClaims
 }
+
+type UserInfoResponse struct {
+	UserBasicInfo
+	EntityID     uint
+	DepartmentID uint
+	SystemID     uint
+}
