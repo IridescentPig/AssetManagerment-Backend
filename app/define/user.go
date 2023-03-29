@@ -16,13 +16,13 @@ type UserLoginReq struct {
 }
 
 type UriInfo struct {
-	UserName string `uri:"username"`
+	UserName string `uri:"userName"`
 }
 
 type ResetReq struct {
-	Method   string `json:"method"   binding:"required"`
-	Identity int    `json:"identity" binding:"required"`
-	Password string `json:"password" binding:"required"`
+	Method   int    `json:"method"   binding:"required"`
+	Identity int    `json:"identity"`
+	Password string `json:"password"`
 }
 
 /*

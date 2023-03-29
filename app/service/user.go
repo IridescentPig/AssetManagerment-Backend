@@ -5,6 +5,7 @@ import (
 	"asset-management/app/define"
 	"asset-management/app/model"
 	"asset-management/utils"
+	"errors"
 )
 
 type userService struct{}
@@ -97,4 +98,22 @@ func (user *userService) DepartmentSuper(ctx *utils.Context) bool {
 		}
 	}
 	return false
+}
+
+func (user *userService) UserName(ctx *utils.Context) (string, error) {
+	userInfo, exists := ctx.Get("user")
+	if exists {
+		if userInfo, ok := userInfo.(define.UserBasicInfo); ok {
+			return userInfo.UserName, nil
+		}
+	}
+	return "", errors.New("no user vertification info")
+}
+
+func (user *userService) ModifyUserIdentity(username string, identity int) error {
+	return dao.UserDao.ModifyUserIdentity(username, identity)
+}
+
+func (user *userService) ModifyUserPassword(username string, password string) error {
+	return dao.UserDao.ModifyUserPassword(username, password)
 }

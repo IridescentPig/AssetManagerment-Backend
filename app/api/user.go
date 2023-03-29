@@ -121,20 +121,50 @@ func (user *userApi) ResetContent(ctx *utils.Context) {
 		ctx.BadRequest(-1, "Invalid request body.")
 		return
 	}
-	if req.Method == "0" {
+	//查找用户是否存在
+	exists, err := service.UserService.ExistsUser(info.UserName)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	} else if !exists {
+		ctx.BadRequest(1, "User Not Found")
+		return
+	}
+	if req.Method == 0 {
 		// 修改身份
 		// 暂时按照只有超级用户可以创建来处理
 		if !service.UserService.SystemSuper(ctx) {
 			ctx.Forbidden(2, "Permission Denied.")
 			return
+		} else {
+			err = service.UserService.ModifyUserIdentity(info.UserName, req.Identity)
+			if err != nil {
+				ctx.InternalError(err.Error())
+				return
+			}
 		}
-	} else if req.Method == "1" {
+	} else if req.Method == 1 {
 		// 修改密码
 		// 超级用户和自己都应该可以修改密码
-
+		// 自己修改密码需要验证是否为本人
+		if !service.UserService.SystemSuper(ctx) {
+			username, err := service.UserService.UserName(ctx)
+			if err != nil {
+				ctx.InternalError(err.Error())
+				return
+			}
+			if username != info.UserName {
+				ctx.Forbidden(2, "Permission Denied.")
+			}
+		}
+		err = service.UserService.ModifyUserPassword(info.UserName, req.Password)
+		if err != nil {
+			ctx.InternalError(err.Error())
+			return
+		}
 	} else {
 		ctx.BadRequest(-1, "Invalid request body.")
 		return
 	}
-
+	ctx.Success(nil)
 }
