@@ -61,8 +61,6 @@ func (user *userApi) UserLogin(ctx *utils.Context) {
 	} else if this_user == nil {
 		ctx.BadRequest(1, "Wrong Username Or Password")
 		return
-	} else if this_user.HasLogin {
-		ctx.BadRequest(2, "User Has Logged In")
 	} else if this_user.Ban {
 		ctx.BadRequest(3, "User Banned")
 	}
