@@ -34,4 +34,6 @@ func (user *userRouter) routerNeedLogin(group *gin.RouterGroup) {
 	group.POST("", utils.Handler(middleware.JWTMiddleware()), utils.Handler(api.UserApi.UserCreate))
 	// TODO:
 	group.PATCH("/:username", utils.Handler(middleware.JWTMiddleware()), utils.Handler((api.UserApi.ResetContent)))
+	group.GET("/:username/lock", utils.Handler(middleware.JWTMiddleware()), utils.Handler(api.UserApi.LockUser))
+	group.GET("/:username/unlock", utils.Handler(middleware.JWTMiddleware()), utils.Handler(api.UserApi.UnlockUser))
 }

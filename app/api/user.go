@@ -168,3 +168,65 @@ func (user *userApi) ResetContent(ctx *utils.Context) {
 	}
 	ctx.Success(nil)
 }
+
+func (user *userApi) LockUser(ctx *utils.Context) {
+	var info define.UriInfo
+	errInfo := ctx.ShouldBindUri(&info)
+	if errInfo != nil {
+		ctx.InternalError(errInfo.Error())
+		return
+	}
+
+	if !service.UserService.SystemSuper(ctx) {
+		ctx.Forbidden(2, "Permission Denied.")
+		return
+	}
+
+	exists, err := service.UserService.ExistsUser(info.UserName)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	} else if !exists {
+		ctx.BadRequest(1, "User Not Found")
+		return
+	}
+
+	err = service.UserService.ModifyUserBanstate(info.UserName, true)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	ctx.Success(nil)
+}
+
+func (user *userApi) UnlockUser(ctx *utils.Context) {
+	var info define.UriInfo
+	errInfo := ctx.ShouldBindUri(&info)
+	if errInfo != nil {
+		ctx.InternalError(errInfo.Error())
+		return
+	}
+
+	if !service.UserService.SystemSuper(ctx) {
+		ctx.Forbidden(2, "Permission Denied.")
+		return
+	}
+
+	exists, err := service.UserService.ExistsUser(info.UserName)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	} else if !exists {
+		ctx.BadRequest(1, "User Not Found")
+		return
+	}
+
+	err = service.UserService.ModifyUserBanstate(info.UserName, false)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	ctx.Success(nil)
+}

@@ -117,3 +117,7 @@ func (user *userService) ModifyUserIdentity(username string, identity int) error
 func (user *userService) ModifyUserPassword(username string, password string) error {
 	return dao.UserDao.ModifyUserPassword(username, password)
 }
+
+func (user *userService) ModifyUserBanstate(username string, ban bool) error {
+	return dao.UserDao.ModifyUserBanstate(username, ban)
+}

@@ -113,3 +113,14 @@ func (user *userDao) ModifyUserPassword(username string, password string) error 
 	})
 	return err
 }
+
+func (user *userDao) ModifyUserBanstate(username string, ban bool) error {
+	this_user, err := user.GetUserByName(username)
+	if err != nil {
+		return err
+	}
+	err = user.Update(this_user.ID, map[string]interface{}{
+		"ban": ban,
+	})
+	return err
+}
