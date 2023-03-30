@@ -1,13 +1,39 @@
 package main
 
-import "github.com/gin-gonic/gin"
+import (
+	"asset-management/app/api"
+	"asset-management/middleware"
+	"asset-management/routers"
+	"os"
+
+	"github.com/gin-gonic/gin"
+)
 
 func main() {
+	api.Initial()
 	r := gin.Default()
+	// r.Use(func(ctx *gin.Context) {
+	// 	ctx.Header("Access-Control-Allow-Origin", "http://0.0.0.0:8080")
+	// 	ctx.Header("Access-Control-Allow-Credentials", "true")
+	// 	ctx.Next()
+	// })
+
+	r.Use(middleware.Cors())
+
+	routers.Router.Init(r)
+
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "pong",
 		})
 	})
-	r.Run() // 监听并在 0.0.0.0:8080 上启动服务
+	if gin.Mode() == gin.DebugMode {
+		if os.Getenv("DEBUG") == "" {
+			r.Run("0.0.0.0:8080")
+		} else {
+			r.Run("0.0.0.0:80")
+		}
+	} else {
+		r.Run("0.0.0.0:8080")
+	}
 }
