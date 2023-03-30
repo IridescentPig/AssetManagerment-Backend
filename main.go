@@ -2,6 +2,7 @@ package main
 
 import (
 	"asset-management/app/api"
+	"asset-management/middleware"
 	"asset-management/routers"
 	"os"
 
@@ -11,11 +12,13 @@ import (
 func main() {
 	api.Initial()
 	r := gin.Default()
-	r.Use(func(ctx *gin.Context) {
-		ctx.Header("Access-Control-Allow-Origin", "http://0.0.0.0:8080, AssetManagement-Frontend-dev-BinaryAbstract.app.secoder.net")
-		ctx.Header("Access-Control-Allow-Credentials", "true")
-		ctx.Next()
-	})
+	// r.Use(func(ctx *gin.Context) {
+	// 	ctx.Header("Access-Control-Allow-Origin", "http://0.0.0.0:8080")
+	// 	ctx.Header("Access-Control-Allow-Credentials", "true")
+	// 	ctx.Next()
+	// })
+
+	r.Use(middleware.Cors())
 
 	routers.Router.Init(r)
 

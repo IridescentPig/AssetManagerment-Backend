@@ -115,6 +115,7 @@ func (user *userService) ModifyUserIdentity(username string, identity int) error
 }
 
 func (user *userService) ModifyUserPassword(username string, password string) error {
+	password = utils.CreateMD5(password)
 	return dao.UserDao.ModifyUserPassword(username, password)
 }
 

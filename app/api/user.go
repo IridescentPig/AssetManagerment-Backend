@@ -25,7 +25,7 @@ func init() {
 func (user *userApi) UserRegister(ctx *utils.Context) {
 	var req define.UserRegisterReq
 
-	if err := ctx.MustBindWith(&req, binding.Form); err != nil {
+	if err := ctx.MustBindWith(&req, binding.JSON); err != nil {
 		ctx.BadRequest(-1, "Invalid request body.")
 		return
 	}
@@ -51,7 +51,7 @@ func (user *userApi) UserLogin(ctx *utils.Context) {
 	var req define.UserLoginReq
 	var this_user *model.User
 
-	if err := ctx.MustBindWith(&req, binding.Form); err != nil {
+	if err := ctx.MustBindWith(&req, binding.JSON); err != nil {
 		ctx.BadRequest(-1, "Invalid request body.")
 		return
 	}
@@ -66,6 +66,7 @@ func (user *userApi) UserLogin(ctx *utils.Context) {
 		return
 	} else if this_user.Ban {
 		ctx.BadRequest(3, "User Banned")
+		return
 	}
 
 	data := struct {
