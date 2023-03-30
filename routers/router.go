@@ -19,18 +19,18 @@ func init() {
 }
 
 func (router *router) Init(r *gin.Engine) *gin.Engine {
-	r.NoRoute(utils.Handler(routeNotFound))
-	r.NoMethod(utils.Handler(methodNotFound))
+	r.NoRoute(utils.Handler(RouteNotFound))
+	r.NoMethod(utils.Handler(MethodNotFound))
 
 	UserRouter.Init(r.Group("/user"))
 
 	return r
 }
 
-func routeNotFound(ctx *utils.Context) {
+func RouteNotFound(ctx *utils.Context) {
 	ctx.NotFound(1, "Router not found.")
 }
 
-func methodNotFound(ctx *utils.Context) {
+func MethodNotFound(ctx *utils.Context) {
 	ctx.NotFound(1, "Method not found.")
 }

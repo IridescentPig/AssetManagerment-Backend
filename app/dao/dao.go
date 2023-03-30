@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/mysql"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -29,6 +30,30 @@ func Initial() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	var sqlDB *sql.DB
+	sqlDB, err = db.DB()
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = sqlDB.Ping()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	db.AutoMigrate(&model.Entity{}, &model.Department{}, &model.User{})
+
+	if !db.Migrator().HasTable(&model.User{}) {
+		log.Fatal("database error")
+	}
+}
+
+func InitForTest() {
+	var err error
+	db, err = gorm.Open(sqlite.Open("file::memory:?cache=shared"))
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	var sqlDB *sql.DB
 	sqlDB, err = db.DB()
 	if err != nil {
