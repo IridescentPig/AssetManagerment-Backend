@@ -11,6 +11,11 @@ import (
 func main() {
 	api.Initial()
 	r := gin.Default()
+	r.Use(func(ctx *gin.Context) {
+		ctx.Header("Access-Control-Allow-Origin", "http://localhost:8080, AssetManagement-Frontend-dev-BinaryAbstract.app.secoder.net, ")
+		ctx.Header("Access-Control-Allow-Credentials", "true")
+		ctx.Next()
+	})
 
 	routers.Router.Init(r)
 
