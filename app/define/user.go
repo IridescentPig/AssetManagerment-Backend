@@ -6,13 +6,13 @@ import "github.com/dgrijalva/jwt-go"
 .*Req struct are strictly defined according to the api
 */
 type UserRegisterReq struct {
-	UserName string `form:"userName" binding:"required" json:"userName"`
-	Password string `form:"password" binding:"required" json:"password"`
+	UserName string `form:"userName" binding:"required" json:"userName" map:"userName,omitempty"`
+	Password string `form:"password" binding:"required" json:"password" map:"password,omitempty"`
 }
 
 type UserLoginReq struct {
-	UserName string `form:"userName" binding:"required" json:"userName"`
-	Password string `form:"password" binding:"required" json:"password"`
+	UserName string `form:"userName" binding:"required" json:"userName" map:"userName,omitempty"`
+	Password string `form:"password" binding:"required" json:"password" map:"password,omitempty"`
 }
 
 type UriInfo struct {
