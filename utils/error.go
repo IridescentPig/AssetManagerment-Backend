@@ -6,7 +6,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func DB_error(result *gorm.DB) error {
+func DBError(result *gorm.DB) error {
 	err := result.Error
 	if err != nil {
 		log.Println(err)

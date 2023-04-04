@@ -2,7 +2,6 @@ package dao
 
 import (
 	"asset-management/app/model"
-	"database/sql"
 	"log"
 	"os"
 
@@ -13,6 +12,23 @@ import (
 )
 
 var db *gorm.DB
+
+func connect() {
+	sqlDB, err := db.DB()
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = sqlDB.Ping()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	db.AutoMigrate(&model.Entity{}, &model.Department{}, &model.User{})
+
+	if !db.Migrator().HasTable(&model.User{}) {
+		log.Fatal("database error")
+	}
+}
 
 func Initial() {
 	var err error
@@ -30,21 +46,7 @@ func Initial() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	var sqlDB *sql.DB
-	sqlDB, err = db.DB()
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = sqlDB.Ping()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	db.AutoMigrate(&model.Entity{}, &model.Department{}, &model.User{})
-
-	if !db.Migrator().HasTable(&model.User{}) {
-		log.Fatal("database error")
-	}
+	connect()
 }
 
 func InitForTest() {
@@ -54,19 +56,5 @@ func InitForTest() {
 		log.Fatal(err)
 	}
 
-	var sqlDB *sql.DB
-	sqlDB, err = db.DB()
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = sqlDB.Ping()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	db.AutoMigrate(&model.Entity{}, &model.Department{}, &model.User{})
-
-	if !db.Migrator().HasTable(&model.User{}) {
-		log.Fatal("database error")
-	}
+	connect()
 }
