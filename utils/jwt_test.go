@@ -27,13 +27,13 @@ func TestCreateToken(t *testing.T) {
 		t.Fatalf("Token generation error.")
 	}
 
-	t.Logf("Token is %s.", token)
+	// t.Logf("Token is %s.", token)
 }
 
 func TestParseToken(t *testing.T) {
 	var err error
 
-	t.Logf("Token is %s.", token)
+	// t.Logf("Token is %s.", token)
 	claims, err = ParseToken(token)
 
 	if IsTokenExpiredError(err) {
