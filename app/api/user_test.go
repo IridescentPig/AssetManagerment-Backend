@@ -387,11 +387,50 @@ func TestAdmin(t *testing.T) {
 	}
 
 	{
+		req := GetRequest(http.MethodPatch, "/user/test2", headerJsonToken, GetFormBody(UserReset))
+		res = httptest.NewRecorder()
+		r.ServeHTTP(res, req)
+
+		assert.Equal(t, http.StatusBadRequest, res.Result().StatusCode, "response failed")
+	}
+
+	{
+		UserReset.Method = 5
+		req := GetRequest(http.MethodPatch, "/user/test2", headerJsonToken, GetJsonBody(UserReset))
+		res = httptest.NewRecorder()
+		r.ServeHTTP(res, req)
+
+		assert.Equal(t, http.StatusBadRequest, res.Result().StatusCode, "response failed")
+	}
+
+	{
 		req := GetRequest(http.MethodGet, "/user/test2/lock", headerJsonToken, GetJsonBody(UserReset))
 		res = httptest.NewRecorder()
 		r.ServeHTTP(res, req)
 
 		assert.Equal(t, http.StatusOK, res.Result().StatusCode, "response failed")
+	}
+
+	UserLogin = define.UserLoginReq{
+		UserName: "test2",
+		Password: "e10adc3949ba59abbe56e057f20f883e",
+	}
+
+	{
+		req := GetRequest(http.MethodPost, "/user/login", headerJsonToken, GetJsonBody(UserLogin))
+		res = httptest.NewRecorder()
+		r.ServeHTTP(res, req)
+
+		assert.Equal(t, http.StatusBadRequest, res.Result().StatusCode, "response failed")
+	}
+
+	{
+		UserLogin.Password = "834932849382"
+		req := GetRequest(http.MethodPost, "/user/login", headerJsonToken, GetJsonBody(UserLogin))
+		res = httptest.NewRecorder()
+		r.ServeHTTP(res, req)
+
+		assert.Equal(t, http.StatusBadRequest, res.Result().StatusCode, "response failed")
 	}
 
 	{
