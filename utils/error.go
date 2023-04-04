@@ -14,7 +14,7 @@ func DBError(result *gorm.DB) error {
 	return err
 }
 
-func Service_error(code int, info string) (int, string) {
+func ServiceError(code int, info string) (int, string) {
 	log.Println(info)
 	return code, info
 }

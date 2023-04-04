@@ -3,7 +3,9 @@ package utils
 import (
 	"asset-management/app/define"
 	"testing"
+	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -49,4 +51,50 @@ func TestParseToken(t *testing.T) {
 	assert.Equal(t, false, claims.EntitySuper)
 	assert.Equal(t, false, claims.DepartmentSuper)
 	assert.Equal(t, false, claims.DepartmentSuper)
+
+	nowTime := time.Now()
+	expiredTime := nowTime.Add(time.Hour)
+	stdClaims := jwt.StandardClaims{
+		IssuedAt:  nowTime.Unix(),
+		NotBefore: expiredTime.Unix(),
+		ExpiresAt: nowTime.Unix(),
+	}
+	tokenObj := jwt.NewWithClaims(jwt.SigningMethodHS256, stdClaims)
+	token, err = tokenObj.SignedString([]byte(secretTokenSalt))
+	assert.Equal(t, nil, err, "jwt error")
+
+	claims, err = ParseToken(token)
+	assert.Equal(t, ErrTokenInvalid, err, "jwt error")
+
+	nowTime = time.Now()
+	m, _ := time.ParseDuration("-2m")
+	issuedTime := nowTime.Add(m)
+	m, _ = time.ParseDuration("-1m")
+	expiredTime = nowTime.Add(m)
+	stdClaims = jwt.StandardClaims{
+		IssuedAt:  issuedTime.Unix(),
+		NotBefore: issuedTime.Unix(),
+		ExpiresAt: expiredTime.Unix(),
+	}
+	tokenObj = jwt.NewWithClaims(jwt.SigningMethodHS256, stdClaims)
+	token, err = tokenObj.SignedString([]byte(secretTokenSalt))
+	assert.Equal(t, nil, err, "jwt error")
+
+	claims, err = ParseToken(token)
+	assert.Equal(t, ErrTokenExpire, err, "jwt error")
+
+	nowTime = time.Now()
+	expiredTime = nowTime.Add(time.Hour)
+	mapClaims := jwt.MapClaims{
+		"id":       1,
+		"username": "test",
+		"nbf":      nowTime.Unix(),
+		"iat":      expiredTime.Unix(),
+	}
+	tokenObj = jwt.NewWithClaims(jwt.SigningMethodHS256, mapClaims)
+	token, err = tokenObj.SignedString([]byte(secretTokenSalt))
+	assert.Equal(t, nil, err, "jwt error")
+
+	claims, err = ParseToken(token)
+	assert.Equal(t, ErrTokenInvalid, err, "jwt error")
 }
