@@ -23,27 +23,27 @@ func init() {
 
 func (user *userDao) Create(newUser model.User) error {
 	result := db.Model(&model.User{}).Create(&newUser)
-	return utils.DB_error(result)
+	return utils.DBError(result)
 }
 
 func (user *userDao) Update(id uint, data map[string]interface{}) error {
 	result := db.Model(&model.User{}).Where("id = ?", id).Updates(data)
-	return utils.DB_error(result)
+	return utils.DBError(result)
 }
 
 func (user *userDao) UpdateByName(username string, data map[string]interface{}) error {
 	result := db.Model(&model.User{}).Where("username = ?", username).Updates(data)
-	return utils.DB_error(result)
+	return utils.DBError(result)
 }
 
 func (user *userDao) Delete(id []uint) error {
 	result := db.Model(&model.User{}).Where("id in (?)", id).Delete(&model.User{})
-	return utils.DB_error(result)
+	return utils.DBError(result)
 }
 
 func (user *userDao) AllUser() (list []model.User, err error) {
 	result := db.Model(&model.User{}).Find(&list)
-	err = utils.DB_error(result)
+	err = utils.DBError(result)
 	return
 }
 
@@ -53,46 +53,49 @@ func (user *userDao) GetUserByName(username string) (*model.User, error) {
 	if result.Error == gorm.ErrRecordNotFound {
 		return nil, nil
 	}
-	return ret, utils.DB_error(result)
+	return ret, utils.DBError(result)
 }
 
 func (user *userDao) GetUsersByNames(username []string) (list []model.User, err error) {
-	result := db.Model(&model.User{}).Where("username = ?", username).Find(&list)
-	err = utils.DB_error(result)
+	result := db.Model(&model.User{}).Where("username IN ?", username).Order("id").Find(&list)
+	err = utils.DBError(result)
 	return
 }
 
 func (user *userDao) UserCount() (count int64, err error) {
 	result := db.Model(&model.User{}).Count(&count)
-	err = utils.DB_error(result)
+	err = utils.DBError(result)
 	return
 }
 
 func (user *userDao) ModifyUserIdentity(username string, identity int) error {
-	this_user, err := user.GetUserByName(username)
+	thisUser, err := user.GetUserByName(username)
 	if err != nil {
 		return err
 	}
+	if thisUser == nil {
+		return errors.New("user doesn't exist")
+	}
 	if identity == 0 {
-		err = user.Update(this_user.ID, map[string]interface{}{
+		err = user.Update(thisUser.ID, map[string]interface{}{
 			"system_super":     false,
 			"entity_super":     false,
 			"department_super": false,
 		})
 	} else if identity == 1 {
-		err = user.Update(this_user.ID, map[string]interface{}{
+		err = user.Update(thisUser.ID, map[string]interface{}{
 			"system_super":     false,
 			"entity_super":     false,
 			"department_super": true,
 		})
 	} else if identity == 2 {
-		err = user.Update(this_user.ID, map[string]interface{}{
+		err = user.Update(thisUser.ID, map[string]interface{}{
 			"system_super":     false,
 			"entity_super":     true,
 			"department_super": false,
 		})
 	} else if identity == 3 {
-		err = user.Update(this_user.ID, map[string]interface{}{
+		err = user.Update(thisUser.ID, map[string]interface{}{
 			"system_super":     true,
 			"entity_super":     false,
 			"department_super": false,
@@ -104,22 +107,28 @@ func (user *userDao) ModifyUserIdentity(username string, identity int) error {
 }
 
 func (user *userDao) ModifyUserPassword(username string, password string) error {
-	this_user, err := user.GetUserByName(username)
+	thisUser, err := user.GetUserByName(username)
 	if err != nil {
 		return err
 	}
-	err = user.Update(this_user.ID, map[string]interface{}{
+	if thisUser == nil {
+		return errors.New("user doesn't exist")
+	}
+	err = user.Update(thisUser.ID, map[string]interface{}{
 		"password": password,
 	})
 	return err
 }
 
 func (user *userDao) ModifyUserBanstate(username string, ban bool) error {
-	this_user, err := user.GetUserByName(username)
+	thisUser, err := user.GetUserByName(username)
 	if err != nil {
 		return err
 	}
-	err = user.Update(this_user.ID, map[string]interface{}{
+	if thisUser == nil {
+		return errors.New("user doesn't exist")
+	}
+	err = user.Update(thisUser.ID, map[string]interface{}{
 		"ban": ban,
 	})
 	return err

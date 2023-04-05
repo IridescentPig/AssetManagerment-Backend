@@ -33,30 +33,30 @@ func (user *userService) CreateUser(username, password string) error {
 
 func (user *userService) VerifyPasswordAndGetUser(username, password string) (string, *model.User, error) {
 	password = utils.CreateMD5(password)
-	this_user, err := dao.UserDao.GetUserByName(username)
+	thisUser, err := dao.UserDao.GetUserByName(username)
 	if err != nil {
 		return "", nil, err
 	}
-	if this_user == nil || this_user.Password != password {
+	if thisUser == nil || thisUser.Password != password {
 		return "", nil, nil
 	}
 	userInfo := define.UserBasicInfo{
-		UserID:          this_user.ID,
-		UserName:        this_user.UserName,
-		EntitySuper:     this_user.EntitySuper,
-		DepartmentSuper: this_user.DepartmentSuper,
-		SystemSuper:     this_user.SystemSuper,
+		UserID:          thisUser.ID,
+		UserName:        thisUser.UserName,
+		EntitySuper:     thisUser.EntitySuper,
+		DepartmentSuper: thisUser.DepartmentSuper,
+		SystemSuper:     thisUser.SystemSuper,
 	}
 	token, err := utils.CreateToken(userInfo)
 	if err != nil {
 		return "", nil, err
 	}
-	return token, this_user, nil
+	return token, thisUser, nil
 }
 
 func (user *userService) ExistsUser(username string) (bool, error) {
-	this_user, err := dao.UserDao.GetUserByName(username)
-	if err != nil || this_user == nil {
+	thisUser, err := dao.UserDao.GetUserByName(username)
+	if err != nil || thisUser == nil {
 		return false, err
 	}
 	return true, nil

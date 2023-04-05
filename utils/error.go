@@ -6,7 +6,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func DB_error(result *gorm.DB) error {
+func DBError(result *gorm.DB) error {
 	err := result.Error
 	if err != nil {
 		log.Println(err)
@@ -14,7 +14,7 @@ func DB_error(result *gorm.DB) error {
 	return err
 }
 
-func Service_error(code int, info string) (int, string) {
+func ServiceError(code int, info string) (int, string) {
 	log.Println(info)
 	return code, info
 }
