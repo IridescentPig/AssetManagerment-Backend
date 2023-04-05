@@ -91,3 +91,9 @@ func (department *departmentDao) GetDepartmentAllUser(query_department model.Dep
 	}
 	return
 }
+
+// department and entity
+func (department *departmentDao) GetDepartmentEntity(query_department model.Department) (entity model.Entity, err error) {
+	err = utils.DBError(db.Model(&query_department).Where("ID = ?", query_department.ID).Preload("entity").Find(&entity))
+	return
+}

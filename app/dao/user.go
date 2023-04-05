@@ -172,3 +172,31 @@ func (user *userDao) ModifyUserEntity(username string, entity model.Entity) erro
 	})
 	return err
 }
+
+// User Department Part
+func (user *userDao) GetUserDepartment(username string) (entity model.Department, err error) {
+	thisUser, err := user.GetUserByName(username)
+	if err != nil {
+		return
+	}
+	if thisUser == nil {
+		err = errors.New("user doesn't exist")
+		return
+	}
+	db.Model(&thisUser).Where("ID = ?", thisUser.ID).Preload("department").Find(&entity)
+	return
+}
+
+func (user *userDao) ModifyUserDepartment(username string, department model.Department) error {
+	thisUser, err := user.GetUserByName(username)
+	if err != nil {
+		return err
+	}
+	if thisUser == nil {
+		return errors.New("user doesn't exist")
+	}
+	err = user.Update(thisUser.ID, map[string]interface{}{
+		"department": department,
+	})
+	return err
+}

@@ -62,3 +62,14 @@ func (entity *entityDao) GetEntityAllUser(query_entity model.Entity) (users []*m
 	err = utils.DBError(db.Model(&query_entity).Where("ID = ?", query_entity.ID).Preload("user").Find(&users))
 	return
 }
+
+// entity and department
+func (entity *entityDao) GetEntityAllDepartment(query_entity model.Entity) (departments []*model.Department, err error) {
+	err = utils.DBError(db.Model(&query_entity).Where("ID = ?", query_entity.ID).Preload("department").Find(&departments))
+	return
+}
+
+func (entity *entityDao) GetEntitySubDepartment(query_entity model.Entity) (departments []*model.Department, err error) {
+	err = utils.DBError(db.Model(&query_entity).Where("ID = ?", query_entity.ID).Preload("department", "parent_id = 0 AND entity_id = ?", query_entity.ID).Find(&departments))
+	return
+}
