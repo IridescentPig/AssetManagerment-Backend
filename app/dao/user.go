@@ -47,6 +47,17 @@ func (user *userDao) AllUser() (list []model.User, err error) {
 	return
 }
 
+// 预计给分页器使用
+func (user *userDao) GetLimitUser(begin int, length int) (list []model.User, err error) {
+	if begin <= 0 || length <= 0 {
+		err = errors.New("invalid number")
+		return
+	}
+	result := db.Model(&model.User{}).Find(&list).Offset(begin - 1).Limit(length)
+	err = utils.DBError(result)
+	return
+}
+
 func (user *userDao) GetUserByName(username string) (*model.User, error) {
 	ret := &model.User{}
 	result := db.Model(&model.User{}).Where("username = ?", username).First(ret)
@@ -130,6 +141,34 @@ func (user *userDao) ModifyUserBanstate(username string, ban bool) error {
 	}
 	err = user.Update(thisUser.ID, map[string]interface{}{
 		"ban": ban,
+	})
+	return err
+}
+
+// User Entity Part
+func (user *userDao) GetUserEntity(username string) (entity model.Entity, err error) {
+	thisUser, err := user.GetUserByName(username)
+	if err != nil {
+		return
+	}
+	if thisUser == nil {
+		err = errors.New("user doesn't exist")
+		return
+	}
+	err = db.Model(&thisUser).Association("Entity").Find(&entity)
+	return
+}
+
+func (user *userDao) ModifyUserEntity(username string, entity model.Entity) error {
+	thisUser, err := user.GetUserByName(username)
+	if err != nil {
+		return err
+	}
+	if thisUser == nil {
+		return errors.New("user doesn't exist")
+	}
+	err = user.Update(thisUser.ID, map[string]interface{}{
+		"entity": entity,
 	})
 	return err
 }
