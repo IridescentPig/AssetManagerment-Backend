@@ -57,6 +57,12 @@ func (entity *entityDao) EntityCount() (count int64, err error) {
 	return
 }
 
+// entity and user
+func (entity *entityDao) GetEntityAllUser(query_entity model.Entity) (users []*model.User, err error) {
+	err = db.Model(&query_entity).Association("User").Find(&users)
+	return
+}
+
 // func (entity *entityDao) Create(entityname string) error {
 // 	newEntity := model.Entity{Name: entityname}
 // 	result := db.Model(&model.Entity{}).Create(&newEntity)
