@@ -126,4 +126,10 @@ func TestUser(t *testing.T) {
 		log.Fatal(err)
 	}
 	assert.Equal(t, true, userInfo.Ban, "database error")
+
+	err = UserDao.Delete([]uint{1})
+	assert.Equal(t, nil, err, "database error")
+	count, err = UserDao.UserCount()
+	assert.Equal(t, nil, err, "database error")
+	assert.Equal(t, int64(2), count, "database error")
 }
