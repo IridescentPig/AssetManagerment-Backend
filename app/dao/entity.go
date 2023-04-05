@@ -45,8 +45,8 @@ func (entity *entityDao) GetEntityByName(name string) (*model.Entity, error) {
 	return ret, utils.DBError(result)
 }
 
-func (entity *entityDao) GetUsersByNames(name []string) (list []model.Entity, err error) {
-	result := db.Model(&model.Entity{}).Where("username IN (?)", name).Order("id").Find(&list)
+func (entity *entityDao) GetEntitysByNames(name []string) (list []model.Entity, err error) {
+	result := db.Model(&model.Entity{}).Where("name IN (?)", name).Order("id").Find(&list)
 	err = utils.DBError(result)
 	return
 }
