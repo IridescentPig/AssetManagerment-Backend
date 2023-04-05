@@ -155,7 +155,7 @@ func (user *userDao) GetUserEntity(username string) (entity model.Entity, err er
 		err = errors.New("user doesn't exist")
 		return
 	}
-	db.Model(&thisUser).Where("ID = ?", thisUser.ID).Preload("entity").Find(&entity)
+	db.Model(&thisUser).Where("id = ?", thisUser.ID).Preload("entity").Find(&entity)
 	return
 }
 
@@ -183,7 +183,7 @@ func (user *userDao) GetUserDepartment(username string) (entity model.Department
 		err = errors.New("user doesn't exist")
 		return
 	}
-	db.Model(&thisUser).Where("ID = ?", thisUser.ID).Preload("department").Find(&entity)
+	db.Model(&thisUser).Where("id = ?", thisUser.ID).Preload("department").Find(&entity)
 	return
 }
 

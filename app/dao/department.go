@@ -30,6 +30,11 @@ func (department *departmentDao) Delete(id []uint) error {
 	return utils.DBError(result)
 }
 
+func (department *departmentDao) Update(id uint, data map[string]interface{}) error {
+	result := db.Model(&model.Department{}).Where("id = ?", id).Updates(data)
+	return utils.DBError(result)
+}
+
 func (department *departmentDao) AllDepartment() (list []model.Department, err error) {
 	result := db.Model(&model.Department{}).Find(&list)
 	err = utils.DBError(result)
@@ -68,6 +73,12 @@ func (department *departmentDao) GetParentDepartment(query_department model.Depa
 	return
 }
 
+func (department *departmentDao) ModifyParentDepartment(child_department model.Department, parent_department model.Department) error {
+	return department.Update(child_department.ID, map[string]interface{}{
+		"parent": parent_department,
+	})
+}
+
 // department and user
 func (department *departmentDao) GetDepartmentDirectUser(query_department model.Department) (users []*model.User, err error) {
 	err = utils.DBError(db.Model(&query_department).Where("ID = ?", query_department.ID).Preload("user").Find(&users))
@@ -96,4 +107,10 @@ func (department *departmentDao) GetDepartmentAllUser(query_department model.Dep
 func (department *departmentDao) GetDepartmentEntity(query_department model.Department) (entity model.Entity, err error) {
 	err = utils.DBError(db.Model(&query_department).Where("ID = ?", query_department.ID).Preload("entity").Find(&entity))
 	return
+}
+
+func (department *departmentDao) ModifyDepartmentEntity(query_department model.Department, target_entity model.Entity) error {
+	return department.Update(query_department.ID, map[string]interface{}{
+		"entity": target_entity,
+	})
 }

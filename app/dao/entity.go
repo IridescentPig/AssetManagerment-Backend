@@ -30,6 +30,11 @@ func (entity *entityDao) Delete(id []uint) error {
 	return utils.DBError(result)
 }
 
+func (entity *entityDao) Update(id uint, data map[string]interface{}) error {
+	result := db.Model(&model.Entity{}).Where("id = ?", id).Updates(data)
+	return utils.DBError(result)
+}
+
 func (entity *entityDao) AllEntity() (list []model.Entity, err error) {
 	result := db.Model(&model.Entity{}).Find(&list)
 	err = utils.DBError(result)
@@ -59,17 +64,17 @@ func (entity *entityDao) EntityCount() (count int64, err error) {
 
 // entity and user
 func (entity *entityDao) GetEntityAllUser(query_entity model.Entity) (users []*model.User, err error) {
-	err = utils.DBError(db.Model(&query_entity).Where("ID = ?", query_entity.ID).Preload("user").Find(&users))
+	err = utils.DBError(db.Model(&query_entity).Where("id = ?", query_entity.ID).Preload("user").Find(&users))
 	return
 }
 
 // entity and department
 func (entity *entityDao) GetEntityAllDepartment(query_entity model.Entity) (departments []*model.Department, err error) {
-	err = utils.DBError(db.Model(&query_entity).Where("ID = ?", query_entity.ID).Preload("department").Find(&departments))
+	err = utils.DBError(db.Model(&query_entity).Where("id = ?", query_entity.ID).Preload("department").Find(&departments))
 	return
 }
 
 func (entity *entityDao) GetEntitySubDepartment(query_entity model.Entity) (departments []*model.Department, err error) {
-	err = utils.DBError(db.Model(&query_entity).Where("ID = ?", query_entity.ID).Preload("department", "parent_id = 0 AND entity_id = ?", query_entity.ID).Find(&departments))
+	err = utils.DBError(db.Model(&query_entity).Where("id = ?", query_entity.ID).Preload("department", "parent_id = 0 AND entity_id = ?", query_entity.ID).Find(&departments))
 	return
 }
