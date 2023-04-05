@@ -155,7 +155,7 @@ func (user *userDao) GetUserEntity(username string) (entity model.Entity, err er
 		err = errors.New("user doesn't exist")
 		return
 	}
-	err = db.Model(&thisUser).Association("Entity").Find(&entity)
+	db.Model(&thisUser).Where("ID = ?", thisUser.ID).Preload("entity").Find(&entity)
 	return
 }
 

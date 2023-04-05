@@ -13,3 +13,7 @@ type User struct {
 	SystemSuper     bool        `gorm:"column:system_super;default:false" json:"system_super"`
 	Ban             bool        `gorm:"column:ban;default:false" json:"-"`
 }
+
+func (User) TableName() string {
+	return "user"
+}

@@ -59,13 +59,18 @@ func (department *departmentDao) DepartmentCount() (count int64, err error) {
 
 // department and department
 func (department *departmentDao) GetSubDepartment(query_department model.Department) (departments []*model.Department, err error) {
-	err = db.Model(&query_department).Association("Department").Find(&departments)
+	err = utils.DBError(db.Model(&query_department).Where("parent_id = ?", query_department.ID).Find(&departments))
+	return
+}
+
+func (department *departmentDao) GetParentDepartment(query_department model.Department) (departments *model.Department, err error) {
+	err = utils.DBError(db.Model(&query_department).Where("id = ?", query_department.ParentID).Find(&departments))
 	return
 }
 
 // department and user
 func (department *departmentDao) GetDepartmentDirectUser(query_department model.Department) (users []*model.User, err error) {
-	err = db.Model(&query_department).Association("User").Find(&users)
+	err = utils.DBError(db.Model(&query_department).Where("ID = ?", query_department.ID).Preload("user").Find(&users))
 	return
 }
 
