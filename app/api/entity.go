@@ -6,6 +6,8 @@ import (
 	"asset-management/myerror"
 	"asset-management/utils"
 	"strconv"
+
+	"github.com/gin-gonic/gin/binding"
 )
 
 type entityApi struct {
@@ -19,6 +21,36 @@ func newEntityApi() *entityApi {
 
 func init() {
 	EntityApi = newEntityApi()
+}
+
+func (entity *entityApi) CreateEntity(ctx *utils.Context) {
+	isSystemSuper := service.UserService.SystemSuper(ctx)
+	if !isSystemSuper {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	var createReq define.CreateEntityReq
+	err := ctx.MustBindWith(&createReq, binding.JSON)
+	if err != nil {
+		ctx.BadRequest(myerror.INVALID_BODY, myerror.INVALID_BODY_INFO)
+		return
+	}
+	isExist, err := service.EntityService.ExistsEntityByName(createReq.Name)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	} else if isExist {
+		ctx.BadRequest(myerror.DUPLICATED_NAME, myerror.DUPLICATED_NAME_INFO)
+		return
+	}
+
+	err = service.EntityService.CreateEntity(createReq.Name)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+	ctx.Success(nil)
 }
 
 func (entity *entityApi) GetEntityList(ctx *utils.Context) {
@@ -45,7 +77,7 @@ func (entity *entityApi) GetEntityByID(ctx *utils.Context) {
 		ctx.InternalError(err.Error())
 		return
 	} else if !exists {
-		ctx.BadRequest(myerror.USER_NOTFOUND, myerror.USER_NOTFOUND_INFO)
+		ctx.BadRequest(myerror.USER_NOT_FOUND, myerror.USER_NOT_FOUND_INFO)
 		return
 	}
 	entityInfo, err := service.EntityService.GetEntityInfoByID(entityID)
@@ -60,4 +92,20 @@ func (entity *entityApi) GetEntityByID(ctx *utils.Context) {
 	}
 
 	ctx.Success(entityInfoRes)
+}
+
+/*
+获取实体下所有用户
+是否可以与 GetEntity 的响应合并？
+*/
+func (entity *entityApi) UsersInEntity(ctx *utils.Context) {
+
+}
+
+/*
+只获取最高一级的部门
+是否可以与 GetEntity 的响应合并？
+*/
+func (entity *entityApi) DepartmentsInEntity(ctx *utils.Context) {
+
 }
