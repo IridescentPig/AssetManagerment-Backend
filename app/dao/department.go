@@ -63,37 +63,56 @@ func (department *departmentDao) DepartmentCount() (count int64, err error) {
 }
 
 // department and department
-func (department *departmentDao) GetSubDepartment(query_department model.Department) (departments []*model.Department, err error) {
+func (department *departmentDao) GetSubDepartment(name string) (departments []*model.Department, err error) {
+	query_department, err := department.GetDepartmentByName(name)
+	if err != nil {
+		return
+	}
 	err = utils.DBError(db.Model(&query_department).Where("parent_id = ?", query_department.ID).Find(&departments))
 	return
 }
 
-func (department *departmentDao) GetParentDepartment(query_department model.Department) (departments *model.Department, err error) {
+func (department *departmentDao) GetParentDepartment(name string) (departments *model.Department, err error) {
+	query_department, err := department.GetDepartmentByName(name)
+	if err != nil {
+		return
+	}
 	err = utils.DBError(db.Model(&query_department).Where("id = ?", query_department.ParentID).Find(&departments))
 	return
 }
 
-func (department *departmentDao) ModifyParentDepartment(child_department model.Department, parent_department model.Department) error {
-	return department.Update(child_department.ID, map[string]interface{}{
-		"parent": parent_department,
-	})
+func (department *departmentDao) ModifyParentDepartment(child_name string, parent_name string) error {
+	child_department, err := department.GetDepartmentByName(child_name)
+	if err != nil {
+		return err
+	}
+	parent_department, err := department.GetDepartmentByName(parent_name)
+	if err != nil {
+		return err
+	}
+	child_department.ParentID = parent_department.ID
+	return utils.DBError(db.Session(&gorm.Session{FullSaveAssociations: true}).Updates(&child_department))
 }
 
 // department and user
-func (department *departmentDao) GetDepartmentDirectUser(query_department model.Department) (users []*model.User, err error) {
+func (department *departmentDao) GetDepartmentDirectUser(name string) (users []*model.User, err error) {
+	query_department, err := department.GetDepartmentByName(name)
+	if err != nil {
+		return
+	}
 	err = utils.DBError(db.Model(&query_department).Where("ID = ?", query_department.ID).Preload("user").Find(&users))
 	return
 }
 
-func (department *departmentDao) GetDepartmentAllUser(query_department model.Department) (users []*model.User, err error) {
-	direct_users, err := department.GetDepartmentDirectUser(query_department)
+func (department *departmentDao) GetDepartmentAllUser(name string) (users []*model.User, err error) {
+	direct_users, err := department.GetDepartmentDirectUser(name)
 	if err != nil {
 		return
 	}
 	users = append(users, direct_users...)
-	departments, err := department.GetSubDepartment(query_department)
+	departments, err := department.GetSubDepartment(name)
 	for _, dpm := range departments {
-		indirect_users, in_err := department.GetDepartmentAllUser(*dpm)
+		indirect_users, in_err := department.GetDepartmentAllUser(dpm.Name)
 		if in_err != nil {
 			err = in_err
 			return
@@ -104,13 +123,24 @@ func (department *departmentDao) GetDepartmentAllUser(query_department model.Dep
 }
 
 // department and entity
-func (department *departmentDao) GetDepartmentEntity(query_department model.Department) (entity model.Entity, err error) {
+func (department *departmentDao) GetDepartmentEntity(name string) (entity model.Entity, err error) {
+	query_department, err := department.GetDepartmentByName(name)
+	if err != nil {
+		return
+	}
 	err = utils.DBError(db.Model(&query_department).Where("ID = ?", query_department.ID).Preload("entity").Find(&entity))
 	return
 }
 
-func (department *departmentDao) ModifyDepartmentEntity(query_department model.Department, target_entity model.Entity) error {
-	return department.Update(query_department.ID, map[string]interface{}{
-		"entity": target_entity,
-	})
+func (department *departmentDao) ModifyDepartmentEntity(department_name string, entity_name string) error {
+	query_department, err := department.GetDepartmentByName(department_name)
+	if err != nil {
+		return err
+	}
+	target_entity, err := EntityDao.GetEntityByName(entity_name)
+	if err != nil {
+		return err
+	}
+	query_department.EntityID = target_entity.ID
+	return utils.DBError(db.Session(&gorm.Session{FullSaveAssociations: true}).Updates(&query_department))
 }

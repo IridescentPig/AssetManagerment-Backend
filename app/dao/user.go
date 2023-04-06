@@ -4,6 +4,7 @@ import (
 	"asset-management/app/model"
 	"asset-management/utils"
 	"errors"
+	"log"
 
 	"gorm.io/gorm"
 )
@@ -61,6 +62,18 @@ func (user *userDao) GetLimitUser(begin int, length int) (list []model.User, err
 func (user *userDao) GetUserByName(username string) (*model.User, error) {
 	ret := &model.User{}
 	result := db.Model(&model.User{}).Where("username = ?", username).First(ret)
+	department := &model.Department{}
+	err := db.Model(&ret).Association("Department").Find(&department)
+	if err != nil {
+		return nil, err
+	}
+	ret.Department = *department
+	entity := &model.Entity{}
+	err = db.Model(&ret).Association("Entity").Find(&entity)
+	if err != nil {
+		return nil, err
+	}
+	ret.Entity = *entity
 	if result.Error == gorm.ErrRecordNotFound {
 		return nil, nil
 	}
@@ -155,11 +168,13 @@ func (user *userDao) GetUserEntity(username string) (entity model.Entity, err er
 		err = errors.New("user doesn't exist")
 		return
 	}
-	db.Model(&thisUser).Where("id = ?", thisUser.ID).Preload("entity").Find(&entity)
+	entity = thisUser.Entity
+	//db.Model(&thisUser).Where("id = ?", thisUser.ID).Preload("entity").Find(&entity)
 	return
 }
 
 func (user *userDao) ModifyUserEntity(username string, entity model.Entity) error {
+	log.Print("entity: ", entity)
 	thisUser, err := user.GetUserByName(username)
 	if err != nil {
 		return err
@@ -167,14 +182,13 @@ func (user *userDao) ModifyUserEntity(username string, entity model.Entity) erro
 	if thisUser == nil {
 		return errors.New("user doesn't exist")
 	}
-	err = user.Update(thisUser.ID, map[string]interface{}{
-		"entity": entity,
-	})
+	thisUser.EntityID = entity.ID
+	err = utils.DBError(db.Session(&gorm.Session{FullSaveAssociations: true}).Updates(&thisUser))
 	return err
 }
 
 // User Department Part
-func (user *userDao) GetUserDepartment(username string) (entity model.Department, err error) {
+func (user *userDao) GetUserDepartment(username string) (department model.Department, err error) {
 	thisUser, err := user.GetUserByName(username)
 	if err != nil {
 		return
@@ -183,7 +197,8 @@ func (user *userDao) GetUserDepartment(username string) (entity model.Department
 		err = errors.New("user doesn't exist")
 		return
 	}
-	db.Model(&thisUser).Where("id = ?", thisUser.ID).Preload("department").Find(&entity)
+	department = thisUser.Department
+	//err = db.Model(&thisUser).Association("Department").Find(&department)
 	return
 }
 
@@ -195,8 +210,8 @@ func (user *userDao) ModifyUserDepartment(username string, department model.Depa
 	if thisUser == nil {
 		return errors.New("user doesn't exist")
 	}
-	err = user.Update(thisUser.ID, map[string]interface{}{
-		"department": department,
-	})
+	thisUser.DepartmentID = department.ID
+	err = utils.DBError(db.Session(&gorm.Session{FullSaveAssociations: true}).Updates(&thisUser))
+	//err = utils.DBError(db.Save(&thisUser))
 	return err
 }
