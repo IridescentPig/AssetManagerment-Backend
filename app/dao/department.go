@@ -44,6 +44,18 @@ func (department *departmentDao) AllDepartment() (list []model.Department, err e
 func (department *departmentDao) GetDepartmentByName(name string) (*model.Department, error) {
 	ret := &model.Department{}
 	result := db.Model(&model.Department{}).Where("name = ?", name).First(ret)
+	/*parent := &model.Department{}
+	err := db.Model(&ret).Association("Department").Find(&parent)
+	if err != nil {
+		return nil, err
+	}
+	ret.Parent = parent*/
+	entity := &model.Entity{}
+	err := db.Model(&ret).Association("Entity").Find(&entity)
+	if err != nil {
+		return nil, err
+	}
+	ret.Entity = *entity
 	if result.Error == gorm.ErrRecordNotFound {
 		return nil, nil
 	}
@@ -100,7 +112,7 @@ func (department *departmentDao) GetDepartmentDirectUser(name string) (users []*
 	if err != nil {
 		return
 	}
-	err = utils.DBError(db.Model(&query_department).Where("ID = ?", query_department.ID).Preload("user").Find(&users))
+	err = utils.DBError(db.Model(&model.User{}).Where("department_id = ?", query_department.ID).Find(&users))
 	return
 }
 
@@ -128,7 +140,7 @@ func (department *departmentDao) GetDepartmentEntity(name string) (entity model.
 	if err != nil {
 		return
 	}
-	err = utils.DBError(db.Model(&query_department).Where("ID = ?", query_department.ID).Preload("entity").Find(&entity))
+	entity = query_department.Entity
 	return
 }
 
@@ -141,6 +153,6 @@ func (department *departmentDao) ModifyDepartmentEntity(department_name string, 
 	if err != nil {
 		return err
 	}
-	query_department.EntityID = target_entity.ID
+	query_department.Entity = *target_entity
 	return utils.DBError(db.Session(&gorm.Session{FullSaveAssociations: true}).Updates(&query_department))
 }

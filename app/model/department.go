@@ -6,7 +6,7 @@ type Department struct {
 	ParentID uint        `gorm:"column:parent_id;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"parent_id"`
 	Parent   *Department `gorm:"foreignKey:ParentID;references:ID;default:null" json:"parent"`
 	EntityID uint        `gorm:"column:entity_id;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"entity_id"`
-	Entity   *Entity     `gorm:"foreignKey:EntityID;references:ID;default:null" json:"entity"`
+	Entity   Entity      `gorm:"foreignKey:EntityID;references:ID;default:null" json:"entity"`
 	//UserList       []*User       `gorm:"column:user_list;foreignKey:DepartmentID" json:"users"`
 	//DepartmentList []*Department `gorm:"column:department_list;foreignKey:ID" json:"departments"`
 }

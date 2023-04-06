@@ -243,4 +243,74 @@ func TestDepartmentEntity(t *testing.T) {
 
 	//new_department, err := DepartmentDao.GetDepartmentByName("test_department")
 	//log.Print("parent is: ", new_department.Parent.Name)
+
+	sd, err := DepartmentDao.GetSubDepartment("parent_department")
+	if err != nil {
+		log.Fatal(err)
+	}
+	assert.Equal(t, 1, len(sd), "database error")
+	assert.Equal(t, "test_department", sd[0].Name, "database error")
+
+	err = DepartmentDao.ModifyDepartmentEntity("parent_department", "test_entity")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	/*departments, err = DepartmentDao.AllDepartment()
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Print(departments)
+
+	entities, err = EntityDao.AllEntity()
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Print(entities)*/
+
+	se, err := DepartmentDao.GetDepartmentEntity("parent_department")
+	if err != nil {
+		log.Fatal(err)
+	}
+	assert.Equal(t, "test_entity", se.Name, "database error")
+
+	du, err := DepartmentDao.GetDepartmentDirectUser("parent_department")
+	if err != nil {
+		log.Fatal(err)
+	}
+	assert.Equal(t, 0, len(du), "database error")
+
+	au, err := DepartmentDao.GetDepartmentAllUser("parent_department")
+	if err != nil {
+		log.Fatal(err)
+	}
+	assert.Equal(t, 1, len(au), "database error")
+	assert.Equal(t, "test", au[0].UserName, "database error")
+
+	au, err = EntityDao.GetEntityAllUser("test_entity")
+	if err != nil {
+		log.Fatal(err)
+	}
+	//log.Print("au: ", au)
+	//log.Print(au[0].UserName)
+	assert.Equal(t, 1, len(au), "database error")
+	assert.Equal(t, "test", au[0].UserName, "database error")
+
+	ad, err := EntityDao.GetEntityAllDepartment("test_entity")
+	if err != nil {
+		log.Fatal(err)
+	}
+	//log.Print("ad: ", ad)
+	//log.Print(ad[0].Name)
+	assert.Equal(t, 1, len(ad), "database error")
+	assert.Equal(t, "parent_department", ad[0].Name, "database error")
+
+	sd, err = EntityDao.GetEntitySubDepartment("test_entity")
+	if err != nil {
+		log.Fatal(err)
+	}
+	//log.Print("sd: ", sd)
+	//log.Print(sd[0].Name)
+	assert.Equal(t, 1, len(sd), "database error")
+	assert.Equal(t, "parent_department", sd[0].Name, "database error")
 }

@@ -4,7 +4,6 @@ import (
 	"asset-management/app/model"
 	"asset-management/utils"
 	"errors"
-	"log"
 
 	"gorm.io/gorm"
 )
@@ -174,7 +173,6 @@ func (user *userDao) GetUserEntity(username string) (entity model.Entity, err er
 }
 
 func (user *userDao) ModifyUserEntity(username string, entity model.Entity) error {
-	log.Print("entity: ", entity)
 	thisUser, err := user.GetUserByName(username)
 	if err != nil {
 		return err
@@ -211,6 +209,9 @@ func (user *userDao) ModifyUserDepartment(username string, department model.Depa
 		return errors.New("user doesn't exist")
 	}
 	thisUser.DepartmentID = department.ID
+	if department.EntityID != 0 {
+		thisUser.EntityID = department.Entity.ID
+	}
 	err = utils.DBError(db.Session(&gorm.Session{FullSaveAssociations: true}).Updates(&thisUser))
 	//err = utils.DBError(db.Save(&thisUser))
 	return err

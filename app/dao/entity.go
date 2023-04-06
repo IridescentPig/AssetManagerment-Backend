@@ -63,18 +63,30 @@ func (entity *entityDao) EntityCount() (count int64, err error) {
 }
 
 // entity and user
-func (entity *entityDao) GetEntityAllUser(query_entity model.Entity) (users []*model.User, err error) {
-	err = utils.DBError(db.Model(&query_entity).Where("id = ?", query_entity.ID).Preload("user").Find(&users))
+func (entity *entityDao) GetEntityAllUser(name string) (users []*model.User, err error) {
+	query_entity, err := entity.GetEntityByName(name)
+	if err != nil {
+		return
+	}
+	err = utils.DBError(db.Model(&model.User{}).Where("entity_id = ?", query_entity.ID).Find(&users))
 	return
 }
 
 // entity and department
-func (entity *entityDao) GetEntityAllDepartment(query_entity model.Entity) (departments []*model.Department, err error) {
-	err = utils.DBError(db.Model(&query_entity).Where("id = ?", query_entity.ID).Preload("department").Find(&departments))
+func (entity *entityDao) GetEntityAllDepartment(name string) (departments []*model.Department, err error) {
+	query_entity, err := entity.GetEntityByName(name)
+	if err != nil {
+		return
+	}
+	err = utils.DBError(db.Model(&model.Department{}).Where("entity_id = ?", query_entity.ID).Find(&departments))
 	return
 }
 
-func (entity *entityDao) GetEntitySubDepartment(query_entity model.Entity) (departments []*model.Department, err error) {
-	err = utils.DBError(db.Model(&query_entity).Where("id = ?", query_entity.ID).Preload("department", "parent_id = 0 AND entity_id = ?", query_entity.ID).Find(&departments))
+func (entity *entityDao) GetEntitySubDepartment(name string) (departments []*model.Department, err error) {
+	query_entity, err := entity.GetEntityByName(name)
+	if err != nil {
+		return
+	}
+	err = utils.DBError(db.Model(&model.Department{}).Where("entity_id = ? and parent_id = 0", query_entity.ID).Find(&departments))
 	return
 }
