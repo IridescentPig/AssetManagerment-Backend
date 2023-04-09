@@ -2,7 +2,10 @@ package service
 
 import (
 	"asset-management/app/model"
+	"asset-management/myerror"
+	"asset-management/utils"
 	"errors"
+	"strconv"
 )
 
 type entityService struct{}
@@ -15,6 +18,17 @@ func newEntityService() *entityService {
 
 func init() {
 	EntityService = newEntityService()
+}
+
+func (entity *entityService) GetParamID(ctx *utils.Context) (uint, error) {
+	param := ctx.Param("id")
+	tempID, err := strconv.ParseUint(param, 10, 0)
+	if err != nil {
+		ctx.BadRequest(myerror.INVALID_PARAM, myerror.INVALID_PARAM_INFO)
+		return 0, err
+	}
+	entityID := uint(tempID)
+	return entityID, nil
 }
 
 func (entity *entityService) CreateEntity(name string) error {
@@ -43,4 +57,8 @@ func (entity *entityService) ExistsEntityByName(name string) (bool, error) {
 
 func (entity *entityService) GetEntityInfoByID(id uint) (*model.Entity, error) {
 	return &model.Entity{}, errors.New("")
+}
+
+func (entity *entityService) GetUsersUnderEntity(id uint) ([]*model.User, error) {
+	return []*model.User{}, nil
 }

@@ -5,7 +5,6 @@ import (
 	"asset-management/app/service"
 	"asset-management/myerror"
 	"asset-management/utils"
-	"strconv"
 
 	"github.com/gin-gonic/gin/binding"
 	"github.com/jinzhu/copier"
@@ -80,13 +79,10 @@ func (entity *entityApi) GetEntityList(ctx *utils.Context) {
 Handle func for GET /entity/:entity_id
 */
 func (entity *entityApi) GetEntityByID(ctx *utils.Context) {
-	param := ctx.Param("id")
-	tempID, err := strconv.ParseUint(param, 10, 0)
+	entityID, err := service.EntityService.GetParamID(ctx)
 	if err != nil {
-		ctx.BadRequest(myerror.INVALID_PARAM, myerror.INVALID_PARAM_INFO)
 		return
 	}
-	entityID := uint(tempID)
 
 	exists, err := service.EntityService.ExistsEntityByID(entityID)
 	if err != nil {
@@ -120,8 +116,21 @@ func (entity *entityApi) UsersInEntity(ctx *utils.Context) {
 		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
 		return
 	}
-
-	ctx.Success(nil)
+	entityID, err := service.EntityService.GetParamID(ctx)
+	if err != nil {
+		return
+	}
+	userList, err := service.EntityService.GetUsersUnderEntity(entityID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+	userListRes := []define.EntityUserInfo{}
+	copier.Copy(&userListRes, userList)
+	userListResponse := define.EntityUserListResponse{
+		UserList: userListRes,
+	}
+	ctx.Success(userListResponse)
 }
 
 /*
