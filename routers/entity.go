@@ -34,7 +34,7 @@ func (entity *entityRouter) routerNeedSystemSuper(group *gin.RouterGroup) {
 		group.GET("/list", utils.Handler(api.EntityApi.GetEntityList))
 		group.GET("/:entity_id", utils.Handler(api.EntityApi.GetEntityByID))
 		group.POST("/:entity_id/manager", utils.Handler(api.EntityApi.SetManager))
-		group.POST("/:entity_id/manager/:user_id", utils.Handler(api.EntityApi.DeleteManager))
+		group.DELETE("/:entity_id/manager/:user_id", utils.Handler(api.EntityApi.DeleteManager))
 	}
 }
 

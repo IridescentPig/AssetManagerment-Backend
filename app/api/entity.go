@@ -273,7 +273,7 @@ func (entity *entityApi) SetManager(ctx *utils.Context) {
 }
 
 /*
-Handle func for POST /entity/{entity_id}/manager/{user_id}
+Handle func for DELETE /entity/{entity_id}/manager/{user_id}
 */
 func (entity *entityApi) DeleteManager(ctx *utils.Context) {
 	// isSystemSuper := service.UserService.SystemSuper(ctx)

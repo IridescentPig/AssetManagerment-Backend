@@ -97,10 +97,15 @@ func (entity *entityService) GetAllDepartmentsUnderEntity(id uint) ([]*model.Dep
 
 func (entity *entityService) CreateManager(name string, password string, entityID uint) error {
 	password = utils.CreateMD5(password)
-	err := dao.UserDao.Create(model.User{
+	thisEntity, err := dao.EntityDao.GetEntityByID(entityID)
+	if err != nil {
+		return err
+	}
+	err = dao.UserDao.Create(model.User{
 		UserName:    name,
 		Password:    password,
 		EntityID:    entityID,
+		Entity:      thisEntity,
 		EntitySuper: true,
 	})
 	return err

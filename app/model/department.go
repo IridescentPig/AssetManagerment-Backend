@@ -9,6 +9,6 @@ type Department struct {
 	Entity   Entity      `gorm:"foreignKey:EntityID;references:ID;default:null" json:"entity"`
 }
 
-func (Department) TableName() string {
-	return "department"
-}
+// func (Department) TableName() string {
+// 	return "department"
+// }

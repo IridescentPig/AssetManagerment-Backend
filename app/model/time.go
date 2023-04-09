@@ -1,6 +1,7 @@
 package model
 
 import (
+	"database/sql/driver"
 	"fmt"
 	"time"
 )
@@ -23,14 +24,32 @@ func (t ModelTime) MarshalJSON() ([]byte, error) {
 	return []byte(stamp), nil
 }
 
-func (t ModelTime) Time() time.Time {
-	return time.Time(t)
+// func (t ModelTime) Time() time.Time {
+// 	return time.Time(t)
+// }
+
+// func (t ModelTime) Format() string {
+// 	return time.Time(t).Format(timeFormart)
+// }
+
+// func (t ModelTime) String() string {
+// 	return time.Time(t).Format(timeFormart)
+// }
+
+func (t ModelTime) Value() (driver.Value, error) {
+	var zeroTime time.Time
+	ti := time.Time(t)
+	if ti.UnixNano() == zeroTime.UnixNano() {
+		return nil, nil
+	}
+	return ti, nil
 }
 
-func (t ModelTime) Format() string {
-	return time.Time(t).Format(timeFormart)
-}
-
-func (t ModelTime) String() string {
-	return time.Time(t).Format(timeFormart)
+func (t *ModelTime) Scan(v interface{}) error {
+	value, ok := v.(time.Time)
+	if ok {
+		*t = ModelTime(value)
+		return nil
+	}
+	return fmt.Errorf("can not convert %v to timestamp", v)
 }

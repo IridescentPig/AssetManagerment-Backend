@@ -17,7 +17,7 @@ type ModifyEntityInfoReq struct {
 }
 
 type EntityManager struct {
-	ManagerID   string `json:"manager_id" copier:"ID"`
+	ManagerID   uint   `json:"manager_id" copier:"ID"`
 	ManagerName string `json:"manager_name" copier:"UserName"`
 }
 
@@ -30,11 +30,11 @@ type EntityBasicInfo struct {
 Response format of GET /entity/{entity_id}
 */
 type EntityInfoResponse struct {
-	EntityID    uint            `json:"entity_id"`
-	EntityName  string          `json:"entity_name"`
-	Description string          `json:"description"`
-	CreatedAt   model.ModelTime `json:"created_at"`
-	ManagerList []EntityManager `json:"manager_list"`
+	EntityID    uint             `json:"entity_id"`
+	EntityName  string           `json:"entity_name"`
+	Description string           `json:"description"`
+	CreatedAt   *model.ModelTime `json:"created_at"`
+	ManagerList []EntityManager  `json:"manager_list"`
 }
 
 /*

@@ -39,12 +39,12 @@ func Initial() {
 
 	if gin.Mode() == gin.DebugMode {
 		if os.Getenv("DEBUG") == "" {
-			db, err = gorm.Open(mysql.Open("manager:BinaryAbstract@tcp(49.233.51.221:25000)/asset"), nil)
+			db, err = gorm.Open(mysql.Open("manager:BinaryAbstract@tcp(49.233.51.221:25000)/asset?parseTime=True&loc=Local"), nil)
 		} else {
-			db, err = gorm.Open(mysql.Open("manager:BinaryAbstract@tcp(AssetManagement-Database-dev.BinaryAbstract.secoder.local:80)/asset"), nil)
+			db, err = gorm.Open(mysql.Open("manager:BinaryAbstract@tcp(AssetManagement-Database-dev.BinaryAbstract.secoder.local:80)/asset?parseTime=True&loc=Local"), nil)
 		}
 	} else {
-		db, err = gorm.Open(mysql.Open("manager:BinaryAbstract@tcp(AssetManagement-Database.BinaryAbstract.secoder.local:3306)/asset"), nil)
+		db, err = gorm.Open(mysql.Open("manager:BinaryAbstract@tcp(AssetManagement-Database.BinaryAbstract.secoder.local:3306)/asset?parseTime=True&loc=Local"), nil)
 	}
 
 	if err != nil {
@@ -55,7 +55,7 @@ func Initial() {
 
 func InitForTest() {
 	var err error
-	db, err = gorm.Open(sqlite.Open("file::memory:?cache=shared"))
+	db, err = gorm.Open(sqlite.Open("file::memory:?cache=shared?parseTime=True&loc=Local"))
 	if err != nil {
 		log.Fatal(err)
 	}
