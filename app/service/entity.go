@@ -2,6 +2,7 @@ package service
 
 import (
 	"asset-management/app/dao"
+	"asset-management/app/define"
 	"asset-management/app/model"
 	"asset-management/myerror"
 	"asset-management/utils"
@@ -20,8 +21,8 @@ func init() {
 	EntityService = newEntityService()
 }
 
-func (entity *entityService) GetParamID(ctx *utils.Context) (uint, error) {
-	param := ctx.Param("id")
+func (entity *entityService) GetParamID(ctx *utils.Context, key string) (uint, error) {
+	param := ctx.Param(key)
 	tempID, err := strconv.ParseUint(param, 10, 0)
 	if err != nil {
 		ctx.BadRequest(myerror.INVALID_PARAM, myerror.INVALID_PARAM_INFO)
@@ -110,4 +111,37 @@ func (entity *entityService) SetManager(name string) error {
 		"entity_super": true,
 	})
 	return err
+}
+
+func (entity *entityService) GetEntityManagerList(id uint) ([]*model.User, error) {
+	managerList, err := dao.EntityDao.GetEntityManager(id)
+	return managerList, err
+}
+
+func (entity *entityService) DeleteManager(userID uint) error {
+	err := dao.UserDao.Update(userID, map[string]interface{}{
+		"entity_super": false,
+	})
+	return err
+}
+
+func (entity *entityService) ModifyEntity(entityID uint, modifyInfo define.ModifyEntityInfoReq) error {
+	if modifyInfo.EntityName != nil && modifyInfo.Description != nil {
+		err := dao.EntityDao.Update(entityID, map[string]interface{}{
+			"name":        *modifyInfo.EntityName,
+			"description": *modifyInfo.Description,
+		})
+		return err
+	} else if modifyInfo.EntityName != nil {
+		err := dao.EntityDao.Update(entityID, map[string]interface{}{
+			"name": *modifyInfo.EntityName,
+		})
+		return err
+	} else if modifyInfo.Description != nil {
+		err := dao.EntityDao.Update(entityID, map[string]interface{}{
+			"description": *modifyInfo.Description,
+		})
+		return err
+	}
+	return nil
 }

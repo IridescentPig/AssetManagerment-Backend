@@ -11,9 +11,14 @@ type ManagerReq struct {
 	Password *string `json:"password"`
 }
 
+type ModifyEntityInfoReq struct {
+	EntityName  *string `json:"entity_name"`
+	Description *string `json:"description"`
+}
+
 type EntityManager struct {
-	ManagerName string `json:"manager_name" copier:"UserName"`
 	ManagerID   string `json:"manager_id" copier:"ID"`
+	ManagerName string `json:"manager_name" copier:"UserName"`
 }
 
 type EntityBasicInfo struct {

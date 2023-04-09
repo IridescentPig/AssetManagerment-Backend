@@ -65,7 +65,7 @@ func (entity *entityApi) DeleteEntity(ctx *utils.Context) {
 		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
 		return
 	}
-	entityID, err := service.EntityService.GetParamID(ctx)
+	entityID, err := service.EntityService.GetParamID(ctx, "entity_id")
 	if err != nil {
 		return
 	}
@@ -101,7 +101,11 @@ func (entity *entityApi) GetEntityList(ctx *utils.Context) {
 	}
 
 	entityListRes := []define.EntityBasicInfo{}
-	copier.Copy(&entityListRes, &entityList)
+	err = copier.Copy(&entityListRes, &entityList)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
 	entityListResponse := define.EntityListResponse{
 		EntityList: entityListRes,
 	}
@@ -117,7 +121,7 @@ func (entity *entityApi) GetEntityByID(ctx *utils.Context) {
 		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
 		return
 	}
-	entityID, err := service.EntityService.GetParamID(ctx)
+	entityID, err := service.EntityService.GetParamID(ctx, "entity_id")
 	if err != nil {
 		return
 	}
@@ -131,9 +135,22 @@ func (entity *entityApi) GetEntityByID(ctx *utils.Context) {
 		return
 	}
 
+	managerList, err := service.EntityService.GetEntityManagerList(entityID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+	managerListRes := []define.EntityManager{}
+	err = copier.Copy(&managerListRes, managerList)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
 	entityInfoRes := define.EntityInfoResponse{
-		EntityID:   thisEntity.ID,
-		EntityName: thisEntity.Name,
+		EntityID:    thisEntity.ID,
+		EntityName:  thisEntity.Name,
+		ManagerList: managerListRes,
 	}
 
 	ctx.Success(entityInfoRes)
@@ -149,7 +166,7 @@ func (entity *entityApi) UsersInEntity(ctx *utils.Context) {
 		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
 		return
 	}
-	entityID, err := service.EntityService.GetParamID(ctx)
+	entityID, err := service.EntityService.GetParamID(ctx, "entity_id")
 	if err != nil {
 		return
 	}
@@ -159,7 +176,11 @@ func (entity *entityApi) UsersInEntity(ctx *utils.Context) {
 		return
 	}
 	userListRes := []define.EntityUserInfo{}
-	copier.Copy(&userListRes, userList)
+	err = copier.Copy(&userListRes, userList)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
 	userListResponse := define.EntityUserListResponse{
 		UserList: userListRes,
 	}
@@ -175,7 +196,7 @@ func (entity *entityApi) DepartmentsInEntity(ctx *utils.Context) {
 		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
 		return
 	}
-	entityID, err := service.EntityService.GetParamID(ctx)
+	entityID, err := service.EntityService.GetParamID(ctx, "entity_id")
 	if err != nil {
 		return
 	}
@@ -185,7 +206,11 @@ func (entity *entityApi) DepartmentsInEntity(ctx *utils.Context) {
 		return
 	}
 	departmentListRes := []define.DepartmentBasicInfo{}
-	copier.Copy(&departmentListRes, departmentList)
+	err = copier.Copy(&departmentListRes, departmentList)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
 	departmentListResponse := define.DepartmentListResponse{
 		DepartmentList: departmentListRes,
 	}
@@ -201,7 +226,7 @@ func (entity *entityApi) SetManager(ctx *utils.Context) {
 		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
 		return
 	}
-	entityID, err := service.EntityService.GetParamID(ctx)
+	entityID, err := service.EntityService.GetParamID(ctx, "entity_id")
 	if err != nil {
 		return
 	}
@@ -241,5 +266,77 @@ func (entity *entityApi) SetManager(ctx *utils.Context) {
 			return
 		}
 	}
+	ctx.Success(nil)
+}
+
+/*
+Handle func for POST /entity/{entity_id}/manager/{user_id}
+*/
+func (entity *entityApi) DeleteManager(ctx *utils.Context) {
+	isSystemSuper := service.UserService.SystemSuper(ctx)
+	if !isSystemSuper {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+	entityID, err := service.EntityService.GetParamID(ctx, "entity_id")
+	if err != nil {
+		return
+	}
+	userID, err := service.EntityService.GetParamID(ctx, "user_id")
+	if err != nil {
+		return
+	}
+	thisUser, err := service.UserService.GetUserByID(userID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	} else if thisUser == nil {
+		ctx.BadRequest(myerror.USER_NOT_FOUND, myerror.USER_NOT_FOUND_INFO)
+		return
+	} else if thisUser.EntityID != entityID {
+		ctx.BadRequest(myerror.USER_NOT_IN_ENTITY, myerror.USER_NOT_IN_ENTITY_INFO)
+		return
+	}
+
+	err = service.EntityService.DeleteManager(userID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	ctx.Success(nil)
+}
+
+/*
+Handle func for PATCH /entity/{entity_id}
+*/
+func (entity *entityApi) ModifyEntityInfo(ctx *utils.Context) {
+	systemSuper := service.UserService.SystemSuper(ctx)
+	entitySuper := service.UserService.EntitySuper(ctx)
+	if !systemSuper && !entitySuper {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+	entityID, err := service.EntityService.GetParamID(ctx, "entity_id")
+	if err != nil {
+		return
+	}
+	var modifyEntityInfoReq define.ModifyEntityInfoReq
+	err = ctx.MustBindWith(&modifyEntityInfoReq, binding.JSON)
+	if err != nil {
+		ctx.BadRequest(myerror.INVALID_BODY, myerror.INVALID_BODY_INFO)
+		return
+	}
+	if modifyEntityInfoReq.EntityName != nil && *modifyEntityInfoReq.EntityName == "" {
+		ctx.BadRequest(myerror.NAME_CANNOT_EMPTY, myerror.NAME_CANNOT_EMPTY_INFO)
+		return
+	}
+
+	err = service.EntityService.ModifyEntity(entityID, modifyEntityInfoReq)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
 	ctx.Success(nil)
 }
