@@ -3,7 +3,9 @@ package dao
 import (
 	"asset-management/app/model"
 	"asset-management/utils"
+	"errors"
 
+	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
 )
 
@@ -26,6 +28,11 @@ func (asset *assetDao) Create(newAsset model.Asset) error {
 
 func (asset *assetDao) Update(id uint, data map[string]interface{}) error {
 	result := db.Model(&model.Asset{}).Where("id = ?", id).Updates(data)
+	return utils.DBError(result)
+}
+
+func (asset *assetDao) AllUpdate(ids []int, data map[string]interface{}) error {
+	result := db.Model(&model.Asset{}).Where("id IN (?)", ids).Updates(data)
 	return utils.DBError(result)
 }
 
@@ -76,6 +83,57 @@ func (asset *assetDao) AssetCount() (count int64, err error) {
 	result := db.Model(&model.Asset{}).Count(&count)
 	err = utils.DBError(result)
 	return
+}
+
+var asset_not_exist string = "asset doesn't exist"
+
+func (asset *assetDao) ModifyAssetPrice(id int, price decimal.Decimal) error {
+	thisAsset, err := asset.GetAssetByID(id)
+	if err != nil {
+		return err
+	}
+	if thisAsset == nil {
+		return errors.New(asset_not_exist)
+	}
+	err = asset.Update(thisAsset.ID, map[string]interface{}{
+		"price": price,
+	})
+	return err
+}
+
+func (asset *assetDao) ModifyAssetDescription(id int, description string) error {
+	thisAsset, err := asset.GetAssetByID(id)
+	if err != nil {
+		return err
+	}
+	if thisAsset == nil {
+		return errors.New(asset_not_exist)
+	}
+	err = asset.Update(thisAsset.ID, map[string]interface{}{
+		"description": description,
+	})
+	return err
+}
+
+func (asset *assetDao) ModifyAssetPosition(id int, position string) error {
+	thisAsset, err := asset.GetAssetByID(id)
+	if err != nil {
+		return err
+	}
+	if thisAsset == nil {
+		return errors.New(asset_not_exist)
+	}
+	err = asset.Update(thisAsset.ID, map[string]interface{}{
+		"position": position,
+	})
+	return err
+}
+
+func (asset *assetDao) ExpireAsset(ids []int) error {
+	return asset.AllUpdate(ids, map[string]interface{}{
+		"expire": true,
+		"price":  decimal.NewFromFloat(0),
+	})
 }
 
 // asset and asset
