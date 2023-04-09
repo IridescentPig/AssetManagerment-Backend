@@ -33,7 +33,7 @@ type EntityInfoResponse struct {
 	EntityID    uint            `json:"entity_id"`
 	EntityName  string          `json:"entity_name"`
 	Description string          `json:"description"`
-	CreatedTime model.ModelTime `json:"created_time"`
+	CreatedAt   model.ModelTime `json:"created_at"`
 	ManagerList []EntityManager `json:"manager_list"`
 }
 

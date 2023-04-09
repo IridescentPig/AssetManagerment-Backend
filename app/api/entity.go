@@ -27,11 +27,11 @@ func init() {
 Handle func for POST /entity
 */
 func (entity *entityApi) CreateEntity(ctx *utils.Context) {
-	isSystemSuper := service.UserService.SystemSuper(ctx)
-	if !isSystemSuper {
-		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
-		return
-	}
+	// isSystemSuper := service.UserService.SystemSuper(ctx)
+	// if !isSystemSuper {
+	// 	ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+	// 	return
+	// }
 
 	var createReq define.CreateEntityReq
 	err := ctx.MustBindWith(&createReq, binding.JSON)
@@ -60,11 +60,12 @@ func (entity *entityApi) CreateEntity(ctx *utils.Context) {
 Handle func for DELETE /entity/{entity_id}
 */
 func (entity *entityApi) DeleteEntity(ctx *utils.Context) {
-	isSystemSuper := service.UserService.SystemSuper(ctx)
-	if !isSystemSuper {
-		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
-		return
-	}
+	// isSystemSuper := service.UserService.SystemSuper(ctx)
+	// if !isSystemSuper {
+	// 	ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+	// 	return
+	// }
+
 	entityID, err := service.EntityService.GetParamID(ctx, "entity_id")
 	if err != nil {
 		return
@@ -89,11 +90,11 @@ func (entity *entityApi) DeleteEntity(ctx *utils.Context) {
 Handle func for GET /entity/list
 */
 func (entity *entityApi) GetEntityList(ctx *utils.Context) {
-	isSystemSuper := service.UserService.SystemSuper(ctx)
-	if !isSystemSuper {
-		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
-		return
-	}
+	// isSystemSuper := service.UserService.SystemSuper(ctx)
+	// if !isSystemSuper {
+	// 	ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+	// 	return
+	// }
 	entityList, err := service.EntityService.GetAllEntity()
 	if err != nil {
 		ctx.InternalError(err.Error())
@@ -116,11 +117,11 @@ func (entity *entityApi) GetEntityList(ctx *utils.Context) {
 Handle func for GET /entity/:entity_id
 */
 func (entity *entityApi) GetEntityByID(ctx *utils.Context) {
-	isSystemSuper := service.UserService.SystemSuper(ctx)
-	if !isSystemSuper {
-		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
-		return
-	}
+	// isSystemSuper := service.UserService.SystemSuper(ctx)
+	// if !isSystemSuper {
+	// 	ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+	// 	return
+	// }
 	entityID, err := service.EntityService.GetParamID(ctx, "entity_id")
 	if err != nil {
 		return
@@ -151,6 +152,8 @@ func (entity *entityApi) GetEntityByID(ctx *utils.Context) {
 		EntityID:    thisEntity.ID,
 		EntityName:  thisEntity.Name,
 		ManagerList: managerListRes,
+		CreatedAt:   thisEntity.CreatedAt,
+		Description: thisEntity.Description,
 	}
 
 	ctx.Success(entityInfoRes)
@@ -221,11 +224,11 @@ func (entity *entityApi) DepartmentsInEntity(ctx *utils.Context) {
 Handle func for POST /entity/{entity_id}/manager
 */
 func (entity *entityApi) SetManager(ctx *utils.Context) {
-	isSystemSuper := service.UserService.SystemSuper(ctx)
-	if !isSystemSuper {
-		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
-		return
-	}
+	// isSystemSuper := service.UserService.SystemSuper(ctx)
+	// if !isSystemSuper {
+	// 	ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+	// 	return
+	// }
 	entityID, err := service.EntityService.GetParamID(ctx, "entity_id")
 	if err != nil {
 		return
@@ -273,11 +276,11 @@ func (entity *entityApi) SetManager(ctx *utils.Context) {
 Handle func for POST /entity/{entity_id}/manager/{user_id}
 */
 func (entity *entityApi) DeleteManager(ctx *utils.Context) {
-	isSystemSuper := service.UserService.SystemSuper(ctx)
-	if !isSystemSuper {
-		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
-		return
-	}
+	// isSystemSuper := service.UserService.SystemSuper(ctx)
+	// if !isSystemSuper {
+	// 	ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+	// 	return
+	// }
 	entityID, err := service.EntityService.GetParamID(ctx, "entity_id")
 	if err != nil {
 		return
