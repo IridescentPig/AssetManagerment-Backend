@@ -79,6 +79,27 @@ func (user *userDao) GetUserByName(username string) (*model.User, error) {
 	return ret, utils.DBError(result)
 }
 
+func (user *userDao) GetUserByID(id uint) (*model.User, error) {
+	ret := &model.User{}
+	result := db.Model(&model.User{}).Where("id = ?", id).First(ret)
+	department := &model.Department{}
+	err := db.Model(&ret).Association("Department").Find(&department)
+	if err != nil {
+		return nil, err
+	}
+	ret.Department = department
+	entity := &model.Entity{}
+	err = db.Model(&ret).Association("Entity").Find(&entity)
+	if err != nil {
+		return nil, err
+	}
+	ret.Entity = entity
+	if result.Error == gorm.ErrRecordNotFound {
+		return nil, nil
+	}
+	return ret, utils.DBError(result)
+}
+
 func (user *userDao) GetUsersByNames(username []string) (list []model.User, err error) {
 	result := db.Model(&model.User{}).Where("username IN ?", username).Order("id").Find(&list)
 	err = utils.DBError(result)

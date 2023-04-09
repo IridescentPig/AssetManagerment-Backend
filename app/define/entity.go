@@ -3,7 +3,12 @@ package define
 import "asset-management/app/model"
 
 type CreateEntityReq struct {
-	EntityName string `json:"entity_name"`
+	EntityName string `json:"entity_name" binding:"required"`
+}
+
+type ManagerReq struct {
+	Username string  `json:"username" binding:"required"`
+	Password *string `json:"password"`
 }
 
 type EntityManager struct {

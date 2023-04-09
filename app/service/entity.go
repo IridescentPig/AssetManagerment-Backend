@@ -38,6 +38,11 @@ func (entity *entityService) CreateEntity(name string) error {
 	return err
 }
 
+func (entity *entityService) DeleteEntity(id uint) error {
+	err := dao.EntityDao.Delete([]uint{id})
+	return err
+}
+
 func (entity *entityService) GetAllEntity() ([]model.Entity, error) {
 	entityList, err := dao.EntityDao.AllEntity()
 	if err != nil {
@@ -48,6 +53,17 @@ func (entity *entityService) GetAllEntity() ([]model.Entity, error) {
 
 func (entity *entityService) ExistsEntityByName(name string) (bool, error) {
 	thisEntity, err := dao.EntityDao.GetEntityByName(name)
+	if err != nil {
+		return false, err
+	} else if thisEntity == nil {
+		return false, nil
+	} else {
+		return true, nil
+	}
+}
+
+func (entity *entityService) ExistsEntityByID(id uint) (bool, error) {
+	thisEntity, err := dao.EntityDao.GetEntityByID(id)
 	if err != nil {
 		return false, err
 	} else if thisEntity == nil {
@@ -76,4 +92,22 @@ func (entity *entityService) GetUsersUnderEntity(id uint) ([]*model.User, error)
 func (entity *entityService) GetAllDepartmentsUnderEntity(id uint) ([]*model.Department, error) {
 	departmentList, err := dao.EntityDao.GetEntityAllDepartment(id)
 	return departmentList, err
+}
+
+func (entity *entityService) CreateManager(name string, password string, entityID uint) error {
+	password = utils.CreateMD5(password)
+	err := dao.UserDao.Create(model.User{
+		UserName:    name,
+		Password:    password,
+		EntityID:    entityID,
+		EntitySuper: true,
+	})
+	return err
+}
+
+func (entity *entityService) SetManager(name string) error {
+	err := dao.UserDao.UpdateByName(name, map[string]interface{}{
+		"entity_super": true,
+	})
+	return err
 }

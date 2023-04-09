@@ -57,9 +57,43 @@ func (entity *entityApi) CreateEntity(ctx *utils.Context) {
 }
 
 /*
+Handle func for DELETE /entity/{entity_id}
+*/
+func (entity *entityApi) DeleteEntity(ctx *utils.Context) {
+	isSystemSuper := service.UserService.SystemSuper(ctx)
+	if !isSystemSuper {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+	entityID, err := service.EntityService.GetParamID(ctx)
+	if err != nil {
+		return
+	}
+	exists, err := service.EntityService.ExistsEntityByID(entityID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	} else if !exists {
+		ctx.BadRequest(myerror.ENTITY_NOT_FOUND, myerror.ENTITY_NOT_FOUND_INFO)
+		return
+	}
+	err = service.EntityService.DeleteEntity(entityID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+	ctx.Success(nil)
+}
+
+/*
 Handle func for GET /entity/list
 */
 func (entity *entityApi) GetEntityList(ctx *utils.Context) {
+	isSystemSuper := service.UserService.SystemSuper(ctx)
+	if !isSystemSuper {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
 	entityList, err := service.EntityService.GetAllEntity()
 	if err != nil {
 		ctx.InternalError(err.Error())
@@ -78,6 +112,11 @@ func (entity *entityApi) GetEntityList(ctx *utils.Context) {
 Handle func for GET /entity/:entity_id
 */
 func (entity *entityApi) GetEntityByID(ctx *utils.Context) {
+	isSystemSuper := service.UserService.SystemSuper(ctx)
+	if !isSystemSuper {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
 	entityID, err := service.EntityService.GetParamID(ctx)
 	if err != nil {
 		return
@@ -128,7 +167,7 @@ func (entity *entityApi) UsersInEntity(ctx *utils.Context) {
 }
 
 /*
-/entity/{entity_id}/department/list
+Handler func for GET /entity/{entity_id}/department/list
 */
 func (entity *entityApi) DepartmentsInEntity(ctx *utils.Context) {
 	entitySuper := service.UserService.EntitySuper(ctx)
@@ -151,4 +190,56 @@ func (entity *entityApi) DepartmentsInEntity(ctx *utils.Context) {
 		DepartmentList: departmentListRes,
 	}
 	ctx.Success(departmentListResponse)
+}
+
+/*
+Handle func for POST /entity/{entity_id}/manager
+*/
+func (entity *entityApi) SetManager(ctx *utils.Context) {
+	isSystemSuper := service.UserService.SystemSuper(ctx)
+	if !isSystemSuper {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+	entityID, err := service.EntityService.GetParamID(ctx)
+	if err != nil {
+		return
+	}
+	var setManagerReq define.ManagerReq
+	err = ctx.MustBindWith(&setManagerReq, binding.JSON)
+	if err != nil {
+		ctx.BadRequest(myerror.INVALID_BODY, myerror.INVALID_BODY_INFO)
+		return
+	}
+	thisUser, err := service.UserService.GetUserByName(setManagerReq.Username)
+	if err != nil {
+		ctx.InternalError(err.Error())
+	}
+	// Update user to manager
+	if setManagerReq.Password == nil {
+		if thisUser == nil {
+			ctx.BadRequest(myerror.USER_NOT_FOUND, myerror.USER_NOT_FOUND_INFO)
+			return
+		}
+		if thisUser.EntityID != entityID {
+			ctx.BadRequest(myerror.USER_NOT_IN_ENTITY, myerror.USER_NOT_IN_ENTITY_INFO)
+			return
+		}
+		err = service.EntityService.SetManager(setManagerReq.Username)
+		if err != nil {
+			ctx.InternalError(err.Error())
+			return
+		}
+	} else { // Create a manager
+		if thisUser != nil {
+			ctx.BadRequest(myerror.USER_HAS_EXISTED, myerror.USER_HAS_EXISTED_INFO)
+			return
+		}
+		err = service.EntityService.CreateManager(setManagerReq.Username, *setManagerReq.Password, entityID)
+		if err != nil {
+			ctx.InternalError(err.Error())
+			return
+		}
+	}
+	ctx.Success(nil)
 }

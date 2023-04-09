@@ -81,6 +81,11 @@ func (entity *entityDao) GetEntityAllUser(id uint) (users []*model.User, err err
 	return
 }
 
+func (entity *entityDao) GetEntityManager(id uint) (managers []*model.User, err error) {
+	err = utils.DBError(db.Model(&model.User{}).Where("entity_id = ? and entity_super = ?", id, true).Find(&managers))
+	return
+}
+
 // entity and department
 func (entity *entityDao) GetEntityAllDepartment(id uint) (departments []*model.Department, err error) {
 	// query_entity, err := entity.GetEntityByName(name)

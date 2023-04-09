@@ -56,6 +56,22 @@ func (user *userService) VerifyPasswordAndGetUser(username, password string) (st
 	return token, thisUser, nil
 }
 
+func (user *userService) GetUserByID(id uint) (*model.User, error) {
+	thisUser, err := dao.UserDao.GetUserByID(id)
+	if err != nil {
+		return nil, err
+	}
+	return thisUser, nil
+}
+
+func (user *userService) GetUserByName(name string) (*model.User, error) {
+	thisUser, err := dao.UserDao.GetUserByName(name)
+	if err != nil {
+		return nil, err
+	}
+	return thisUser, nil
+}
+
 func (user *userService) ExistsUser(username string) (bool, error) {
 	thisUser, err := dao.UserDao.GetUserByName(username)
 	if err != nil || thisUser == nil {
