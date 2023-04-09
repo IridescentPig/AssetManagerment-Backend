@@ -25,6 +25,10 @@ func connect() {
 
 	db.AutoMigrate(&model.Entity{}, &model.Department{}, &model.User{})
 
+	//tables := make([]string, 0)
+	//db.Raw("SELECT name FROM sqlite_master WHERE type='table' order by name").Scan(&tables)
+	//fmt.Println("table is", tables)
+
 	if !db.Migrator().HasTable(&model.User{}) {
 		log.Fatal("database error")
 	}
