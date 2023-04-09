@@ -46,6 +46,8 @@ func (user *userService) VerifyPasswordAndGetUser(username, password string) (st
 		EntitySuper:     thisUser.EntitySuper,
 		DepartmentSuper: thisUser.DepartmentSuper,
 		SystemSuper:     thisUser.SystemSuper,
+		EntityID:        thisUser.EntityID,
+		DepartmentID:    thisUser.DepartmentID,
 	}
 	token, err := utils.CreateToken(userInfo)
 	if err != nil {

@@ -22,7 +22,15 @@ func (entity *entityService) CreateEntity(name string) error {
 }
 
 func (entity *entityService) GetAllEntity() ([]*model.Entity, error) {
-	return []*model.Entity{}, nil
+	entityTest := model.Entity{
+		ID:   1,
+		Name: "Test",
+	}
+	entityTest2 := model.Entity{
+		ID:   2,
+		Name: "Test2",
+	}
+	return []*model.Entity{&entityTest, &entityTest2}, nil
 }
 
 func (entity *entityService) ExistsEntityByID(id uint) (bool, error) {

@@ -34,6 +34,8 @@ type UserBasicInfo struct {
 	EntitySuper     bool   `json:"entity_super"`
 	DepartmentSuper bool   `json:"department_super"`
 	SystemSuper     bool   `json:"system_super"`
+	EntityID        uint   `json:"entity_id"`
+	DepartmentID    uint   `json:"department_id"`
 }
 
 /*
@@ -46,7 +48,4 @@ type UserClaims struct {
 
 type UserInfoResponse struct {
 	UserBasicInfo
-	EntityID     uint
-	DepartmentID uint
-	SystemID     uint
 }

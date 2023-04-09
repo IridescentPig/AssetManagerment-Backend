@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin/binding"
+	"github.com/jinzhu/copier"
 )
 
 type entityApi struct {
@@ -23,6 +24,9 @@ func init() {
 	EntityApi = newEntityApi()
 }
 
+/*
+Handle func for POST /entity
+*/
 func (entity *entityApi) CreateEntity(ctx *utils.Context) {
 	isSystemSuper := service.UserService.SystemSuper(ctx)
 	if !isSystemSuper {
@@ -36,7 +40,7 @@ func (entity *entityApi) CreateEntity(ctx *utils.Context) {
 		ctx.BadRequest(myerror.INVALID_BODY, myerror.INVALID_BODY_INFO)
 		return
 	}
-	isExist, err := service.EntityService.ExistsEntityByName(createReq.Name)
+	isExist, err := service.EntityService.ExistsEntityByName(createReq.EntityName)
 	if err != nil {
 		ctx.InternalError(err.Error())
 		return
@@ -45,7 +49,7 @@ func (entity *entityApi) CreateEntity(ctx *utils.Context) {
 		return
 	}
 
-	err = service.EntityService.CreateEntity(createReq.Name)
+	err = service.EntityService.CreateEntity(createReq.EntityName)
 	if err != nil {
 		ctx.InternalError(err.Error())
 		return
@@ -53,6 +57,9 @@ func (entity *entityApi) CreateEntity(ctx *utils.Context) {
 	ctx.Success(nil)
 }
 
+/*
+Handle func for GET /entity/list
+*/
 func (entity *entityApi) GetEntityList(ctx *utils.Context) {
 	entityList, err := service.EntityService.GetAllEntity()
 	if err != nil {
@@ -60,9 +67,18 @@ func (entity *entityApi) GetEntityList(ctx *utils.Context) {
 		return
 	}
 
-	ctx.Success(entityList)
+	entityListRes := []define.EntityBasicInfo{}
+	copier.Copy(&entityListRes, entityList)
+	entityListResponse := define.EntityListResponse{
+		EntityList: entityListRes,
+	}
+	ctx.Success(entityListResponse)
+	// ctx.Success(entityList)
 }
 
+/*
+Handle func for GET /entity/:entity_id
+*/
 func (entity *entityApi) GetEntityByID(ctx *utils.Context) {
 	param := ctx.Param("id")
 	tempID, err := strconv.ParseUint(param, 10, 0)
@@ -95,11 +111,17 @@ func (entity *entityApi) GetEntityByID(ctx *utils.Context) {
 }
 
 /*
-获取实体下所有用户
-是否可以与 GetEntity 的响应合并？
+Handle func for GET /entity/{entity_id}/user/list
 */
 func (entity *entityApi) UsersInEntity(ctx *utils.Context) {
+	systemSuper := service.UserService.SystemSuper(ctx)
+	entitySuper := service.UserService.EntitySuper(ctx)
+	if !systemSuper && !entitySuper {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
 
+	ctx.Success(nil)
 }
 
 /*

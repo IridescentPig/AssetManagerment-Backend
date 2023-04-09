@@ -27,6 +27,6 @@ type DepartmentInfoResponse struct {
 	Department DepartmentInfo `json:"department"`
 }
 
-type DepartmentUserListResponse struct {
-	UserList []UserInfo `json:"user_list"`
-}
+// type DepartmentUserListResponse struct {
+// 	UserList []UserInfo `json:"user_list"`
+// }
