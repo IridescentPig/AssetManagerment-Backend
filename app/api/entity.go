@@ -67,12 +67,11 @@ func (entity *entityApi) GetEntityList(ctx *utils.Context) {
 	}
 
 	entityListRes := []define.EntityBasicInfo{}
-	copier.Copy(&entityListRes, entityList)
+	copier.Copy(&entityListRes, &entityList)
 	entityListResponse := define.EntityListResponse{
 		EntityList: entityListRes,
 	}
 	ctx.Success(entityListResponse)
-	// ctx.Success(entityList)
 }
 
 /*
@@ -84,23 +83,18 @@ func (entity *entityApi) GetEntityByID(ctx *utils.Context) {
 		return
 	}
 
-	exists, err := service.EntityService.ExistsEntityByID(entityID)
+	thisEntity, err := service.EntityService.GetEntityInfoByID(entityID)
 	if err != nil {
 		ctx.InternalError(err.Error())
 		return
-	} else if !exists {
-		ctx.BadRequest(myerror.USER_NOT_FOUND, myerror.USER_NOT_FOUND_INFO)
-		return
-	}
-	entityInfo, err := service.EntityService.GetEntityInfoByID(entityID)
-	if err != nil {
-		ctx.InternalError(err.Error())
+	} else if thisEntity == nil {
+		ctx.BadRequest(myerror.ENTITY_NOT_FOUND, myerror.ENTITY_NOT_FOUND_INFO)
 		return
 	}
 
 	entityInfoRes := define.EntityInfoResponse{
-		EntityID:   entityInfo.ID,
-		EntityName: entityInfo.Name,
+		EntityID:   thisEntity.ID,
+		EntityName: thisEntity.Name,
 	}
 
 	ctx.Success(entityInfoRes)
@@ -134,9 +128,27 @@ func (entity *entityApi) UsersInEntity(ctx *utils.Context) {
 }
 
 /*
-只获取最高一级的部门
-是否可以与 GetEntity 的响应合并？
+/entity/{entity_id}/department/list
 */
 func (entity *entityApi) DepartmentsInEntity(ctx *utils.Context) {
-
+	entitySuper := service.UserService.EntitySuper(ctx)
+	if !entitySuper {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+	entityID, err := service.EntityService.GetParamID(ctx)
+	if err != nil {
+		return
+	}
+	departmentList, err := service.EntityService.GetAllDepartmentsUnderEntity(entityID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+	departmentListRes := []define.DepartmentBasicInfo{}
+	copier.Copy(&departmentListRes, departmentList)
+	departmentListResponse := define.DepartmentListResponse{
+		DepartmentList: departmentListRes,
+	}
+	ctx.Success(departmentListResponse)
 }

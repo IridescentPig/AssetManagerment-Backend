@@ -2,6 +2,7 @@ package routers
 
 import (
 	"asset-management/app/api"
+	"asset-management/middleware"
 	"asset-management/utils"
 
 	"github.com/gin-gonic/gin"
@@ -21,5 +22,6 @@ func init() {
 
 func (entity *entityRouter) Init(group *gin.RouterGroup) {
 	group.GET("/list", utils.Handler(api.EntityApi.GetEntityList))
+	group.POST("/", utils.Handler(middleware.JWTMiddleware()), utils.Handler(api.EntityApi.CreateEntity))
 	group.GET("/user/list", utils.Handler(api.EntityApi.UsersInEntity))
 }

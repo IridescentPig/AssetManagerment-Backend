@@ -287,7 +287,7 @@ func TestDepartmentEntity(t *testing.T) {
 	assert.Equal(t, 1, len(au), "database error")
 	assert.Equal(t, "test", au[0].UserName, "database error")
 
-	au, err = EntityDao.GetEntityAllUser("test_entity")
+	au, err = EntityDao.GetEntityAllUser(1)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -296,7 +296,7 @@ func TestDepartmentEntity(t *testing.T) {
 	assert.Equal(t, 1, len(au), "database error")
 	assert.Equal(t, "test", au[0].UserName, "database error")
 
-	ad, err := EntityDao.GetEntityAllDepartment("test_entity")
+	ad, err := EntityDao.GetEntityAllDepartment(1)
 	if err != nil {
 		log.Fatal(err)
 	}

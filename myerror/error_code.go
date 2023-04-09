@@ -10,4 +10,5 @@ const (
 	TOKEN_INVALID     = 6
 	TOKEN_EXPIRED     = 7
 	INVALID_PARAM     = 8
+	ENTITY_NOT_FOUND  = 9
 )

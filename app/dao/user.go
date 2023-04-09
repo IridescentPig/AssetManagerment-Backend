@@ -66,13 +66,13 @@ func (user *userDao) GetUserByName(username string) (*model.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	ret.Department = *department
+	ret.Department = department
 	entity := &model.Entity{}
 	err = db.Model(&ret).Association("Entity").Find(&entity)
 	if err != nil {
 		return nil, err
 	}
-	ret.Entity = *entity
+	ret.Entity = entity
 	if result.Error == gorm.ErrRecordNotFound {
 		return nil, nil
 	}
@@ -167,7 +167,7 @@ func (user *userDao) GetUserEntity(username string) (entity model.Entity, err er
 		err = errors.New("user doesn't exist")
 		return
 	}
-	entity = thisUser.Entity
+	entity = *thisUser.Entity
 	//db.Model(&thisUser).Where("id = ?", thisUser.ID).Preload("entity").Find(&entity)
 	return
 }
@@ -195,7 +195,7 @@ func (user *userDao) GetUserDepartment(username string) (department model.Depart
 		err = errors.New("user doesn't exist")
 		return
 	}
-	department = thisUser.Department
+	department = *thisUser.Department
 	//err = db.Model(&thisUser).Association("Department").Find(&department)
 	return
 }
