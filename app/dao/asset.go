@@ -17,6 +17,7 @@ var AssetDao *assetDao
 func newAssetDao() *assetDao {
 	return &assetDao{}
 }
+
 func init() {
 	AssetDao = newAssetDao()
 }
@@ -37,7 +38,7 @@ func (asset *assetDao) AllUpdate(ids []int, data map[string]interface{}) error {
 }
 
 func (asset *assetDao) Delete(id []uint) error {
-	result := db.Model(&model.User{}).Where("id in (?)", id).Delete(&model.User{})
+	result := db.Model(&model.Asset{}).Where("id in (?)", id).Delete(&model.Asset{})
 	return utils.DBError(result)
 }
 
@@ -59,6 +60,12 @@ func (asset *assetDao) GetAssetByName(username string) (list []model.Asset, err 
 			return
 		}
 		asset.UserID = user.ID
+		asset_class := &model.AssetClass{}
+		err = db.Model(&asset).Association("AssetClass").Find(&asset_class)
+		if err != nil {
+			return
+		}
+		asset.ClassID = asset_class.ID
 	}
 	err = utils.DBError(result)
 	return
@@ -75,7 +82,13 @@ func (asset *assetDao) GetAssetByID(id int) (*model.Asset, error) {
 	if err != nil {
 		return nil, err
 	}
-	ret.User = *user
+	ret.UserID = user.ID
+	asset_class := &model.AssetClass{}
+	err = db.Model(&asset).Association("AssetClass").Find(&asset_class)
+	if err != nil {
+		return nil, err
+	}
+	ret.ClassID = asset_class.ID
 	return ret, utils.DBError(result)
 }
 
@@ -178,7 +191,7 @@ func (asset *assetDao) GetAssetUser(id int) (user model.User, err error) {
 	return
 }
 
-func (asset *assetDao) ModifyDepartUser(AssetID int, Username string) error {
+func (asset *assetDao) ModifyAssetUser(AssetID int, Username string) error {
 	query_asset, err := asset.GetAssetByID(AssetID)
 	if err != nil {
 		return err
@@ -188,5 +201,33 @@ func (asset *assetDao) ModifyDepartUser(AssetID int, Username string) error {
 		return err
 	}
 	query_asset.UserID = target_user.ID
+	return utils.DBError(db.Session(&gorm.Session{FullSaveAssociations: true}).Updates(&query_asset))
+}
+
+// asset and asset_class
+func (asset *assetDao) GetAssetClass(id int) (class model.AssetClass, err error) {
+	query_asset, err := asset.GetAssetByID(id)
+	if err != nil {
+		return
+	}
+	err = utils.DBError(db.Model(&model.AssetClass{}).Where("id = ?", query_asset.ClassID).Find(&class))
+	return
+}
+
+var type_not_match = "type not match"
+
+func (asset *assetDao) ModifyAssetClass(AssetID int, ClassID int) error {
+	query_asset, err := asset.GetAssetByID(AssetID)
+	if err != nil {
+		return err
+	}
+	target_class, err := AssetClassDao.GetAssetClassByID(ClassID)
+	if err != nil {
+		return err
+	}
+	if query_asset.Type != target_class.Type {
+		return errors.New(type_not_match)
+	}
+	query_asset.UserID = target_class.ID
 	return utils.DBError(db.Session(&gorm.Session{FullSaveAssociations: true}).Updates(&query_asset))
 }
