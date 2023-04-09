@@ -23,11 +23,11 @@ func init() {
 func (user *userService) CreateUser(username, password string) error {
 	password = utils.CreateMD5(password)
 	return dao.UserDao.Create(model.User{
-		UserName:     username,
-		Password:     password,
-		EntityID:     nil,
-		DepartmentID: nil,
-		Ban:          false,
+		UserName: username,
+		Password: password,
+		// EntityID:     nil,
+		// DepartmentID: nil,
+		Ban: false,
 	})
 }
 

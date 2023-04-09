@@ -167,12 +167,12 @@ func TestAdmin(t *testing.T) {
 	Init(r)
 
 	admin := model.User{
-		UserName:     "admin",
-		Password:     utils.CreateMD5("21232f297a57a5a743894a0e4a801fc3"),
-		SystemSuper:  true,
-		EntityID:     nil,
-		DepartmentID: nil,
-		Ban:          false,
+		UserName:    "admin",
+		Password:    utils.CreateMD5("21232f297a57a5a743894a0e4a801fc3"),
+		SystemSuper: true,
+		// EntityID:     nil,
+		// DepartmentID: nil,
+		Ban: false,
 	}
 	dao.UserDao.Create(admin)
 
