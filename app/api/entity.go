@@ -87,8 +87,8 @@ func (entity *entityApi) GetEntityByID(ctx *utils.Context) {
 	}
 
 	entityInfoRes := define.EntityInfoResponse{
-		ID:   entityInfo.ID,
-		Name: entityInfo.Name,
+		EntityID:   entityInfo.ID,
+		EntityName: entityInfo.Name,
 	}
 
 	ctx.Success(entityInfoRes)
