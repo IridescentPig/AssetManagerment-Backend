@@ -66,6 +66,24 @@ func (department *departmentService) CheckIsAncestor(userDepartmentID uint, oper
 	return flag, nil
 }
 
+func (department *departmentService) ExistsDepartmentByID(departmentID uint) (bool, error) {
+	thisDepartment, err := dao.DepartmentDao.GetDepartmentByID(departmentID)
+	if err != nil {
+		return false, err
+	} else if thisDepartment == nil {
+		return false, nil
+	}
+	return true, nil
+}
+
+func (department *departmentService) CheckDepartmentInEntity(entityID uint, departmentID uint) (bool, error) {
+	thisDepartment, err := dao.DepartmentDao.GetDepartmentByID(departmentID)
+	if err != nil {
+		return false, err
+	}
+	return thisDepartment.EntityID == entityID, nil
+}
+
 /*
 拥有部门权限，也即可以看到本部门及下属部门的信息
 */
@@ -118,4 +136,16 @@ func (department *departmentService) GetSubDepartments(departmentID uint) ([]*mo
 func (department *departmentService) GetAllUsers(departmentID uint) ([]*model.User, error) {
 	userList, err := dao.DepartmentDao.GetDepartmentAllUserByID(departmentID)
 	return userList, err
+}
+
+func (department *departmentService) CreateDepartmentUser(req define.CreateDepartmentUserReq, entityID uint, departmentID uint) error {
+	req.Password = utils.CreateMD5(req.Password)
+	err := dao.UserDao.Create(model.User{
+		UserName:        req.UserName,
+		Password:        req.Password,
+		DepartmentSuper: req.DepartmentSuper,
+		EntityID:        entityID,
+		DepartmentID:    departmentID,
+	})
+	return err
 }

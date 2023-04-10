@@ -13,6 +13,12 @@ type DepartmentBasicInfo struct {
 	ParentID uint   `json:"parent_id"`
 }
 
+type CreateDepartmentUserReq struct {
+	UserName        string `json:"username"`
+	Password        string `json:"password"`
+	DepartmentSuper bool   `json:"department_super"`
+}
+
 /*
 Response format of GET /entity/{entity_id}/department/list
 

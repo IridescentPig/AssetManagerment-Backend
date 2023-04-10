@@ -6,6 +6,7 @@ import (
 	"asset-management/myerror"
 	"asset-management/utils"
 
+	"github.com/gin-gonic/gin/binding"
 	"github.com/jinzhu/copier"
 )
 
@@ -20,6 +21,39 @@ func newdepartmentApi() *departmentApi {
 
 func init() {
 	DepartmentApi = newdepartmentApi()
+}
+
+func (department *departmentApi) CheckEntityDepartmentValid(ctx *utils.Context, entityID uint, departmentID uint) bool {
+	existsEntity, err := service.EntityService.ExistsEntityByID(entityID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return false
+	}
+	if !existsEntity {
+		ctx.BadRequest(myerror.ENTITY_NOT_FOUND, myerror.ENTITY_NOT_FOUND_INFO)
+		return false
+	}
+
+	existsDepartment, err := service.DepartmentService.ExistsDepartmentByID(departmentID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return false
+	}
+	if !existsDepartment {
+		ctx.BadRequest(myerror.DEPARTMENT_NOT_FOUND, myerror.DEPARTMENT_NOT_FOUND_INFO)
+		return false
+	}
+
+	flag, err := service.DepartmentService.CheckDepartmentInEntity(entityID, departmentID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return false
+	}
+	if !flag {
+		ctx.BadRequest(myerror.DEPARTMENT_NOT_IN_ENTITY, myerror.DEPARTMENT_NOT_IN_ENTITY_INFO)
+		return false
+	}
+	return true
 }
 
 /*
@@ -39,12 +73,25 @@ func (department *departmentApi) CreateDepartment(ctx *utils.Context) {
 	var createDepartmentReq define.CreateDepartmentReq
 	param := ctx.Param("department_id")
 	if param == "" {
+		existsEntity, err := service.EntityService.ExistsEntityByID(entityID)
+		if err != nil {
+			ctx.InternalError(err.Error())
+			return
+		}
+		if !existsEntity {
+			ctx.BadRequest(myerror.ENTITY_NOT_FOUND, myerror.ENTITY_NOT_FOUND_INFO)
+			return
+		}
 		createDepartmentReq = define.CreateDepartmentReq{
 			EntityID: entityID,
 		}
 	} else {
 		departmentID, err := service.EntityService.GetParamID(ctx, "department_id")
 		if err != nil {
+			return
+		}
+		isValid := department.CheckEntityDepartmentValid(ctx, entityID, departmentID)
+		if !isValid {
 			return
 		}
 		createDepartmentReq = define.CreateDepartmentReq{
@@ -71,6 +118,10 @@ func (department *departmentApi) GetDepartmentByID(ctx *utils.Context) {
 	}
 	departmentID, err := service.EntityService.GetParamID(ctx, "department_id")
 	if err != nil {
+		return
+	}
+	isValid := department.CheckEntityDepartmentValid(ctx, entityID, departmentID)
+	if !isValid {
 		return
 	}
 	identity, err := service.DepartmentService.CheckDepartmentIdentity(ctx, entityID, departmentID)
@@ -119,6 +170,12 @@ func (department *departmentApi) GetSubDepartments(ctx *utils.Context) {
 	if err != nil {
 		return
 	}
+
+	isValid := department.CheckEntityDepartmentValid(ctx, entityID, departmentID)
+	if !isValid {
+		return
+	}
+
 	entitySuper := service.UserService.EntitySuper(ctx)
 	departmentSuper := service.UserService.DepartmentSuper(ctx)
 	if !entitySuper && !departmentSuper {
@@ -164,6 +221,12 @@ func (department *departmentApi) GetAllUsersUnderDepartment(ctx *utils.Context) 
 	if err != nil {
 		return
 	}
+
+	isValid := department.CheckEntityDepartmentValid(ctx, entityID, departmentID)
+	if !isValid {
+		return
+	}
+
 	entitySuper := service.UserService.EntitySuper(ctx)
 	departmentSuper := service.UserService.DepartmentSuper(ctx)
 	if !entitySuper && !departmentSuper {
@@ -195,4 +258,48 @@ func (department *departmentApi) GetAllUsersUnderDepartment(ctx *utils.Context) 
 		UserList: userListRes,
 	}
 	ctx.Success(userListResponse)
+}
+
+/*
+Handle func for POST /entity/{entity_id}/department/{department_id}/user
+*/
+func (department *departmentApi) CreateUserInDepartment(ctx *utils.Context) {
+	entityID, err := service.EntityService.GetParamID(ctx, "entity_id")
+	if err != nil {
+		return
+	}
+	departmentID, err := service.EntityService.GetParamID(ctx, "department_id")
+	if err != nil {
+		return
+	}
+	entitySuper := service.UserService.EntitySuper(ctx)
+	if !entitySuper {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+	isInEntity := service.EntityService.CheckIsInEntity(ctx, entityID)
+	if !isInEntity {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	isValid := department.CheckEntityDepartmentValid(ctx, entityID, departmentID)
+	if !isValid {
+		return
+	}
+
+	var createUserReq define.CreateDepartmentUserReq
+	err = ctx.MustBindWith(&createUserReq, binding.JSON)
+	if err != nil {
+		ctx.BadRequest(myerror.INVALID_BODY, myerror.INVALID_BODY_INFO)
+		return
+	}
+
+	err = service.DepartmentService.CreateDepartmentUser(createUserReq, entityID, departmentID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	ctx.Success(nil)
 }
