@@ -15,4 +15,5 @@ const (
 	NAME_CANNOT_EMPTY_INFO        = "Name cannot be empty"
 	DEPARTMENT_NOT_FOUND_INFO     = "department not found"
 	DEPARTMENT_NOT_IN_ENTITY_INFO = "Department not in entity"
+	USER_NOT_IN_DEPARTMENT_INFO   = "User not in department"
 )

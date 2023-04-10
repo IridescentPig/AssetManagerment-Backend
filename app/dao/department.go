@@ -201,3 +201,8 @@ func (department *departmentDao) ModifyDepartmentEntity(department_name string, 
 	query_department.Entity = *target_entity
 	return utils.DBError(db.Session(&gorm.Session{FullSaveAssociations: true}).Updates(&query_department))
 }
+
+func (department *departmentDao) GetDepartmentManager(id uint) (managers []*model.User, err error) {
+	err = utils.DBError(db.Model(&model.User{}).Where("department_id = ? and department_super = ?", id, true).Find(&managers))
+	return
+}

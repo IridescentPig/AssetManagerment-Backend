@@ -149,3 +149,23 @@ func (department *departmentService) CreateDepartmentUser(req define.CreateDepar
 	})
 	return err
 }
+
+func (department *departmentService) SetDepartmentManager(username string, departmentID uint) error {
+	err := dao.UserDao.UpdateByName(username, map[string]interface{}{
+		"department_id":    departmentID,
+		"department_super": true,
+	})
+	return err
+}
+
+func (department *departmentService) DeleteDepartmentManager(userID uint) error {
+	err := dao.UserDao.Update(userID, map[string]interface{}{
+		"department_super": false,
+	})
+	return err
+}
+
+func (department *departmentService) GetDepartmentManagerList(id uint) ([]*model.User, error) {
+	managerList, err := dao.DepartmentDao.GetDepartmentManager(id)
+	return managerList, err
+}

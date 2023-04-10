@@ -14,9 +14,13 @@ type DepartmentBasicInfo struct {
 }
 
 type CreateDepartmentUserReq struct {
-	UserName        string `json:"username"`
-	Password        string `json:"password"`
-	DepartmentSuper bool   `json:"department_super"`
+	UserName        string `json:"username" binding:"required"`
+	Password        string `json:"password" binding:"required"`
+	DepartmentSuper bool   `json:"department_super" binding:"required"`
+}
+
+type SetDepartmentManagerReq struct {
+	UserName string `json:"username" binding:"required"`
 }
 
 /*
@@ -53,4 +57,13 @@ type DepartmentUserInfo struct {
 
 type DepartmentUserListResponse struct {
 	UserList []DepartmentUserInfo `json:"user_list"`
+}
+
+type DepartmentManager struct {
+	ManagerID   uint   `json:"manager_id" copier:"ID"`
+	ManagerName string `json:"manager_name" copier:"UserName"`
+}
+
+type DepartmentManagerListResponse struct {
+	ManagerList []DepartmentManager `json:"manager_list"`
 }

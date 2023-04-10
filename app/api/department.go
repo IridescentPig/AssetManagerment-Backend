@@ -56,6 +56,18 @@ func (department *departmentApi) CheckEntityDepartmentValid(ctx *utils.Context, 
 	return true
 }
 
+func (department *departmentApi) GetTwoIDs(ctx *utils.Context) (uint, uint, error) {
+	entityID, err := service.EntityService.GetParamID(ctx, "entity_id")
+	if err != nil {
+		return 0, 0, err
+	}
+	departmentID, err := service.EntityService.GetParamID(ctx, "department_id")
+	if err != nil {
+		return 0, 0, err
+	}
+	return entityID, departmentID, nil
+}
+
 /*
 Handle func for POST /entity/{entity_id}/department and /entity/{entity_id}/department/{department_id}/department
 */
@@ -112,11 +124,7 @@ func (department *departmentApi) CreateDepartment(ctx *utils.Context) {
 Handle func for GET /entity/{entity_id}/department/{department_id}
 */
 func (department *departmentApi) GetDepartmentByID(ctx *utils.Context) {
-	entityID, err := service.EntityService.GetParamID(ctx, "entity_id")
-	if err != nil {
-		return
-	}
-	departmentID, err := service.EntityService.GetParamID(ctx, "department_id")
+	entityID, departmentID, err := department.GetTwoIDs(ctx)
 	if err != nil {
 		return
 	}
@@ -162,11 +170,7 @@ func (department *departmentApi) GetDepartmentByID(ctx *utils.Context) {
 Handle func for GET /entity/{entity_id}/department/{department_id}/department/list
 */
 func (department *departmentApi) GetSubDepartments(ctx *utils.Context) {
-	entityID, err := service.EntityService.GetParamID(ctx, "entity_id")
-	if err != nil {
-		return
-	}
-	departmentID, err := service.EntityService.GetParamID(ctx, "department_id")
+	entityID, departmentID, err := department.GetTwoIDs(ctx)
 	if err != nil {
 		return
 	}
@@ -213,11 +217,7 @@ func (department *departmentApi) GetSubDepartments(ctx *utils.Context) {
 Handle func for GET /entity/{entity_id}/department/{department_id}/user/list
 */
 func (department *departmentApi) GetAllUsersUnderDepartment(ctx *utils.Context) {
-	entityID, err := service.EntityService.GetParamID(ctx, "entity_id")
-	if err != nil {
-		return
-	}
-	departmentID, err := service.EntityService.GetParamID(ctx, "department_id")
+	entityID, departmentID, err := department.GetTwoIDs(ctx)
 	if err != nil {
 		return
 	}
@@ -264,14 +264,11 @@ func (department *departmentApi) GetAllUsersUnderDepartment(ctx *utils.Context) 
 Handle func for POST /entity/{entity_id}/department/{department_id}/user
 */
 func (department *departmentApi) CreateUserInDepartment(ctx *utils.Context) {
-	entityID, err := service.EntityService.GetParamID(ctx, "entity_id")
+	entityID, departmentID, err := department.GetTwoIDs(ctx)
 	if err != nil {
 		return
 	}
-	departmentID, err := service.EntityService.GetParamID(ctx, "department_id")
-	if err != nil {
-		return
-	}
+
 	entitySuper := service.UserService.EntitySuper(ctx)
 	if !entitySuper {
 		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
@@ -295,6 +292,16 @@ func (department *departmentApi) CreateUserInDepartment(ctx *utils.Context) {
 		return
 	}
 
+	existsUser, err := service.UserService.ExistsUser(createUserReq.UserName)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+	if existsUser {
+		ctx.BadRequest(myerror.USER_HAS_EXISTED, myerror.USER_HAS_EXISTED_INFO)
+		return
+	}
+
 	err = service.DepartmentService.CreateDepartmentUser(createUserReq, entityID, departmentID)
 	if err != nil {
 		ctx.InternalError(err.Error())
@@ -302,4 +309,160 @@ func (department *departmentApi) CreateUserInDepartment(ctx *utils.Context) {
 	}
 
 	ctx.Success(nil)
+}
+
+/*
+Handle func for POST /entity/{entity_id}/department/{department_id}/manager
+*/
+func (department *departmentApi) SetManager(ctx *utils.Context) {
+	entityID, departmentID, err := department.GetTwoIDs(ctx)
+	if err != nil {
+		return
+	}
+
+	entitySuper := service.UserService.EntitySuper(ctx)
+	if !entitySuper {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+	isInEntity := service.EntityService.CheckIsInEntity(ctx, entityID)
+	if !isInEntity {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	isValid := department.CheckEntityDepartmentValid(ctx, entityID, departmentID)
+	if !isValid {
+		return
+	}
+
+	var setManagerReq define.SetDepartmentManagerReq
+	err = ctx.MustBindWith(&setManagerReq, binding.JSON)
+	if err != nil {
+		ctx.BadRequest(myerror.INVALID_BODY, myerror.INVALID_BODY_INFO)
+		return
+	}
+
+	thisUser, err := service.UserService.GetUserByName(setManagerReq.UserName)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+	if thisUser == nil {
+		ctx.BadRequest(myerror.USER_NOT_FOUND, myerror.USER_NOT_FOUND_INFO)
+		return
+	}
+	if thisUser.EntityID != entityID {
+		ctx.BadRequest(myerror.USER_NOT_IN_ENTITY, myerror.USER_NOT_IN_ENTITY_INFO)
+		return
+	}
+
+	err = service.DepartmentService.SetDepartmentManager(setManagerReq.UserName, departmentID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	ctx.Success(nil)
+}
+
+/*
+Handle func for DELETE /entity/{entity_id}/department/{department_id}/manager/{user_id}
+*/
+func (department *departmentApi) DeleteDepartmentManager(ctx *utils.Context) {
+	entityID, departmentID, err := department.GetTwoIDs(ctx)
+	if err != nil {
+		return
+	}
+
+	entitySuper := service.UserService.EntitySuper(ctx)
+	if !entitySuper {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+	isInEntity := service.EntityService.CheckIsInEntity(ctx, entityID)
+	if !isInEntity {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	isValid := department.CheckEntityDepartmentValid(ctx, entityID, departmentID)
+	if !isValid {
+		return
+	}
+
+	userID, err := service.EntityService.GetParamID(ctx, "user_id")
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+	thisUser, err := service.UserService.GetUserByID(userID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+	if thisUser == nil {
+		ctx.BadRequest(myerror.USER_NOT_FOUND, myerror.USER_NOT_FOUND_INFO)
+		return
+	}
+	if thisUser.EntityID != entityID {
+		ctx.BadRequest(myerror.USER_NOT_IN_ENTITY, myerror.USER_NOT_IN_ENTITY_INFO)
+		return
+	}
+	if thisUser.DepartmentID != departmentID {
+		ctx.BadRequest(myerror.USER_NOT_IN_DEPARTMENT, myerror.USER_NOT_IN_DEPARTMENT_INFO)
+		return
+	}
+
+	err = service.DepartmentService.DeleteDepartmentManager(userID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	ctx.Success(nil)
+}
+
+/*
+Handle func for GET /entity/{entity_id}/department/{department_id}/manager
+*/
+func (department *departmentApi) GetDepartmentManager(ctx *utils.Context) {
+	entityID, departmentID, err := department.GetTwoIDs(ctx)
+	if err != nil {
+		return
+	}
+
+	entitySuper := service.UserService.EntitySuper(ctx)
+	if !entitySuper {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+	isInEntity := service.EntityService.CheckIsInEntity(ctx, entityID)
+	if !isInEntity {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	isValid := department.CheckEntityDepartmentValid(ctx, entityID, departmentID)
+	if !isValid {
+		return
+	}
+
+	managerList, err := service.DepartmentService.GetDepartmentManagerList(departmentID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+	managerListRes := []define.DepartmentManager{}
+	err = copier.Copy(&managerListRes, managerList)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	managerListResponse := define.DepartmentManagerListResponse{
+		ManagerList: managerListRes,
+	}
+
+	ctx.Success(managerListResponse)
 }
