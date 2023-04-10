@@ -21,6 +21,18 @@ func init() {
 	EntityService = newEntityService()
 }
 
+func (entity *entityService) CheckIsInEntity(ctx *utils.Context, entityID uint) bool {
+	userInfo, exists := ctx.Get("user")
+	if exists {
+		if userInfo, ok := userInfo.(define.UserBasicInfo); ok {
+			if userInfo.EntityID == entityID {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 func (entity *entityService) GetParamID(ctx *utils.Context, key string) (uint, error) {
 	param := ctx.Param(key)
 	tempID, err := strconv.ParseUint(param, 10, 0)

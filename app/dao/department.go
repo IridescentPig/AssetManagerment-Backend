@@ -62,6 +62,15 @@ func (department *departmentDao) GetDepartmentByName(name string) (*model.Depart
 	return ret, utils.DBError(result)
 }
 
+func (department *departmentDao) GetDepartmentByID(id uint) (*model.Department, error) {
+	ret := &model.Department{}
+	result := db.Model(&model.Department{}).Preload("Department").Preload("Entity").Where("id = ?", id).First(ret)
+	if result.Error == gorm.ErrRecordNotFound {
+		return nil, nil
+	}
+	return ret, utils.DBError(result)
+}
+
 func (department *departmentDao) GetDepartmentsByNames(name []string) (list []model.Department, err error) {
 	result := db.Model(&model.Department{}).Where("name IN (?)", name).Order("id").Find(&list)
 	err = utils.DBError(result)

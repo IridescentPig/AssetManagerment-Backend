@@ -1,9 +1,14 @@
 package define
 
+type CreateDepartmentReq struct {
+	EntityID     uint
+	DepartmentID uint
+}
+
 type DepartmentBasicInfo struct {
 	ID       uint   `json:"department_id"`
 	Name     string `json:"department_name"`
-	ParentID *uint  `json:"parent_id"`
+	ParentID uint   `json:"parent_id"`
 }
 
 /*
