@@ -5,6 +5,8 @@ import (
 	"asset-management/app/service"
 	"asset-management/myerror"
 	"asset-management/utils"
+
+	"github.com/jinzhu/copier"
 )
 
 type departmentApi struct {
@@ -103,4 +105,94 @@ func (department *departmentApi) GetDepartmentByID(ctx *utils.Context) {
 		Department: departmentInfo,
 	}
 	ctx.Success(departmentInfoRes)
+}
+
+/*
+Handle func for GET /entity/{entity_id}/department/{department_id}/department/list
+*/
+func (department *departmentApi) GetSubDepartments(ctx *utils.Context) {
+	entityID, err := service.EntityService.GetParamID(ctx, "entity_id")
+	if err != nil {
+		return
+	}
+	departmentID, err := service.EntityService.GetParamID(ctx, "department_id")
+	if err != nil {
+		return
+	}
+	entitySuper := service.UserService.EntitySuper(ctx)
+	departmentSuper := service.UserService.DepartmentSuper(ctx)
+	if !entitySuper && !departmentSuper {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+	identity, err := service.DepartmentService.CheckDepartmentIdentity(ctx, entityID, departmentID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+	if !identity {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	departmentList, err := service.DepartmentService.GetSubDepartments(departmentID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+	departmentListRes := []define.DepartmentBasicInfo{}
+	err = copier.Copy(&departmentListRes, departmentList)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+	departmentListResponse := define.DepartmentListResponse{
+		DepartmentList: departmentListRes,
+	}
+	ctx.Success(departmentListResponse)
+}
+
+/*
+Handle func for GET /entity/{entity_id}/department/{department_id}/user/list
+*/
+func (department *departmentApi) GetAllUsersUnderDepartment(ctx *utils.Context) {
+	entityID, err := service.EntityService.GetParamID(ctx, "entity_id")
+	if err != nil {
+		return
+	}
+	departmentID, err := service.EntityService.GetParamID(ctx, "department_id")
+	if err != nil {
+		return
+	}
+	entitySuper := service.UserService.EntitySuper(ctx)
+	departmentSuper := service.UserService.DepartmentSuper(ctx)
+	if !entitySuper && !departmentSuper {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+	identity, err := service.DepartmentService.CheckDepartmentIdentity(ctx, entityID, departmentID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+	if !identity {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	userList, err := service.DepartmentService.GetAllUsers(departmentID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+	userListRes := []define.DepartmentUserInfo{}
+	err = copier.Copy(&userListRes, userList)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+	userListResponse := define.DepartmentUserListResponse{
+		UserList: userListRes,
+	}
+	ctx.Success(userListResponse)
 }

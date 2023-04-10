@@ -109,3 +109,13 @@ func (department *departmentService) GetDepartmentInfoByID(departmentID uint) (*
 	}
 	return thisDepartment, err
 }
+
+func (department *departmentService) GetSubDepartments(departmentID uint) ([]*model.Department, error) {
+	departmentList, err := dao.DepartmentDao.GetSubDepartmentByID(departmentID)
+	return departmentList, err
+}
+
+func (department *departmentService) GetAllUsers(departmentID uint) ([]*model.User, error) {
+	userList, err := dao.DepartmentDao.GetDepartmentAllUserByID(departmentID)
+	return userList, err
+}

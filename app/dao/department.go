@@ -83,6 +83,15 @@ func (department *departmentDao) DepartmentCount() (count int64, err error) {
 	return
 }
 
+func (department *departmentDao) GetSubDepartmentByID(id uint) (departments []*model.Department, err error) {
+	query_department, err := department.GetDepartmentByID(id)
+	if err != nil {
+		return
+	}
+	err = utils.DBError(db.Model(&query_department).Where("parent_id = ?", query_department.ID).Find(&departments))
+	return
+}
+
 // department and department
 func (department *departmentDao) GetSubDepartment(name string) (departments []*model.Department, err error) {
 	query_department, err := department.GetDepartmentByName(name)
@@ -122,6 +131,33 @@ func (department *departmentDao) GetDepartmentDirectUser(name string) (users []*
 		return
 	}
 	err = utils.DBError(db.Model(&model.User{}).Where("department_id = ?", query_department.ID).Find(&users))
+	return
+}
+
+func (department *departmentDao) GetDepartmentDirectUserByID(id uint) (users []*model.User, err error) {
+	query_department, err := department.GetDepartmentByID(id)
+	if err != nil {
+		return
+	}
+	err = utils.DBError(db.Model(&model.User{}).Where("department_id = ?", query_department.ID).Find(&users))
+	return
+}
+
+func (department *departmentDao) GetDepartmentAllUserByID(id uint) (users []*model.User, err error) {
+	direct_users, err := department.GetDepartmentDirectUserByID(id)
+	if err != nil {
+		return
+	}
+	users = append(users, direct_users...)
+	departments, err := department.GetSubDepartmentByID(id)
+	for _, dpm := range departments {
+		indirect_users, in_err := department.GetDepartmentAllUserByID(dpm.ID)
+		if in_err != nil {
+			err = in_err
+			return
+		}
+		users = append(users, indirect_users...)
+	}
 	return
 }
 
