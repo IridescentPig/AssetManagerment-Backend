@@ -170,9 +170,9 @@ func TestAdmin(t *testing.T) {
 		UserName:    "admin",
 		Password:    utils.CreateMD5("21232f297a57a5a743894a0e4a801fc3"),
 		SystemSuper: true,
+		Ban:         false,
 		// EntityID:     nil,
 		// DepartmentID: nil,
-		Ban: false,
 	}
 	dao.UserDao.Create(admin)
 

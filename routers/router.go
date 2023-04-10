@@ -23,6 +23,7 @@ func (router *router) Init(r *gin.Engine) *gin.Engine {
 	r.NoMethod(utils.Handler(MethodNotFound))
 
 	UserRouter.Init(r.Group("/user"))
+	EntityRouter.Init(r.Group("/entity"))
 
 	return r
 }
