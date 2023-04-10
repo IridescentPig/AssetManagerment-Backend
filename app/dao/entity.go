@@ -101,6 +101,6 @@ func (entity *entityDao) GetEntitySubDepartment(name string) (departments []*mod
 	if err != nil {
 		return
 	}
-	err = utils.DBError(db.Model(&model.Department{}).Where("entity_id = ? and parent_id = 0", query_entity.ID).Find(&departments))
+	err = utils.DBError(db.Model(&model.Department{}).Where("entity_id = ? and parent_id IS NULL", query_entity.ID, 0).Find(&departments))
 	return
 }

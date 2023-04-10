@@ -55,7 +55,7 @@ func Initial() {
 
 func InitForTest() {
 	var err error
-	db, err = gorm.Open(sqlite.Open("file::memory:?cache=shared?parseTime=True&loc=Local"))
+	db, err = gorm.Open(sqlite.Open("file::memory:?cache=shared&parseTime=True&loc=Local"))
 	if err != nil {
 		log.Fatal(err)
 	}

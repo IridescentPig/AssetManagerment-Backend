@@ -60,19 +60,19 @@ func (user *userDao) GetLimitUser(begin int, length int) (list []model.User, err
 
 func (user *userDao) GetUserByName(username string) (*model.User, error) {
 	ret := &model.User{}
-	result := db.Model(&model.User{}).Where("username = ?", username).First(ret)
-	department := &model.Department{}
-	err := db.Model(&ret).Association("Department").Find(&department)
-	if err != nil {
-		return nil, err
-	}
-	ret.Department = department
-	entity := &model.Entity{}
-	err = db.Model(&ret).Association("Entity").Find(&entity)
-	if err != nil {
-		return nil, err
-	}
-	ret.Entity = entity
+	result := db.Model(&model.User{}).Preload("Department").Preload("Entity").Where("username = ?", username).First(ret)
+	// department := model.Department{}
+	// err := db.Model(&ret).Association("Department").Find(&department)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// ret.Department = &department
+	// entity := &model.Entity{}
+	// err = db.Model(&ret).Association("Entity").Find(&entity)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// ret.Entity = entity
 	if result.Error == gorm.ErrRecordNotFound {
 		return nil, nil
 	}
@@ -81,19 +81,19 @@ func (user *userDao) GetUserByName(username string) (*model.User, error) {
 
 func (user *userDao) GetUserByID(id uint) (*model.User, error) {
 	ret := &model.User{}
-	result := db.Model(&model.User{}).Where("id = ?", id).First(ret)
-	department := &model.Department{}
-	err := db.Model(&ret).Association("Department").Find(&department)
-	if err != nil {
-		return nil, err
-	}
-	ret.Department = department
-	entity := &model.Entity{}
-	err = db.Model(&ret).Association("Entity").Find(&entity)
-	if err != nil {
-		return nil, err
-	}
-	ret.Entity = entity
+	result := db.Model(&model.User{}).Preload("Department").Preload("Entity").Where("id = ?", id).First(ret)
+	// department := model.Department{}
+	// err := db.Model(&ret).Association("Department").Find(&department)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// ret.Department = &department
+	// entity := &model.Entity{}
+	// err = db.Model(&ret).Association("Entity").Find(&entity)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// ret.Entity = entity
 	if result.Error == gorm.ErrRecordNotFound {
 		return nil, nil
 	}

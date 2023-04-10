@@ -188,7 +188,7 @@ func TestDepartmentEntity(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	//log.Print(new_user)
+	// log.Println(new_user.Department)
 	assert.Equal(t, "test_department", new_user.Department.Name, "database error")
 
 	qd, err := UserDao.GetUserDepartment("test")
@@ -208,7 +208,7 @@ func TestDepartmentEntity(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	//log.Print(new_user)
+	// log.Print(new_user.Entity)
 	assert.Equal(t, "test_entity", new_user.Entity.Name, "database error")
 
 	et, err := UserDao.GetUserEntity("test")
