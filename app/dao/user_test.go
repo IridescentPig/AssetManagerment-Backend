@@ -71,14 +71,15 @@ func TestUser(t *testing.T) {
 	assert.Equal(t, nil, err, "database error")
 	assert.Equal(t, int64(3), count, "database error")
 
-	var userList []model.User
+	var userList []*model.User
 	userList, err = UserDao.AllUser()
 	assert.Equal(t, nil, err, "database error")
 	assert.Equal(t, "test", userList[0].UserName, "database error")
 
-	userList, err = UserDao.GetUsersByNames([]string{"test", "admin"})
+	var users []model.User
+	users, err = UserDao.GetUsersByNames([]string{"test", "admin"})
 	assert.Equal(t, nil, err, "database error")
-	assert.Equal(t, "test", userList[0].UserName, "database error")
+	assert.Equal(t, "test", users[0].UserName, "database error")
 
 	err = UserDao.ModifyUserIdentity("haha", 1)
 	assert.Equal(t, false, err == nil, "database error")
@@ -189,7 +190,7 @@ func TestDepartmentEntity(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	//log.Print(new_user)
+	// log.Println(new_user.Department)
 	assert.Equal(t, "test_department", new_user.Department.Name, "database error")
 
 	qd, err := UserDao.GetUserDepartment("test")
@@ -209,7 +210,7 @@ func TestDepartmentEntity(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	//log.Print(new_user)
+	// log.Print(new_user.Entity)
 	assert.Equal(t, "test_entity", new_user.Entity.Name, "database error")
 
 	et, err := UserDao.GetUserEntity("test")
@@ -288,7 +289,7 @@ func TestDepartmentEntity(t *testing.T) {
 	assert.Equal(t, 1, len(au), "database error")
 	assert.Equal(t, "test", au[0].UserName, "database error")
 
-	au, err = EntityDao.GetEntityAllUser("test_entity")
+	au, err = EntityDao.GetEntityAllUser(1)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -297,7 +298,7 @@ func TestDepartmentEntity(t *testing.T) {
 	assert.Equal(t, 1, len(au), "database error")
 	assert.Equal(t, "test", au[0].UserName, "database error")
 
-	ad, err := EntityDao.GetEntityAllDepartment("test_entity")
+	ad, err := EntityDao.GetEntityAllDepartment(1)
 	if err != nil {
 		log.Fatal(err)
 	}

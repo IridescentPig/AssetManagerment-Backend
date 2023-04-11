@@ -41,18 +41,18 @@ func (entity *entityDao) AllEntity() (list []model.Entity, err error) {
 	return
 }
 
-func (entity *entityDao) GetEntityByID(id int) (*model.Entity, error) {
+func (entity *entityDao) GetEntityByName(name string) (*model.Entity, error) {
 	ret := &model.Entity{}
-	result := db.Model(&model.Entity{}).Where("ID = ?", id).First(ret)
+	result := db.Model(&model.Entity{}).Where("name = ?", name).First(ret)
 	if result.Error == gorm.ErrRecordNotFound {
 		return nil, nil
 	}
 	return ret, utils.DBError(result)
 }
 
-func (entity *entityDao) GetEntityByName(name string) (*model.Entity, error) {
+func (entity *entityDao) GetEntityByID(id uint) (*model.Entity, error) {
 	ret := &model.Entity{}
-	result := db.Model(&model.Entity{}).Where("name = ?", name).First(ret)
+	result := db.Model(&model.Entity{}).Where("id = ?", id).First(ret)
 	if result.Error == gorm.ErrRecordNotFound {
 		return nil, nil
 	}
@@ -72,22 +72,27 @@ func (entity *entityDao) EntityCount() (count int64, err error) {
 }
 
 // entity and user
-func (entity *entityDao) GetEntityAllUser(name string) (users []*model.User, err error) {
-	query_entity, err := entity.GetEntityByName(name)
-	if err != nil {
-		return
-	}
-	err = utils.DBError(db.Model(&model.User{}).Where("entity_id = ?", query_entity.ID).Find(&users))
+func (entity *entityDao) GetEntityAllUser(id uint) (users []*model.User, err error) {
+	// query_entity, err := entity.GetEntityByName(name)
+	// if err != nil {
+	// 	return
+	// }
+	err = utils.DBError(db.Model(&model.User{}).Where("entity_id = ?", id).Find(&users))
+	return
+}
+
+func (entity *entityDao) GetEntityManager(id uint) (managers []*model.User, err error) {
+	err = utils.DBError(db.Model(&model.User{}).Where("entity_id = ? and entity_super = ?", id, true).Find(&managers))
 	return
 }
 
 // entity and department
-func (entity *entityDao) GetEntityAllDepartment(name string) (departments []*model.Department, err error) {
-	query_entity, err := entity.GetEntityByName(name)
-	if err != nil {
-		return
-	}
-	err = utils.DBError(db.Model(&model.Department{}).Where("entity_id = ?", query_entity.ID).Find(&departments))
+func (entity *entityDao) GetEntityAllDepartment(id uint) (departments []*model.Department, err error) {
+	// query_entity, err := entity.GetEntityByName(name)
+	// if err != nil {
+	// 	return
+	// }
+	err = utils.DBError(db.Model(&model.Department{}).Where("entity_id = ?", id).Find(&departments))
 	return
 }
 
@@ -96,6 +101,6 @@ func (entity *entityDao) GetEntitySubDepartment(name string) (departments []*mod
 	if err != nil {
 		return
 	}
-	err = utils.DBError(db.Model(&model.Department{}).Where("entity_id = ? and parent_id = 0", query_entity.ID).Find(&departments))
+	err = utils.DBError(db.Model(&model.Department{}).Where("entity_id = ? and parent_id IS NULL", query_entity.ID, 0).Find(&departments))
 	return
 }

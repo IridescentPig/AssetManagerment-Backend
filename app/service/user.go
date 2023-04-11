@@ -25,9 +25,9 @@ func (user *userService) CreateUser(username, password string) error {
 	return dao.UserDao.Create(model.User{
 		UserName: username,
 		Password: password,
+		Ban:      false,
 		// EntityID:     nil,
 		// DepartmentID: nil,
-		Ban: false,
 	})
 }
 
@@ -46,12 +46,30 @@ func (user *userService) VerifyPasswordAndGetUser(username, password string) (st
 		EntitySuper:     thisUser.EntitySuper,
 		DepartmentSuper: thisUser.DepartmentSuper,
 		SystemSuper:     thisUser.SystemSuper,
+		EntityID:        thisUser.EntityID,
+		DepartmentID:    thisUser.DepartmentID,
 	}
 	token, err := utils.CreateToken(userInfo)
 	if err != nil {
 		return "", nil, err
 	}
 	return token, thisUser, nil
+}
+
+func (user *userService) GetUserByID(id uint) (*model.User, error) {
+	thisUser, err := dao.UserDao.GetUserByID(id)
+	if err != nil {
+		return nil, err
+	}
+	return thisUser, nil
+}
+
+func (user *userService) GetUserByName(name string) (*model.User, error) {
+	thisUser, err := dao.UserDao.GetUserByName(name)
+	if err != nil {
+		return nil, err
+	}
+	return thisUser, nil
 }
 
 func (user *userService) ExistsUser(username string) (bool, error) {
@@ -121,4 +139,12 @@ func (user *userService) ModifyUserPassword(username string, password string) er
 
 func (user *userService) ModifyUserBanstate(username string, ban bool) error {
 	return dao.UserDao.ModifyUserBanstate(username, ban)
+}
+
+func (user *userService) DeleteUser(userID uint) error {
+	return dao.UserDao.Delete([]uint{userID})
+}
+
+func (user *userService) GetAllUsers() ([]*model.User, error) {
+	return dao.UserDao.AllUser()
 }

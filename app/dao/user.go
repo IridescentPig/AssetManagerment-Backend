@@ -41,7 +41,7 @@ func (user *userDao) Delete(id []uint) error {
 	return utils.DBError(result)
 }
 
-func (user *userDao) AllUser() (list []model.User, err error) {
+func (user *userDao) AllUser() (list []*model.User, err error) {
 	result := db.Model(&model.User{}).Find(&list)
 	err = utils.DBError(result)
 	return
@@ -60,19 +60,40 @@ func (user *userDao) GetLimitUser(begin int, length int) (list []model.User, err
 
 func (user *userDao) GetUserByName(username string) (*model.User, error) {
 	ret := &model.User{}
-	result := db.Model(&model.User{}).Where("username = ?", username).First(ret)
-	department := &model.Department{}
-	err := db.Model(&ret).Association("Department").Find(&department)
-	if err != nil {
-		return nil, err
+	result := db.Model(&model.User{}).Preload("Department").Preload("Entity").Where("username = ?", username).First(ret)
+	// department := model.Department{}
+	// err := db.Model(&ret).Association("Department").Find(&department)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// ret.Department = &department
+	// entity := &model.Entity{}
+	// err = db.Model(&ret).Association("Entity").Find(&entity)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// ret.Entity = entity
+	if result.Error == gorm.ErrRecordNotFound {
+		return nil, nil
 	}
-	ret.Department = *department
-	entity := &model.Entity{}
-	err = db.Model(&ret).Association("Entity").Find(&entity)
-	if err != nil {
-		return nil, err
-	}
-	ret.Entity = *entity
+	return ret, utils.DBError(result)
+}
+
+func (user *userDao) GetUserByID(id uint) (*model.User, error) {
+	ret := &model.User{}
+	result := db.Model(&model.User{}).Preload("Department").Preload("Entity").Where("id = ?", id).First(ret)
+	// department := model.Department{}
+	// err := db.Model(&ret).Association("Department").Find(&department)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// ret.Department = &department
+	// entity := &model.Entity{}
+	// err = db.Model(&ret).Association("Entity").Find(&entity)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// ret.Entity = entity
 	if result.Error == gorm.ErrRecordNotFound {
 		return nil, nil
 	}
@@ -167,7 +188,7 @@ func (user *userDao) GetUserEntity(username string) (entity model.Entity, err er
 		err = errors.New("user doesn't exist")
 		return
 	}
-	entity = thisUser.Entity
+	entity = *thisUser.Entity
 	//db.Model(&thisUser).Where("id = ?", thisUser.ID).Preload("entity").Find(&entity)
 	return
 }
@@ -195,7 +216,7 @@ func (user *userDao) GetUserDepartment(username string) (department model.Depart
 		err = errors.New("user doesn't exist")
 		return
 	}
-	department = thisUser.Department
+	department = *thisUser.Department
 	//err = db.Model(&thisUser).Association("Department").Find(&department)
 	return
 }

@@ -5,6 +5,7 @@ go 1.20
 require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gin-gonic/gin v1.9.0
+	github.com/jinzhu/copier v0.3.5
 	github.com/stretchr/testify v1.8.1
 	gorm.io/driver/mysql v1.4.7
 	gorm.io/driver/sqlite v1.4.4
