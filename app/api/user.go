@@ -4,9 +4,11 @@ import (
 	"asset-management/app/define"
 	"asset-management/app/model"
 	"asset-management/app/service"
+	"asset-management/myerror"
 	"asset-management/utils"
 
 	"github.com/gin-gonic/gin/binding"
+	"github.com/jinzhu/copier"
 )
 
 type userApi struct {
@@ -20,6 +22,29 @@ func newUserApi() *userApi {
 
 func init() {
 	UserApi = newUserApi()
+}
+
+func (user *userApi) CheckIdentity(ctx *utils.Context, entityID uint) bool {
+	systemSuper := service.UserService.SystemSuper(ctx)
+	if systemSuper {
+		return true
+	}
+	entitySuper := service.UserService.EntitySuper(ctx)
+	if !entitySuper {
+		return false
+	}
+	isInEntity := service.EntityService.CheckIsInEntity(ctx, entityID)
+	return isInEntity
+}
+
+func (user *userApi) GetOperatorID(ctx *utils.Context) uint {
+	userInfo, exists := ctx.Get("user")
+	if exists {
+		if userInfo, ok := userInfo.(define.UserBasicInfo); ok {
+			return userInfo.UserID
+		}
+	}
+	return 0
 }
 
 func (user *userApi) UserRegister(ctx *utils.Context) {
@@ -173,7 +198,7 @@ func (user *userApi) LockUser(ctx *utils.Context) {
 	username := ctx.Param("username")
 
 	if !service.UserService.SystemSuper(ctx) {
-		ctx.Forbidden(2, "Permission Denied.")
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
 		return
 	}
 
@@ -182,7 +207,7 @@ func (user *userApi) LockUser(ctx *utils.Context) {
 		ctx.InternalError(err.Error())
 		return
 	} else if !exists {
-		ctx.BadRequest(1, "User Not Found")
+		ctx.BadRequest(myerror.USER_NOT_FOUND, myerror.USER_NOT_FOUND_INFO)
 		return
 	}
 
@@ -199,7 +224,7 @@ func (user *userApi) UnlockUser(ctx *utils.Context) {
 	username := ctx.Param("username")
 
 	if !service.UserService.SystemSuper(ctx) {
-		ctx.Forbidden(2, "Permission Denied.")
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
 		return
 	}
 
@@ -208,7 +233,7 @@ func (user *userApi) UnlockUser(ctx *utils.Context) {
 		ctx.InternalError(err.Error())
 		return
 	} else if !exists {
-		ctx.BadRequest(1, "User Not Found")
+		ctx.BadRequest(myerror.USER_NOT_FOUND, myerror.USER_NOT_FOUND_INFO)
 		return
 	}
 
@@ -219,4 +244,109 @@ func (user *userApi) UnlockUser(ctx *utils.Context) {
 	}
 
 	ctx.Success(nil)
+}
+
+/*
+Handle func for DELETE /user/{user_id}
+*/
+func (user *userApi) DeleteUser(ctx *utils.Context) {
+	userID, err := service.EntityService.GetParamID(ctx, "user_id")
+	if err != nil {
+		return
+	}
+
+	thisUser, err := service.UserService.GetUserByID(userID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	} else if thisUser == nil {
+		ctx.BadRequest(myerror.USER_NOT_FOUND, myerror.USER_NOT_FOUND_INFO)
+		return
+	}
+
+	hasIdentity := user.CheckIdentity(ctx, thisUser.EntityID)
+	if !hasIdentity {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+	if user.GetOperatorID(ctx) == userID {
+		ctx.BadRequest(myerror.DELETE_USER_SELF, myerror.DELETE_USER_SELF_INFO)
+		return
+	}
+
+	err = service.UserService.DeleteUser(userID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	ctx.Success(nil)
+}
+
+/*
+Handle func for GET /user/{user_id}
+*/
+func (user *userApi) GetUserInfoByID(ctx *utils.Context) {
+	userID, err := service.EntityService.GetParamID(ctx, "user_id")
+	if err != nil {
+		return
+	}
+
+	thisUser, err := service.UserService.GetUserByID(userID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	} else if thisUser == nil {
+		ctx.BadRequest(myerror.USER_NOT_FOUND, myerror.USER_NOT_FOUND_INFO)
+		return
+	}
+
+	isSelf := user.GetOperatorID(ctx) == userID
+	hasIdentity := user.CheckIdentity(ctx, thisUser.EntityID)
+	if !hasIdentity && !isSelf {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	var userInfoRes define.UserInfo
+	err = copier.Copy(&userInfoRes, thisUser)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+	userInfoResponse := define.UserInfoResponse{
+		User: userInfoRes,
+	}
+
+	ctx.Success(userInfoResponse)
+}
+
+/*
+Handle func for GET /user/list
+*/
+func (user *userApi) GetAllUsers(ctx *utils.Context) {
+	systemSuper := service.UserService.SystemSuper(ctx)
+	if !systemSuper {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	userList, err := service.UserService.GetAllUsers()
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	var userListRes []define.UserInfo
+	err = copier.Copy(&userListRes, userList)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	userListResponse := define.UserListResponse{
+		UserList: userListRes,
+	}
+
+	ctx.Success(userListResponse)
 }

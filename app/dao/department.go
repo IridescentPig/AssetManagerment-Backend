@@ -62,6 +62,30 @@ func (department *departmentDao) GetDepartmentByName(name string) (*model.Depart
 	return ret, utils.DBError(result)
 }
 
+func (department *departmentDao) GetDepartmentSub(name string, entityID uint, departmentID uint) (*model.Department, error) {
+	ret := &model.Department{}
+	var result *gorm.DB
+	if departmentID != 0 {
+		result = db.Model(&model.Department{}).Preload("Parent").Preload("Entity").Where("name = ? and entity_id = ? and parent_id = ?", name, entityID, departmentID).First(ret)
+	} else {
+		result = db.Model(&model.Department{}).Preload("Parent").Preload("Entity").Where("name = ? and entity_id = ? and parent_id IS NULL", name, entityID).First(ret)
+	}
+
+	if result.Error == gorm.ErrRecordNotFound {
+		return nil, nil
+	}
+	return ret, utils.DBError(result)
+}
+
+func (department *departmentDao) GetDepartmentByID(id uint) (*model.Department, error) {
+	ret := &model.Department{}
+	result := db.Model(&model.Department{}).Preload("Parent").Preload("Entity").Where("id = ?", id).First(ret)
+	if result.Error == gorm.ErrRecordNotFound {
+		return nil, nil
+	}
+	return ret, utils.DBError(result)
+}
+
 func (department *departmentDao) GetDepartmentsByNames(name []string) (list []model.Department, err error) {
 	result := db.Model(&model.Department{}).Where("name IN (?)", name).Order("id").Find(&list)
 	err = utils.DBError(result)
@@ -71,6 +95,15 @@ func (department *departmentDao) GetDepartmentsByNames(name []string) (list []mo
 func (department *departmentDao) DepartmentCount() (count int64, err error) {
 	result := db.Model(&model.Entity{}).Count(&count)
 	err = utils.DBError(result)
+	return
+}
+
+func (department *departmentDao) GetSubDepartmentByID(id uint) (departments []*model.Department, err error) {
+	query_department, err := department.GetDepartmentByID(id)
+	if err != nil {
+		return
+	}
+	err = utils.DBError(db.Model(&query_department).Where("parent_id = ?", query_department.ID).Find(&departments))
 	return
 }
 
@@ -116,6 +149,33 @@ func (department *departmentDao) GetDepartmentDirectUser(name string) (users []*
 	return
 }
 
+func (department *departmentDao) GetDepartmentDirectUserByID(id uint) (users []*model.User, err error) {
+	query_department, err := department.GetDepartmentByID(id)
+	if err != nil {
+		return
+	}
+	err = utils.DBError(db.Model(&model.User{}).Where("department_id = ?", query_department.ID).Find(&users))
+	return
+}
+
+func (department *departmentDao) GetDepartmentAllUserByID(id uint) (users []*model.User, err error) {
+	direct_users, err := department.GetDepartmentDirectUserByID(id)
+	if err != nil {
+		return
+	}
+	users = append(users, direct_users...)
+	departments, err := department.GetSubDepartmentByID(id)
+	for _, dpm := range departments {
+		indirect_users, in_err := department.GetDepartmentAllUserByID(dpm.ID)
+		if in_err != nil {
+			err = in_err
+			return
+		}
+		users = append(users, indirect_users...)
+	}
+	return
+}
+
 func (department *departmentDao) GetDepartmentAllUser(name string) (users []*model.User, err error) {
 	direct_users, err := department.GetDepartmentDirectUser(name)
 	if err != nil {
@@ -155,4 +215,9 @@ func (department *departmentDao) ModifyDepartmentEntity(department_name string, 
 	}
 	query_department.Entity = *target_entity
 	return utils.DBError(db.Session(&gorm.Session{FullSaveAssociations: true}).Updates(&query_department))
+}
+
+func (department *departmentDao) GetDepartmentManager(id uint) (managers []*model.User, err error) {
+	err = utils.DBError(db.Model(&model.User{}).Where("department_id = ? and department_super = ?", id, true).Find(&managers))
+	return
 }

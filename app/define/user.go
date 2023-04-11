@@ -1,6 +1,10 @@
 package define
 
-import "github.com/dgrijalva/jwt-go"
+import (
+	"asset-management/app/model"
+
+	"github.com/dgrijalva/jwt-go"
+)
 
 /*
 .*Req struct are strictly defined according to the api
@@ -46,6 +50,24 @@ type UserClaims struct {
 	jwt.StandardClaims
 }
 
+type UserInfo struct {
+	UserID          uint              `json:"user_id" copier:"ID"`
+	UserName        string            `json:"username" copier:"UserName"`
+	Ban             bool              `json:"lock"`
+	IsEmployee      bool              `json:"id0" default:"true"`
+	DepartmentSuper bool              `json:"id1"`
+	EntitySuper     bool              `json:"id2"`
+	SystemSuper     bool              `json:"id3"`
+	EntityID        uint              `json:"entity_id"`
+	Entity          *model.Entity     `json:"entity"`
+	DepartmentID    uint              `json:"department_id"`
+	Department      *model.Department `json:"department"`
+}
+
 type UserInfoResponse struct {
-	UserBasicInfo
+	User UserInfo `json:"user"`
+}
+
+type UserListResponse struct {
+	UserList []UserInfo `json:"user_list"`
 }
