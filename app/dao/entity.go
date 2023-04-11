@@ -41,6 +41,15 @@ func (entity *entityDao) AllEntity() (list []model.Entity, err error) {
 	return
 }
 
+func (entity *entityDao) GetEntityByID(id int) (*model.Entity, error) {
+	ret := &model.Entity{}
+	result := db.Model(&model.Entity{}).Where("ID = ?", id).First(ret)
+	if result.Error == gorm.ErrRecordNotFound {
+		return nil, nil
+	}
+	return ret, utils.DBError(result)
+}
+
 func (entity *entityDao) GetEntityByName(name string) (*model.Entity, error) {
 	ret := &model.Entity{}
 	result := db.Model(&model.Entity{}).Where("name = ?", name).First(ret)
