@@ -30,7 +30,7 @@ func (assetclass *assetClassDao) Update(id uint, data map[string]interface{}) er
 	return utils.DBError(result)
 }
 
-func (assetclass *assetClassDao) AllUpdate(ids []int, data map[string]interface{}) error {
+func (assetclass *assetClassDao) AllUpdate(ids []uint, data map[string]interface{}) error {
 	result := db.Model(&model.AssetClass{}).Where("id IN (?)", ids).Updates(data)
 	return utils.DBError(result)
 }
@@ -40,7 +40,7 @@ func (assetclass *assetClassDao) Delete(id []uint) error {
 	return utils.DBError(result)
 }
 
-func (assetclass *assetClassDao) GetAssetClassByID(id int) (*model.AssetClass, error) {
+func (assetclass *assetClassDao) GetAssetClassByID(id uint) (*model.AssetClass, error) {
 	ret := &model.AssetClass{}
 	result := db.Model(&model.AssetClass{}).Where("ID = ?", id).First(ret)
 	if result.Error == gorm.ErrRecordNotFound {
@@ -56,7 +56,7 @@ func (assetclass *assetClassDao) GetAssetClassByID(id int) (*model.AssetClass, e
 }
 
 // assetclass and assetclass
-func (assetclass *assetClassDao) GetSubAssetClass(id int) (assetClasses []*model.AssetClass, err error) {
+func (assetclass *assetClassDao) GetSubAssetClass(id uint) (assetClasses []*model.AssetClass, err error) {
 	query_asset, err := assetclass.GetAssetClassByID(id)
 	if err != nil {
 		return
@@ -65,7 +65,7 @@ func (assetclass *assetClassDao) GetSubAssetClass(id int) (assetClasses []*model
 	return
 }
 
-func (assetclass *assetClassDao) GetParentAssetClass(id int) (ParentAssetClass *model.AssetClass, err error) {
+func (assetclass *assetClassDao) GetParentAssetClass(id uint) (ParentAssetClass *model.AssetClass, err error) {
 	query_asset, err := assetclass.GetAssetClassByID(id)
 	if err != nil {
 		return
@@ -74,7 +74,7 @@ func (assetclass *assetClassDao) GetParentAssetClass(id int) (ParentAssetClass *
 	return
 }
 
-func (assetclass *assetClassDao) ModifyParentAssetClass(ChildID int, ParentID int) error {
+func (assetclass *assetClassDao) ModifyParentAssetClass(ChildID uint, ParentID uint) error {
 	child_asset, err := assetclass.GetAssetClassByID(ChildID)
 	if err != nil {
 		return err
@@ -88,7 +88,7 @@ func (assetclass *assetClassDao) ModifyParentAssetClass(ChildID int, ParentID in
 }
 
 // assetclass and entity
-func (assetclass *assetClassDao) GetAssetClassDepartment(id int) (department model.Department, err error) {
+func (assetclass *assetClassDao) GetAssetClassDepartment(id uint) (department model.Department, err error) {
 	query_asset, err := assetclass.GetAssetClassByID(id)
 	if err != nil {
 		return
@@ -97,7 +97,7 @@ func (assetclass *assetClassDao) GetAssetClassDepartment(id int) (department mod
 	return
 }
 
-func (assetclass *assetClassDao) ModifyAssetClassDepartment(AssetClassID int, DepartmentID int) error {
+func (assetclass *assetClassDao) ModifyAssetClassDepartment(AssetClassID uint, DepartmentID uint) error {
 	query_asset, err := assetclass.GetAssetClassByID(AssetClassID)
 	if err != nil {
 		return err

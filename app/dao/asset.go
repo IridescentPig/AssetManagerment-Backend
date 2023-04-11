@@ -32,7 +32,7 @@ func (asset *assetDao) Update(id uint, data map[string]interface{}) error {
 	return utils.DBError(result)
 }
 
-func (asset *assetDao) AllUpdate(ids []int, data map[string]interface{}) error {
+func (asset *assetDao) AllUpdate(ids []uint, data map[string]interface{}) error {
 	result := db.Model(&model.Asset{}).Where("id IN (?)", ids).Updates(data)
 	return utils.DBError(result)
 }
@@ -85,7 +85,7 @@ func (asset *assetDao) GetAssetByName(name string) (list []model.Asset, err erro
 	return
 }
 
-func (asset *assetDao) GetAssetByID(id int) (*model.Asset, error) {
+func (asset *assetDao) GetAssetByID(id uint) (*model.Asset, error) {
 	ret := &model.Asset{}
 	result := db.Model(&model.Asset{}).Where("ID = ?", id).First(ret)
 	if result.Error == gorm.ErrRecordNotFound {
@@ -114,7 +114,7 @@ func (asset *assetDao) AssetCount() (count int64, err error) {
 
 var asset_not_exist string = "asset doesn't exist"
 
-func (asset *assetDao) ModifyAssetPrice(id int, price decimal.Decimal) error {
+func (asset *assetDao) ModifyAssetPrice(id uint, price decimal.Decimal) error {
 	thisAsset, err := asset.GetAssetByID(id)
 	if err != nil {
 		return err
@@ -128,7 +128,7 @@ func (asset *assetDao) ModifyAssetPrice(id int, price decimal.Decimal) error {
 	return err
 }
 
-func (asset *assetDao) ModifyAssetDescription(id int, description string) error {
+func (asset *assetDao) ModifyAssetDescription(id uint, description string) error {
 	thisAsset, err := asset.GetAssetByID(id)
 	if err != nil {
 		return err
@@ -142,7 +142,7 @@ func (asset *assetDao) ModifyAssetDescription(id int, description string) error 
 	return err
 }
 
-func (asset *assetDao) ModifyAssetPosition(id int, position string) error {
+func (asset *assetDao) ModifyAssetPosition(id uint, position string) error {
 	thisAsset, err := asset.GetAssetByID(id)
 	if err != nil {
 		return err
@@ -156,7 +156,7 @@ func (asset *assetDao) ModifyAssetPosition(id int, position string) error {
 	return err
 }
 
-func (asset *assetDao) ModifyAssetNum(id int, num int) error {
+func (asset *assetDao) ModifyAssetNum(id uint, num int) error {
 	thisAsset, err := asset.GetAssetByID(id)
 	if err != nil {
 		return err
@@ -170,7 +170,7 @@ func (asset *assetDao) ModifyAssetNum(id int, num int) error {
 	return err
 }
 
-func (asset *assetDao) ExpireAsset(ids []int) error {
+func (asset *assetDao) ExpireAsset(ids []uint) error {
 	return asset.AllUpdate(ids, map[string]interface{}{
 		"expire": true,
 		"price":  decimal.NewFromFloat(0),
@@ -178,7 +178,7 @@ func (asset *assetDao) ExpireAsset(ids []int) error {
 }
 
 // asset and asset
-func (asset *assetDao) GetSubAsset(id int) (assets []*model.Asset, err error) {
+func (asset *assetDao) GetSubAsset(id uint) (assets []*model.Asset, err error) {
 	query_asset, err := asset.GetAssetByID(id)
 	if err != nil {
 		return
@@ -187,7 +187,7 @@ func (asset *assetDao) GetSubAsset(id int) (assets []*model.Asset, err error) {
 	return
 }
 
-func (asset *assetDao) GetParentAsset(id int) (ParentAsset *model.Asset, err error) {
+func (asset *assetDao) GetParentAsset(id uint) (ParentAsset *model.Asset, err error) {
 	query_asset, err := asset.GetAssetByID(id)
 	if err != nil {
 		return
@@ -196,7 +196,7 @@ func (asset *assetDao) GetParentAsset(id int) (ParentAsset *model.Asset, err err
 	return
 }
 
-func (asset *assetDao) ModifyParentAsset(ChildID int, ParentID int) error {
+func (asset *assetDao) ModifyParentAsset(ChildID uint, ParentID uint) error {
 	child_asset, err := asset.GetAssetByID(ChildID)
 	if err != nil {
 		return err
@@ -210,7 +210,7 @@ func (asset *assetDao) ModifyParentAsset(ChildID int, ParentID int) error {
 }
 
 // asset and user
-func (asset *assetDao) GetAssetUser(id int) (user model.User, err error) {
+func (asset *assetDao) GetAssetUser(id uint) (user model.User, err error) {
 	query_asset, err := asset.GetAssetByID(id)
 	if err != nil {
 		return
@@ -219,7 +219,7 @@ func (asset *assetDao) GetAssetUser(id int) (user model.User, err error) {
 	return
 }
 
-func (asset *assetDao) ModifyAssetUser(AssetID int, Username string) error {
+func (asset *assetDao) ModifyAssetUser(AssetID uint, Username string) error {
 	query_asset, err := asset.GetAssetByID(AssetID)
 	if err != nil {
 		return err
@@ -233,7 +233,7 @@ func (asset *assetDao) ModifyAssetUser(AssetID int, Username string) error {
 }
 
 // asset and asset_class
-func (asset *assetDao) GetAssetClass(id int) (class model.AssetClass, err error) {
+func (asset *assetDao) GetAssetClass(id uint) (class model.AssetClass, err error) {
 	query_asset, err := asset.GetAssetByID(id)
 	if err != nil {
 		return
@@ -244,7 +244,7 @@ func (asset *assetDao) GetAssetClass(id int) (class model.AssetClass, err error)
 
 var type_not_match = "type not match"
 
-func (asset *assetDao) ModifyAssetClass(AssetID int, ClassID int) error {
+func (asset *assetDao) ModifyAssetClass(AssetID uint, ClassID uint) error {
 	query_asset, err := asset.GetAssetByID(AssetID)
 	if err != nil {
 		return err

@@ -350,7 +350,7 @@ func TestAsset(t *testing.T) {
 	assert.Equal(t, nil, err, database_error)
 	new_sub_class, err := AssetClassDao.GetAssetClassByID(2)
 	assert.Equal(t, nil, err, database_error)
-	err = AssetClassDao.ModifyParentAssetClass(int(new_sub_class.ID), int(new_class.ID))
+	err = AssetClassDao.ModifyParentAssetClass(new_sub_class.ID, new_class.ID)
 	assert.Equal(t, nil, err, database_error)
 	p_class, err := AssetClassDao.GetParentAssetClass(2)
 	assert.Equal(t, nil, err, database_error)
@@ -360,7 +360,7 @@ func TestAsset(t *testing.T) {
 	assert.Equal(t, 1, len(s_class), database_error)
 	assert.Equal(t, "sub_class", s_class[0].Name, database_error)
 
-	err = AssetClassDao.ModifyAssetClassDepartment(1, int(new_department.ID))
+	err = AssetClassDao.ModifyAssetClassDepartment(1, new_department.ID)
 	assert.Equal(t, nil, err, database_error)
 	g_dep, err := AssetClassDao.GetAssetClassDepartment(1)
 	assert.Equal(t, nil, err, database_error)
@@ -465,7 +465,7 @@ func TestAsset(t *testing.T) {
 	assert.Equal(t, nil, err, database_error)
 	assert.Equal(t, "test_class", class.Name, database_error)
 
-	expire_list := []int{1, 2}
+	expire_list := []uint{1, 2}
 	err = AssetDao.ExpireAsset(expire_list)
 	assert.Equal(t, nil, err, database_error)
 	new_line, err = AssetDao.GetAssetByID(1)
