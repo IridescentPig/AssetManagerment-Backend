@@ -162,3 +162,11 @@ func (entity *entityService) ModifyEntity(entityID uint, modifyInfo define.Modif
 	}
 	return nil
 }
+
+func (entity *entityService) EntityHasUser(entityID uint) (bool, error) {
+	userList, err := dao.EntityDao.GetEntityAllUser(entityID)
+	if err != nil {
+		return true, err
+	}
+	return len(userList) != 0, nil
+}

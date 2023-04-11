@@ -16,4 +16,6 @@ const (
 	DEPARTMENT_NOT_FOUND_INFO     = "department not found"
 	DEPARTMENT_NOT_IN_ENTITY_INFO = "Department not in entity"
 	USER_NOT_IN_DEPARTMENT_INFO   = "User not in department"
+	ENTITY_HAS_USERS_INFO         = "Entity has users, cannot be deleted"
+	DELETE_USER_SELF_INFO         = "You cannot delete yourself"
 )

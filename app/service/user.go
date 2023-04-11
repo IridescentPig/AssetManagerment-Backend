@@ -140,3 +140,7 @@ func (user *userService) ModifyUserPassword(username string, password string) er
 func (user *userService) ModifyUserBanstate(username string, ban bool) error {
 	return dao.UserDao.ModifyUserBanstate(username, ban)
 }
+
+func (user *userService) DeleteUser(userID uint) error {
+	return dao.UserDao.Delete([]uint{userID})
+}

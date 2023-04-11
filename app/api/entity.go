@@ -78,6 +78,17 @@ func (entity *entityApi) DeleteEntity(ctx *utils.Context) {
 		ctx.BadRequest(myerror.ENTITY_NOT_FOUND, myerror.ENTITY_NOT_FOUND_INFO)
 		return
 	}
+
+	hasUsers, err := service.EntityService.EntityHasUser(entityID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+	if hasUsers {
+		ctx.BadRequest(myerror.ENTITY_HAS_USERS, myerror.ENTITY_HAS_USERS_INFO)
+		return
+	}
+
 	err = service.EntityService.DeleteEntity(entityID)
 	if err != nil {
 		ctx.InternalError(err.Error())

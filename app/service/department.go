@@ -76,6 +76,16 @@ func (department *departmentService) ExistsDepartmentByID(departmentID uint) (bo
 	return true, nil
 }
 
+func (department *departmentService) ExistsDepartmentSub(departmentName string, entityID uint, departmentID uint) (bool, error) {
+	thisDepartment, err := dao.DepartmentDao.GetDepartmentSub(departmentName, entityID, departmentID)
+	if err != nil {
+		return false, err
+	} else if thisDepartment == nil {
+		return false, nil
+	}
+	return true, nil
+}
+
 func (department *departmentService) CheckDepartmentInEntity(entityID uint, departmentID uint) (bool, error) {
 	thisDepartment, err := dao.DepartmentDao.GetDepartmentByID(departmentID)
 	if err != nil {
@@ -105,15 +115,17 @@ func (department *departmentService) CheckDepartmentIdentity(ctx *utils.Context,
 	}
 }
 
-func (department *departmentService) CreateDepartment(entityID uint, departmentID uint) error {
+func (department *departmentService) CreateDepartment(name string, entityID uint, departmentID uint) error {
 	var err error
 	if departmentID != 0 {
 		err = dao.DepartmentDao.Create(model.Department{
+			Name:     name,
 			EntityID: entityID,
 			ParentID: departmentID,
 		})
 	} else {
 		err = dao.DepartmentDao.Create(model.Department{
+			Name:     name,
 			EntityID: entityID,
 		})
 	}
@@ -168,4 +180,8 @@ func (department *departmentService) DeleteDepartmentManager(userID uint) error 
 func (department *departmentService) GetDepartmentManagerList(id uint) ([]*model.User, error) {
 	managerList, err := dao.DepartmentDao.GetDepartmentManager(id)
 	return managerList, err
+}
+
+func (department *departmentService) DeleteDepartment(id uint) error {
+	return dao.DepartmentDao.Delete([]uint{id})
 }

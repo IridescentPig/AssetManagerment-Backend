@@ -3,8 +3,9 @@ package define
 import "asset-management/app/model"
 
 type CreateDepartmentReq struct {
-	EntityID     uint
-	DepartmentID uint
+	DepartmentName string `json:"department_name" bind:"required"`
+	EntityID       uint
+	DepartmentID   uint
 }
 
 type DepartmentBasicInfo struct {

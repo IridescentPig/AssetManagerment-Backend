@@ -62,6 +62,21 @@ func (department *departmentDao) GetDepartmentByName(name string) (*model.Depart
 	return ret, utils.DBError(result)
 }
 
+func (department *departmentDao) GetDepartmentSub(name string, entityID uint, departmentID uint) (*model.Department, error) {
+	ret := &model.Department{}
+	var result *gorm.DB
+	if departmentID != 0 {
+		result = db.Model(&model.Department{}).Preload("Department").Preload("Entity").Where("name = ? and entity_id = ? and parent_id = ?", name, entityID, departmentID).First(ret)
+	} else {
+		result = db.Model(&model.Department{}).Preload("Department").Preload("Entity").Where("name = ? and entity_id = ? and parent_id IS NULL", name, entityID, departmentID).First(ret)
+	}
+
+	if result.Error == gorm.ErrRecordNotFound {
+		return nil, nil
+	}
+	return ret, utils.DBError(result)
+}
+
 func (department *departmentDao) GetDepartmentByID(id uint) (*model.Department, error) {
 	ret := &model.Department{}
 	result := db.Model(&model.Department{}).Preload("Department").Preload("Entity").Where("id = ?", id).First(ret)
