@@ -6,7 +6,7 @@ type Department struct {
 	ParentID uint        `gorm:"default:null;column:parent_id;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"parent_id"`
 	Parent   *Department `gorm:"foreignKey:ParentID;references:ID;default:null" json:"-"`
 	EntityID uint        `gorm:"default:null;column:entity_id;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"entity_id"`
-	Entity   Entity      `gorm:"foreignKey:EntityID;references:ID;default:null" json:"entity"`
+	Entity   Entity      `gorm:"foreignKey:EntityID;references:ID;default:null" json:"-"`
 }
 
 // func (Department) TableName() string {

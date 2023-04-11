@@ -42,7 +42,7 @@ func (user *userDao) Delete(id []uint) error {
 }
 
 func (user *userDao) AllUser() (list []*model.User, err error) {
-	result := db.Model(&model.User{}).Find(&list)
+	result := db.Model(&model.User{}).Preload("Department").Preload("Entity").Find(&list)
 	err = utils.DBError(result)
 	return
 }

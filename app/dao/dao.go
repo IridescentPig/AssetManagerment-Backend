@@ -23,7 +23,7 @@ func connect() {
 		log.Fatal(err)
 	}
 
-	db.AutoMigrate(&model.Entity{}, &model.Department{}, &model.User{})
+	db.AutoMigrate(&model.Entity{}, &model.Department{}, &model.User{}, &model.Asset{}, &model.AssetClass{})
 
 	//tables := make([]string, 0)
 	//db.Raw("SELECT name FROM sqlite_master WHERE type='table' order by name").Scan(&tables)
