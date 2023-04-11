@@ -20,4 +20,5 @@ const (
 	ENTITY_HAS_USERS         = 16
 	DELETE_USER_SELF         = 17
 	DEPARTMENT_HAS_USERS     = 18
+	ASSET_CLASS_NOT_FOUND    = 19
 )

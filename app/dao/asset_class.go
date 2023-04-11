@@ -30,6 +30,11 @@ func (assetclass *assetClassDao) Update(id uint, data map[string]interface{}) er
 	return utils.DBError(result)
 }
 
+func (assetclass *assetClassDao) UpdateByStruct(id uint, data model.AssetClass) error {
+	result := db.Model(&model.AssetClass{}).Where("id = ?", id).Updates(data)
+	return utils.DBError(result)
+}
+
 func (assetclass *assetClassDao) AllUpdate(ids []uint, data map[string]interface{}) error {
 	result := db.Model(&model.AssetClass{}).Where("id IN (?)", ids).Updates(data)
 	return utils.DBError(result)
@@ -55,13 +60,24 @@ func (assetclass *assetClassDao) GetAssetClassByID(id uint) (*model.AssetClass, 
 	return ret, utils.DBError(result)
 }
 
+func (assetclass *assetClassDao) GetDepartmentDirectClass(departmentID uint) (assetClasses []*model.AssetClass, err error) {
+	result := db.Model(&model.AssetClass{}).Where("department_id = ? and parent_id IS NULL", departmentID).Find(&assetClasses)
+	if result.Error == gorm.ErrRecordNotFound {
+		err = nil
+	} else {
+		err = utils.DBError(result)
+	}
+	return
+}
+
 // assetclass and assetclass
 func (assetclass *assetClassDao) GetSubAssetClass(id uint) (assetClasses []*model.AssetClass, err error) {
-	query_asset, err := assetclass.GetAssetClassByID(id)
-	if err != nil {
-		return
+	result := db.Model(&model.AssetClass{}).Where("parent_id = ?", id).Find(&assetClasses)
+	if result.Error == gorm.ErrRecordNotFound {
+		err = nil
+	} else {
+		err = utils.DBError(result)
 	}
-	err = utils.DBError(db.Model(&query_asset).Where("parent_id = ?", query_asset.ID).Find(&assetClasses))
 	return
 }
 

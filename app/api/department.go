@@ -15,12 +15,12 @@ type departmentApi struct {
 
 var DepartmentApi *departmentApi
 
-func newdepartmentApi() *departmentApi {
+func newDepartmentApi() *departmentApi {
 	return &departmentApi{}
 }
 
 func init() {
-	DepartmentApi = newdepartmentApi()
+	DepartmentApi = newDepartmentApi()
 }
 
 func (department *departmentApi) CheckEntityDepartmentValid(ctx *utils.Context, entityID uint, departmentID uint) bool {

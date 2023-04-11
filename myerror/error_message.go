@@ -19,4 +19,5 @@ const (
 	ENTITY_HAS_USERS_INFO         = "Entity has users, cannot be deleted"
 	DELETE_USER_SELF_INFO         = "You cannot delete yourself"
 	DEPARTMENT_HAS_USERS_INFO     = "Department has users, cannot be deleted"
+	ASSET_CLASS_NOT_FOUND_INFO    = "Asset class not found"
 )
