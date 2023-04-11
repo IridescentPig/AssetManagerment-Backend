@@ -66,9 +66,9 @@ func (department *departmentDao) GetDepartmentSub(name string, entityID uint, de
 	ret := &model.Department{}
 	var result *gorm.DB
 	if departmentID != 0 {
-		result = db.Model(&model.Department{}).Preload("Department").Preload("Entity").Where("name = ? and entity_id = ? and parent_id = ?", name, entityID, departmentID).First(ret)
+		result = db.Model(&model.Department{}).Preload("Parent").Preload("Entity").Where("name = ? and entity_id = ? and parent_id = ?", name, entityID, departmentID).First(ret)
 	} else {
-		result = db.Model(&model.Department{}).Preload("Department").Preload("Entity").Where("name = ? and entity_id = ? and parent_id IS NULL", name, entityID, departmentID).First(ret)
+		result = db.Model(&model.Department{}).Preload("Parent").Preload("Entity").Where("name = ? and entity_id = ? and parent_id IS NULL", name, entityID).First(ret)
 	}
 
 	if result.Error == gorm.ErrRecordNotFound {
@@ -79,7 +79,7 @@ func (department *departmentDao) GetDepartmentSub(name string, entityID uint, de
 
 func (department *departmentDao) GetDepartmentByID(id uint) (*model.Department, error) {
 	ret := &model.Department{}
-	result := db.Model(&model.Department{}).Preload("Department").Preload("Entity").Where("id = ?", id).First(ret)
+	result := db.Model(&model.Department{}).Preload("Parent").Preload("Entity").Where("id = ?", id).First(ret)
 	if result.Error == gorm.ErrRecordNotFound {
 		return nil, nil
 	}

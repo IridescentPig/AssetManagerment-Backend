@@ -17,7 +17,7 @@ type DepartmentBasicInfo struct {
 type CreateDepartmentUserReq struct {
 	UserName        string `json:"username" binding:"required"`
 	Password        string `json:"password" binding:"required"`
-	DepartmentSuper bool   `json:"department_super" binding:"required"`
+	DepartmentSuper bool   `json:"department_super"`
 }
 
 type SetDepartmentManagerReq struct {

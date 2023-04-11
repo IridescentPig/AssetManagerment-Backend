@@ -42,4 +42,15 @@ func (entity *entityRouter) routerCheckAtHandler(group *gin.RouterGroup) {
 	group.GET("/:entity_id/user/list", utils.Handler(api.EntityApi.UsersInEntity))
 	group.GET("/:entity_id/department/list", utils.Handler(api.EntityApi.DepartmentsInEntity)) // change later
 	group.PATCH("/:entity_id", utils.Handler(api.EntityApi.ModifyEntityInfo))
+
+	group.POST("/:entity_id/department", utils.Handler(api.DepartmentApi.CreateDepartment))
+	group.POST("/:entity_id/department/:department_id/department", utils.Handler(api.DepartmentApi.CreateDepartment))
+	group.DELETE("/:entity_id/department/:department_id", utils.Handler(api.DepartmentApi.DeleteDepartment))
+	group.GET("/:entity_id/department/:department_id", utils.Handler(api.DepartmentApi.GetDepartmentByID))
+	group.GET("/:entity_id/department/:department_id/department/list", utils.Handler(api.DepartmentApi.GetSubDepartments))
+	group.GET("/:entity_id/department/:department_id/user/list", utils.Handler(api.DepartmentApi.GetAllUsersUnderDepartment))
+	group.POST("/:entity_id/department/:department_id/user", utils.Handler(api.DepartmentApi.CreateUserInDepartment))
+	group.POST("/:entity_id/department/:department_id/manager", utils.Handler(api.DepartmentApi.SetManager))
+	group.DELETE("/:entity_id/department/:department_id/manager/:user_id", utils.Handler(api.DepartmentApi.DeleteDepartmentManager))
+	group.GET("/:entity_id/department/:department_id/manager", utils.Handler(api.DepartmentApi.GetDepartmentManager))
 }
