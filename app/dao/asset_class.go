@@ -46,12 +46,12 @@ func (assetclass *assetClassDao) GetAssetClassByID(id int) (*model.AssetClass, e
 	if result.Error == gorm.ErrRecordNotFound {
 		return nil, nil
 	}
-	entity := &model.Entity{}
-	err := db.Model(&ret).Association("Entity").Find(&entity)
+	department := &model.Department{}
+	err := db.Model(&ret).Association("Department").Find(&department)
 	if err != nil {
 		return nil, err
 	}
-	ret.Entity = *entity
+	ret.Department = *department
 	return ret, utils.DBError(result)
 }
 
@@ -88,24 +88,24 @@ func (assetclass *assetClassDao) ModifyParentAssetClass(ChildID int, ParentID in
 }
 
 // assetclass and entity
-func (assetclass *assetClassDao) GetAssetClassEntity(id int) (entity model.Entity, err error) {
-	query_department, err := assetclass.GetAssetClassByID(id)
+func (assetclass *assetClassDao) GetAssetClassDepartment(id int) (department model.Department, err error) {
+	query_asset, err := assetclass.GetAssetClassByID(id)
 	if err != nil {
 		return
 	}
-	entity = query_department.Entity
+	department = query_asset.Department
 	return
 }
 
-func (assetclass *assetClassDao) ModifyDepartmentEntity(AssetClassID int, EntityID int) error {
-	query_department, err := assetclass.GetAssetClassByID(AssetClassID)
+func (assetclass *assetClassDao) ModifyAssetClassDepartment(AssetClassID int, DepartmentID int) error {
+	query_asset, err := assetclass.GetAssetClassByID(AssetClassID)
 	if err != nil {
 		return err
 	}
-	target_entity, err := EntityDao.GetEntityByID(EntityID)
+	target_department, err := DepartmentDao.GetDepartmentByID(DepartmentID)
 	if err != nil {
 		return err
 	}
-	query_department.Entity = *target_entity
-	return utils.DBError(db.Session(&gorm.Session{FullSaveAssociations: true}).Updates(&query_department))
+	query_asset.DepartmentID = target_department.ID
+	return utils.DBError(db.Session(&gorm.Session{FullSaveAssociations: true}).Updates(&query_asset))
 }

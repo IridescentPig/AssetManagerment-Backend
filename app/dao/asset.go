@@ -44,12 +44,26 @@ func (asset *assetDao) Delete(id []uint) error {
 
 func (asset *assetDao) AllAsset() (list []model.Asset, err error) {
 	result := db.Model(&model.Asset{}).Find(&list)
+	for _, asset := range list {
+		user := &model.User{}
+		err = db.Model(&asset).Association("User").Find(&user)
+		if err != nil {
+			return
+		}
+		asset.UserID = user.ID
+		asset_class := &model.AssetClass{}
+		err = db.Model(&asset).Association("Class").Find(&asset_class)
+		if err != nil {
+			return
+		}
+		asset.ClassID = asset_class.ID
+	}
 	err = utils.DBError(result)
 	return
 }
 
-func (asset *assetDao) GetAssetByName(username string) (list []model.Asset, err error) {
-	result := db.Model(&model.User{}).Where("name = ?", username).Find(&list)
+func (asset *assetDao) GetAssetByName(name string) (list []model.Asset, err error) {
+	result := db.Model(&model.Asset{}).Where("name = ?", name).Find(&list)
 	if result.Error == gorm.ErrRecordNotFound {
 		return nil, nil
 	}
@@ -61,7 +75,7 @@ func (asset *assetDao) GetAssetByName(username string) (list []model.Asset, err 
 		}
 		asset.UserID = user.ID
 		asset_class := &model.AssetClass{}
-		err = db.Model(&asset).Association("AssetClass").Find(&asset_class)
+		err = db.Model(&asset).Association("Class").Find(&asset_class)
 		if err != nil {
 			return
 		}
@@ -82,13 +96,13 @@ func (asset *assetDao) GetAssetByID(id int) (*model.Asset, error) {
 	if err != nil {
 		return nil, err
 	}
-	ret.UserID = user.ID
+	ret.User = *user
 	asset_class := &model.AssetClass{}
-	err = db.Model(&asset).Association("AssetClass").Find(&asset_class)
+	err = db.Model(&ret).Association("Class").Find(&asset_class)
 	if err != nil {
 		return nil, err
 	}
-	ret.ClassID = asset_class.ID
+	ret.Class = *asset_class
 	return ret, utils.DBError(result)
 }
 
@@ -142,6 +156,20 @@ func (asset *assetDao) ModifyAssetPosition(id int, position string) error {
 	return err
 }
 
+func (asset *assetDao) ModifyAssetNum(id int, num int) error {
+	thisAsset, err := asset.GetAssetByID(id)
+	if err != nil {
+		return err
+	}
+	if thisAsset == nil {
+		return errors.New(asset_not_exist)
+	}
+	err = asset.Update(thisAsset.ID, map[string]interface{}{
+		"Number": num,
+	})
+	return err
+}
+
 func (asset *assetDao) ExpireAsset(ids []int) error {
 	return asset.AllUpdate(ids, map[string]interface{}{
 		"expire": true,
@@ -187,7 +215,7 @@ func (asset *assetDao) GetAssetUser(id int) (user model.User, err error) {
 	if err != nil {
 		return
 	}
-	err = utils.DBError(db.Model(&model.Asset{}).Where("id = ?", query_asset.UserID).Find(&user))
+	err = utils.DBError(db.Model(&model.User{}).Where("id = ?", query_asset.UserID).Find(&user))
 	return
 }
 
@@ -228,6 +256,6 @@ func (asset *assetDao) ModifyAssetClass(AssetID int, ClassID int) error {
 	if query_asset.Type != target_class.Type {
 		return errors.New(type_not_match)
 	}
-	query_asset.UserID = target_class.ID
+	query_asset.ClassID = target_class.ID
 	return utils.DBError(db.Session(&gorm.Session{FullSaveAssociations: true}).Updates(&query_asset))
 }
