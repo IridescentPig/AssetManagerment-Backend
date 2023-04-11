@@ -8,6 +8,7 @@ import (
 	"asset-management/utils"
 
 	"github.com/gin-gonic/gin/binding"
+	"github.com/jinzhu/copier"
 )
 
 type userApi struct {
@@ -280,4 +281,72 @@ func (user *userApi) DeleteUser(ctx *utils.Context) {
 	}
 
 	ctx.Success(nil)
+}
+
+/*
+Handle func for GET /user/{user_id}
+*/
+func (user *userApi) GetUserInfoByID(ctx *utils.Context) {
+	userID, err := service.EntityService.GetParamID(ctx, "user_id")
+	if err != nil {
+		return
+	}
+
+	thisUser, err := service.UserService.GetUserByID(userID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	} else if thisUser == nil {
+		ctx.BadRequest(myerror.USER_NOT_FOUND, myerror.USER_NOT_FOUND_INFO)
+		return
+	}
+
+	isSelf := user.GetOperatorID(ctx) == userID
+	hasIdentity := user.CheckIdentity(ctx, thisUser.EntityID)
+	if !hasIdentity && !isSelf {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	var userInfoRes define.UserInfo
+	err = copier.Copy(&userInfoRes, thisUser)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+	userInfoResponse := define.UserInfoResponse{
+		User: userInfoRes,
+	}
+
+	ctx.Success(userInfoResponse)
+}
+
+/*
+Handle func for GET /user/list
+*/
+func (user *userApi) GetAllUsers(ctx *utils.Context) {
+	systemSuper := service.UserService.SystemSuper(ctx)
+	if !systemSuper {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	userList, err := service.UserService.GetAllUsers()
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	var userListRes []define.UserInfo
+	err = copier.Copy(&userListRes, userList)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	userListResponse := define.UserListResponse{
+		UserList: userListRes,
+	}
+
+	ctx.Success(userListResponse)
 }

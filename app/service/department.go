@@ -185,3 +185,11 @@ func (department *departmentService) GetDepartmentManagerList(id uint) ([]*model
 func (department *departmentService) DeleteDepartment(id uint) error {
 	return dao.DepartmentDao.Delete([]uint{id})
 }
+
+func (department *departmentService) DepartmentHasUsers(departmentID uint) (bool, error) {
+	hasUsers, err := dao.DepartmentDao.GetDepartmentAllUserByID(departmentID)
+	if err != nil {
+		return true, err
+	}
+	return len(hasUsers) != 0, nil
+}

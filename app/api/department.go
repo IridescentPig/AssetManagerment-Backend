@@ -161,12 +161,22 @@ func (department *departmentApi) DeleteDepartment(ctx *utils.Context) {
 		return
 	}
 
-	existDepartment, err := service.DepartmentService.ExistsDepartmentByID(departmentID)
+	// existDepartment, err := service.DepartmentService.ExistsDepartmentByID(departmentID)
+	// if err != nil {
+	// 	ctx.InternalError(err.Error())
+	// 	return
+	// } else if !existDepartment {
+	// 	ctx.BadRequest(myerror.DEPARTMENT_NOT_FOUND, myerror.DEPARTMENT_NOT_FOUND_INFO)
+	// 	return
+	// }
+
+	hasUsers, err := service.DepartmentService.DepartmentHasUsers(departmentID)
 	if err != nil {
 		ctx.InternalError(err.Error())
 		return
-	} else if !existDepartment {
-		ctx.BadRequest(myerror.DEPARTMENT_NOT_FOUND, myerror.DEPARTMENT_NOT_FOUND_INFO)
+	}
+	if hasUsers {
+		ctx.BadRequest(myerror.DEPARTMENT_HAS_USERS, myerror.DEPARTMENT_HAS_USERS_INFO)
 		return
 	}
 

@@ -41,7 +41,7 @@ func (user *userDao) Delete(id []uint) error {
 	return utils.DBError(result)
 }
 
-func (user *userDao) AllUser() (list []model.User, err error) {
+func (user *userDao) AllUser() (list []*model.User, err error) {
 	result := db.Model(&model.User{}).Find(&list)
 	err = utils.DBError(result)
 	return

@@ -51,7 +51,7 @@ type EntityUserInfo struct {
 	SystemSuper     bool              `json:"id3"`
 	EntitySuper     bool              `json:"id2"`
 	DepartmentSuper bool              `json:"id1"`
-	Employee        bool              `json:"id0" default:"true"`
+	IsEmployee      bool              `json:"id0"`
 	Department      *model.Department `json:"department"`
 }
 

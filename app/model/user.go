@@ -11,5 +11,6 @@ type User struct {
 	Department      *Department `gorm:"foreignKey:DepartmentID;references:ID;default:null" json:"department"`
 	DepartmentSuper bool        `gorm:"column:department_super;default:false" json:"department_super"`
 	SystemSuper     bool        `gorm:"column:system_super;default:false" json:"system_super"`
+	IsEmployee      bool        `gorm:"column:is_employee;default:true" json:"is_employee"`
 	Ban             bool        `gorm:"column:ban;default:false" json:"-"`
 }

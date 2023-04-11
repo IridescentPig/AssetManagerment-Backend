@@ -70,14 +70,15 @@ func TestUser(t *testing.T) {
 	assert.Equal(t, nil, err, "database error")
 	assert.Equal(t, int64(3), count, "database error")
 
-	var userList []model.User
+	var userList []*model.User
 	userList, err = UserDao.AllUser()
 	assert.Equal(t, nil, err, "database error")
 	assert.Equal(t, "test", userList[0].UserName, "database error")
 
-	userList, err = UserDao.GetUsersByNames([]string{"test", "admin"})
+	var users []model.User
+	users, err = UserDao.GetUsersByNames([]string{"test", "admin"})
 	assert.Equal(t, nil, err, "database error")
-	assert.Equal(t, "test", userList[0].UserName, "database error")
+	assert.Equal(t, "test", users[0].UserName, "database error")
 
 	err = UserDao.ModifyUserIdentity("haha", 1)
 	assert.Equal(t, false, err == nil, "database error")
