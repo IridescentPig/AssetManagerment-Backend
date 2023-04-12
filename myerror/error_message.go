@@ -27,4 +27,7 @@ const (
 	ASSET_NOT_FOUND_INFO              = "Asset not found"
 	ASSET_NOT_IN_DEPARTMENT_INFO      = "Asset not in department"
 	PARENT_ASSET_NOT_FOUND_INFO       = "Parent asset not found"
+	TARGET_USER_NOT_FOUND_INFO        = "Target user not found"
+	NOT_IN_SAME_ENTITY_INFO           = "Not in the same entity"
+	TARGET_NOT_DEPARTMENT_SUPER_INFO  = "Target user is not department manager"
 )

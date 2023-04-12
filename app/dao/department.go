@@ -99,11 +99,7 @@ func (department *departmentDao) DepartmentCount() (count int64, err error) {
 }
 
 func (department *departmentDao) GetSubDepartmentByID(id uint) (departments []*model.Department, err error) {
-	// query_department, err := department.GetDepartmentByID(id)
-	// if err != nil {
-	// 	return
-	// }
-	result := db.Model(&model.Department{}).Where("parent_id = ?", id).Find(&departments)
+	result := db.Model(&model.Department{}).Preload("Parent").Preload("Entity").Where("parent_id = ?", id).Find(&departments)
 	if result.Error == gorm.ErrRecordNotFound {
 		return nil, nil
 	}

@@ -45,9 +45,15 @@ type CreateAssetReq struct {
 }
 
 type ExpireAssetReq struct {
-	AssetID uint `json:"asset_id"`
+	AssetID uint `json:"asset_id" copier:"ID"`
 }
 
 type AssetListResponse struct {
 	AssetList []*AssetInfo `json:"asset_list"`
+}
+
+// 暂时借用 Expire 的请求体结构
+type AssetTransferReq struct {
+	UserID uint             `json:"user_id"`
+	Assets []ExpireAssetReq `json:"assets"`
 }

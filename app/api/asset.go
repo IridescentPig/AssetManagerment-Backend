@@ -197,3 +197,70 @@ func (asset *assetApi) ExpireAsset(ctx *utils.Context) {
 
 	ctx.Success(nil)
 }
+
+/*
+Handle func for POST /department/{department_id}/asset/transfer
+*/
+func (asset *assetApi) TransferAssets(ctx *utils.Context) {
+	hasIdentity, departmentID, err := AssetClassApi.CheckAssetIdentity(ctx)
+	if err != nil {
+		return
+	} else if !hasIdentity {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	var transferReq define.AssetTransferReq
+	err = ctx.MustBindWith(&transferReq, binding.JSON)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	thisUser := UserApi.GetOperatorInfo(ctx)
+	targetUser, err := service.UserService.GetUserByID(transferReq.UserID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	} else if targetUser == nil {
+		ctx.BadRequest(myerror.TARGET_USER_NOT_FOUND, myerror.TARGET_USER_NOT_FOUND_INFO)
+		return
+	} else if targetUser.EntityID != thisUser.EntityID {
+		ctx.BadRequest(myerror.NOT_IN_SAME_ENTITY, myerror.NOT_IN_SAME_ENTITY_INFO)
+		return
+	} else if !targetUser.DepartmentSuper {
+		ctx.BadRequest(myerror.TARGET_NOT_DEPARTMENT_SUPER, myerror.TARGET_NOT_DEPARTMENT_SUPER_INFO)
+		return
+	}
+
+	assetIDs := []uint{}
+
+	for _, assetID := range transferReq.Assets {
+		exists, err := service.AssetService.ExistAsset(assetID.AssetID)
+		if err != nil {
+			ctx.InternalError(err.Error())
+			return
+		} else if !exists {
+			ctx.BadRequest(myerror.ASSET_NOT_FOUND, myerror.ASSET_NOT_FOUND_INFO)
+			return
+		}
+		isInDepartment, err := service.AssetService.CheckAssetInDepartment(assetID.AssetID, departmentID)
+		if err != nil {
+			ctx.InternalError(err.Error())
+			return
+		}
+		if !isInDepartment {
+			ctx.BadRequest(myerror.ASSET_NOT_IN_DEPARTMENT, myerror.ASSET_NOT_IN_DEPARTMENT_INFO)
+			return
+		}
+		assetIDs = append(assetIDs, assetID.AssetID)
+	}
+
+	err = service.AssetService.TransferAssets(assetIDs, targetUser.ID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	ctx.Success(nil)
+}

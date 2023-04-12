@@ -276,3 +276,12 @@ func (asset *assetDao) GetAssetListByClassID(assetClassID uint) ([]*model.Asset,
 	err := utils.DBError(db.Model(&model.Asset{}).Preload("Parent").Preload("User").Preload("Department").Preload("Class").Where("class_id = ?", assetClassID).Find(&assetList))
 	return assetList, err
 }
+
+func (asset *assetDao) GetSubAssetsByParents(ids []uint) (assets []*model.Asset, err error) {
+	result := db.Model(&model.Asset{}).Preload("Parent").Preload("User").Preload("Department").Preload("Class").Where("parent_id IN (?)", ids).Find(&assets)
+	if result.Error == gorm.ErrRecordNotFound {
+		return nil, nil
+	}
+	err = utils.DBError(result)
+	return
+}

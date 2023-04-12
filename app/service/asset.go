@@ -6,6 +6,7 @@ import (
 	"asset-management/app/model"
 
 	"github.com/jinzhu/copier"
+	"gorm.io/gorm"
 )
 
 type assetService struct{}
@@ -108,9 +109,15 @@ func (asset *assetService) ModifyAssetInfo(id uint, req define.ModifyAssetInfoRe
 		return err
 	}
 	if req.ParentID != nil {
-		err = dao.AssetDao.Update(id, map[string]interface{}{
-			"parent_id": *req.ParentID,
-		})
+		if *req.ParentID != 0 {
+			err = dao.AssetDao.Update(id, map[string]interface{}{
+				"parent_id": *req.ParentID,
+			})
+		} else {
+			err = dao.AssetDao.Update(id, map[string]interface{}{
+				"parent_id": gorm.Expr("NULL"),
+			})
+		}
 	}
 	return err
 }
@@ -141,8 +148,30 @@ func (asset *assetService) CreateAsset(req *define.CreateAssetReq, departmentID 
 }
 
 func (asset *assetService) ExpireAssets(assetIDs []uint) error {
-	err := dao.AssetDao.AllUpdate(assetIDs, map[string]interface{}{
-		"expire": true,
+	err := dao.AssetDao.ExpireAsset(assetIDs)
+	return err
+}
+
+func (asset *assetService) TransferAssets(assetIDs []uint, userID uint) error {
+	subAssets, err := dao.AssetDao.GetSubAssetsByParents(assetIDs)
+	if err != nil {
+		return err
+	}
+	subAssetIDs := []uint{}
+
+	for _, asset := range subAssets {
+		subAssetIDs = append(subAssetIDs, asset.ID)
+	}
+
+	err = dao.AssetDao.AllUpdate(subAssetIDs, map[string]interface{}{
+		"parent_id": gorm.Expr("NULL"),
+	})
+	if err != nil {
+		return err
+	}
+	err = dao.AssetDao.AllUpdate(assetIDs, map[string]interface{}{
+		"user_id":   userID,
+		"parent_id": gorm.Expr("NULL"),
 	})
 	return err
 }
