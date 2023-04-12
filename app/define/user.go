@@ -29,6 +29,10 @@ type ResetReq struct {
 	Password string `json:"password"`
 }
 
+type ChangePasswordReq struct {
+	Password string `json:"password" binding:"required"`
+}
+
 /*
 Basic info of user, can be included in other info struct
 */
@@ -62,6 +66,11 @@ type UserInfo struct {
 	Entity          *model.Entity     `json:"entity"`
 	DepartmentID    uint              `json:"department_id"`
 	Department      *model.Department `json:"department"`
+}
+
+type UserLoginResponse struct {
+	Token string   `json:"token"`
+	User  UserInfo `json:"user"`
 }
 
 type UserInfoResponse struct {
