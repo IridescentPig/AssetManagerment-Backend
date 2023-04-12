@@ -139,12 +139,65 @@ func TestDepartment(t *testing.T) {
 		assert.Equal(t, http.StatusOK, res.Result().StatusCode, "response failed")
 	}
 
+	// POST /:entity_id/department/:department_id/manager
+	SetDepartmentManager := define.SetDepartmentManagerReq{
+		UserName: "test_user",
+	}
+	{
+		req := GetRequest(http.MethodPost, "/entity/1/department/1/manager", headerFormToken, GetJsonBody(SetDepartmentManager))
+		res = httptest.NewRecorder()
+		r.ServeHTTP(res, req)
+		assert.Equal(t, http.StatusOK, res.Result().StatusCode, "response failed")
+	}
+
+	// GET /:entity_id/department/:department_id/user/list
+	{
+		req := GetRequest(http.MethodGet, "/entity/1/department/1/user/list", headerFormToken, nil)
+		res = httptest.NewRecorder()
+		r.ServeHTTP(res, req)
+		assert.Equal(t, http.StatusOK, res.Result().StatusCode, "response failed")
+	}
+
+	// GET /:entity_id/department/:department_id/manager
+	{
+		req := GetRequest(http.MethodGet, "/entity/1/department/1/manager", headerFormToken, nil)
+		res = httptest.NewRecorder()
+		r.ServeHTTP(res, req)
+		assert.Equal(t, http.StatusOK, res.Result().StatusCode, "response failed")
+	}
+
+	// POST /:entity_id/department/:department_id/department
+	CreateDepartment2 := define.CreateDepartmentReq{
+		DepartmentName: "test_sub_department",
+	}
+	{
+		req := GetRequest(http.MethodPost, "/entity/1/department/1/department", headerFormToken, GetJsonBody(CreateDepartment2))
+		res = httptest.NewRecorder()
+		r.ServeHTTP(res, req)
+		assert.Equal(t, http.StatusOK, res.Result().StatusCode, "response failed")
+	}
+
+	// GET /:entity_id/department/:department_id/department/list
+	{
+		req := GetRequest(http.MethodGet, "/entity/1/department/1/department/list", headerFormToken, nil)
+		res = httptest.NewRecorder()
+		r.ServeHTTP(res, req)
+		assert.Equal(t, http.StatusOK, res.Result().StatusCode, "response failed")
+	}
+
+	// DELETE /:entity_id/department/:department_id/manager/:user_id
+	{
+		req := GetRequest(http.MethodDelete, "/entity/1/department/1/manager/3", headerFormToken, nil)
+		res = httptest.NewRecorder()
+		r.ServeHTTP(res, req)
+		assert.Equal(t, http.StatusOK, res.Result().StatusCode, "response failed")
+	}
+
 	// DELETE /:entity_id/department/:department_id
 	{
 		req := GetRequest(http.MethodDelete, "/entity/1/department/1", headerFormToken, nil)
 		res = httptest.NewRecorder()
 		r.ServeHTTP(res, req)
-		print_errormessage(res)
 		assert.Equal(t, http.StatusBadRequest, res.Result().StatusCode, "response failed")
 	}
 }

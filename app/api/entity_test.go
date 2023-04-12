@@ -37,16 +37,16 @@ func InitForEntity(r *gin.Engine) {
 	group.GET("/:entity_id/department/list", utils.Handler(EntityApi.DepartmentsInEntity)) // change later
 	group.PATCH("/:entity_id", utils.Handler(EntityApi.ModifyEntityInfo))                  //
 
-	group.POST("/:entity_id/department", utils.Handler(DepartmentApi.CreateDepartment)) //
-	group.POST("/:entity_id/department/:department_id/department", utils.Handler(DepartmentApi.CreateDepartment))
-	group.DELETE("/:entity_id/department/:department_id", utils.Handler(DepartmentApi.DeleteDepartment)) //
-	group.GET("/:entity_id/department/:department_id", utils.Handler(DepartmentApi.GetDepartmentByID))
-	group.GET("/:entity_id/department/:department_id/department/list", utils.Handler(DepartmentApi.GetSubDepartments))
-	group.GET("/:entity_id/department/:department_id/user/list", utils.Handler(DepartmentApi.GetAllUsersUnderDepartment))
-	group.POST("/:entity_id/department/:department_id/user", utils.Handler(DepartmentApi.CreateUserInDepartment))
-	group.POST("/:entity_id/department/:department_id/manager", utils.Handler(DepartmentApi.SetManager))
-	group.DELETE("/:entity_id/department/:department_id/manager/:user_id", utils.Handler(DepartmentApi.DeleteDepartmentManager))
-	group.GET("/:entity_id/department/:department_id/manager", utils.Handler(DepartmentApi.GetDepartmentManager))
+	group.POST("/:entity_id/department", utils.Handler(DepartmentApi.CreateDepartment))                                          //
+	group.POST("/:entity_id/department/:department_id/department", utils.Handler(DepartmentApi.CreateDepartment))                //
+	group.DELETE("/:entity_id/department/:department_id", utils.Handler(DepartmentApi.DeleteDepartment))                         //
+	group.GET("/:entity_id/department/:department_id", utils.Handler(DepartmentApi.GetDepartmentByID))                           //
+	group.GET("/:entity_id/department/:department_id/department/list", utils.Handler(DepartmentApi.GetSubDepartments))           //
+	group.GET("/:entity_id/department/:department_id/user/list", utils.Handler(DepartmentApi.GetAllUsersUnderDepartment))        //
+	group.POST("/:entity_id/department/:department_id/user", utils.Handler(DepartmentApi.CreateUserInDepartment))                //
+	group.POST("/:entity_id/department/:department_id/manager", utils.Handler(DepartmentApi.SetManager))                         //
+	group.DELETE("/:entity_id/department/:department_id/manager/:user_id", utils.Handler(DepartmentApi.DeleteDepartmentManager)) //
+	group.GET("/:entity_id/department/:department_id/manager", utils.Handler(DepartmentApi.GetDepartmentManager))                //
 
 	group.Use(utils.Handler(middleware.CheckSystemSuper()))
 	{
@@ -198,7 +198,6 @@ func TestEntity(t *testing.T) {
 		req := GetRequest(http.MethodDelete, "/entity/1", headerFormToken, nil)
 		res = httptest.NewRecorder()
 		r.ServeHTTP(res, req)
-		print_errormessage(res)
 		assert.Equal(t, http.StatusBadRequest, res.Result().StatusCode, "response failed")
 	}
 
