@@ -206,6 +206,19 @@ func (user *userDao) ModifyUserEntity(username string, entity model.Entity) erro
 	return err
 }
 
+func (user *userDao) ModifyUserEntityByID(id uint, entityID uint) error {
+	thisUser, err := user.GetUserByID(id)
+	if err != nil {
+		return err
+	}
+	if thisUser == nil {
+		return errors.New("user doesn't exist")
+	}
+	thisUser.EntityID = entityID
+	err = utils.DBError(db.Session(&gorm.Session{FullSaveAssociations: true}).Updates(&thisUser))
+	return err
+}
+
 // User Department Part
 func (user *userDao) GetUserDepartment(username string) (department model.Department, err error) {
 	thisUser, err := user.GetUserByName(username)
@@ -235,5 +248,18 @@ func (user *userDao) ModifyUserDepartment(username string, department model.Depa
 	}
 	err = utils.DBError(db.Session(&gorm.Session{FullSaveAssociations: true}).Updates(&thisUser))
 	//err = utils.DBError(db.Save(&thisUser))
+	return err
+}
+
+func (user *userDao) ModifyUserDepartmentByID(id uint, departmentID uint) error {
+	thisUser, err := user.GetUserByID(id)
+	if err != nil {
+		return err
+	}
+	if thisUser == nil {
+		return errors.New("user doesn't exist")
+	}
+	thisUser.DepartmentID = departmentID
+	err = utils.DBError(db.Session(&gorm.Session{FullSaveAssociations: true}).Updates(&thisUser))
 	return err
 }

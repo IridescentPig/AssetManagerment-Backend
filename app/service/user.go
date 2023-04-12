@@ -148,3 +148,11 @@ func (user *userService) DeleteUser(userID uint) error {
 func (user *userService) GetAllUsers() ([]*model.User, error) {
 	return dao.UserDao.AllUser()
 }
+
+func (user *userService) ModifyUserEntity(userID uint, entityID uint) error {
+	return dao.UserDao.ModifyUserEntityByID(userID, entityID)
+}
+
+func (user *userService) ModifyUserDepartment(userID uint, departmentID uint) error {
+	return dao.UserDao.ModifyUserDepartmentByID(userID, departmentID)
+}

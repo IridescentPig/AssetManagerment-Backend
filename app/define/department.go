@@ -24,6 +24,10 @@ type SetDepartmentManagerReq struct {
 	UserName string `json:"username" binding:"required"`
 }
 
+type ChangeUserDepartmentReq struct {
+	DepartmentID uint `json:"department_id"`
+}
+
 /*
 Response format of GET /entity/{entity_id}/department/list
 

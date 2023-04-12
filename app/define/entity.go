@@ -16,6 +16,10 @@ type ModifyEntityInfoReq struct {
 	Description *string `json:"description"`
 }
 
+type ChangeUserEntityReq struct {
+	EntityID uint `json:"entity_id"`
+}
+
 type EntityManager struct {
 	ManagerID   uint   `json:"manager_id" copier:"ID"`
 	ManagerName string `json:"manager_name" copier:"UserName"`
