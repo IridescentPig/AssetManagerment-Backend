@@ -30,6 +30,7 @@ func (user *userRouter) routerNotNeedLogin(group *gin.RouterGroup) {
 	group.POST("/login", utils.Handler(api.UserApi.UserLogin))
 
 }
+
 func (user *userRouter) routerNeedLogin(group *gin.RouterGroup) {
 	group.POST("/logout", utils.Handler(middleware.JWTMiddleware()), utils.Handler(api.UserApi.UserLogout))
 	group.POST("", utils.Handler(middleware.JWTMiddleware()), utils.Handler(api.UserApi.UserCreate))
@@ -38,4 +39,8 @@ func (user *userRouter) routerNeedLogin(group *gin.RouterGroup) {
 	group.GET("/:username/unlock", utils.Handler(middleware.JWTMiddleware()), utils.Handler(api.UserApi.UnlockUser))
 	group.GET("/info/:user_id", utils.Handler(middleware.JWTMiddleware()), utils.Handler(api.UserApi.GetUserInfoByID))
 	group.GET("/list", utils.Handler(middleware.JWTMiddleware()), utils.Handler(api.UserApi.GetAllUsers))
+	group.DELETE("/:user_id", utils.Handler(middleware.JWTMiddleware()), utils.Handler(api.UserApi.DeleteUser))
+	group.POST("/info/:user_id/password", utils.Handler(middleware.JWTMiddleware()), utils.Handler(api.UserApi.ChangePassword))
+	group.DELETE("/info/:user_id/entity", utils.Handler(middleware.JWTMiddleware()), utils.Handler(middleware.CheckSystemSuper()), utils.Handler(api.UserApi.ChangeUserEntity))
+	group.DELETE("/info/:user_id/department", utils.Handler(middleware.JWTMiddleware()), utils.Handler(api.UserApi.ChangeUserDepartment))
 }

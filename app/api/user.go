@@ -74,7 +74,7 @@ func (user *userApi) UserLogin(ctx *utils.Context) {
 	// 是否需要加密传输？
 	// 是否需要通过中间件处理？
 	var req define.UserLoginReq
-	var this_user *model.User
+	var thisUser *model.User
 
 	if err := ctx.MustBindWith(&req, binding.JSON); err != nil {
 		ctx.BadRequest(-1, "Invalid request body.")
@@ -82,26 +82,29 @@ func (user *userApi) UserLogin(ctx *utils.Context) {
 	}
 	var err error
 	var token string
-	token, this_user, err = service.UserService.VerifyPasswordAndGetUser(req.UserName, req.Password)
+	token, thisUser, err = service.UserService.VerifyPasswordAndGetUser(req.UserName, req.Password)
 	if err != nil {
 		ctx.InternalError(err.Error())
 		return
-	} else if this_user == nil {
+	} else if thisUser == nil {
 		ctx.BadRequest(1, "Wrong Username Or Password")
 		return
-	} else if this_user.Ban {
+	} else if thisUser.Ban {
 		ctx.BadRequest(3, "User Banned")
 		return
 	}
 
-	data := struct {
-		Token string      `json:"token"`
-		User  *model.User `json:"user"`
-	}{
-		Token: token,
-		User:  this_user,
+	var userInfo define.UserInfo
+	err = copier.Copy(&userInfo, thisUser)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
 	}
 
+	data := define.UserLoginResponse{
+		Token: token,
+		User:  userInfo,
+	}
 	ctx.Success(data)
 }
 
@@ -197,17 +200,17 @@ func (user *userApi) ResetContent(ctx *utils.Context) {
 func (user *userApi) LockUser(ctx *utils.Context) {
 	username := ctx.Param("username")
 
-	if !service.UserService.SystemSuper(ctx) {
-		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
-		return
-	}
-
-	exists, err := service.UserService.ExistsUser(username)
+	thisUser, err := service.UserService.GetUserByName(username)
 	if err != nil {
 		ctx.InternalError(err.Error())
 		return
-	} else if !exists {
+	} else if thisUser == nil {
 		ctx.BadRequest(myerror.USER_NOT_FOUND, myerror.USER_NOT_FOUND_INFO)
+		return
+	}
+	hasIdentity := user.CheckIdentity(ctx, thisUser.EntityID)
+	if !hasIdentity {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
 		return
 	}
 
@@ -223,17 +226,17 @@ func (user *userApi) LockUser(ctx *utils.Context) {
 func (user *userApi) UnlockUser(ctx *utils.Context) {
 	username := ctx.Param("username")
 
-	if !service.UserService.SystemSuper(ctx) {
-		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
-		return
-	}
-
-	exists, err := service.UserService.ExistsUser(username)
+	thisUser, err := service.UserService.GetUserByName(username)
 	if err != nil {
 		ctx.InternalError(err.Error())
 		return
-	} else if !exists {
+	} else if thisUser == nil {
 		ctx.BadRequest(myerror.USER_NOT_FOUND, myerror.USER_NOT_FOUND_INFO)
+		return
+	}
+	hasIdentity := user.CheckIdentity(ctx, thisUser.EntityID)
+	if !hasIdentity {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
 		return
 	}
 
@@ -284,7 +287,7 @@ func (user *userApi) DeleteUser(ctx *utils.Context) {
 }
 
 /*
-Handle func for GET /user/{user_id}
+Handle func for GET /user/info/{user_id}
 */
 func (user *userApi) GetUserInfoByID(ctx *utils.Context) {
 	userID, err := service.EntityService.GetParamID(ctx, "user_id")
@@ -349,4 +352,136 @@ func (user *userApi) GetAllUsers(ctx *utils.Context) {
 	}
 
 	ctx.Success(userListResponse)
+}
+
+/*
+Handle func for POST /user/info/:user_id/password
+*/
+func (user *userApi) ChangePassword(ctx *utils.Context) {
+	userID, err := service.EntityService.GetParamID(ctx, "user_id")
+	if err != nil {
+		return
+	}
+
+	thisUser, err := service.UserService.GetUserByID(userID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	} else if thisUser == nil {
+		ctx.BadRequest(myerror.USER_NOT_FOUND, myerror.USER_NOT_FOUND_INFO)
+		return
+	}
+
+	isSelf := user.GetOperatorID(ctx) == userID
+	hasIdentity := user.CheckIdentity(ctx, thisUser.EntityID)
+	if !hasIdentity && !isSelf {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	var changePasswordReq define.ChangePasswordReq
+	err = ctx.MustBindWith(&changePasswordReq, binding.JSON)
+	if err != nil {
+		ctx.BadRequest(myerror.INVALID_BODY, myerror.INVALID_BODY_INFO)
+		return
+	}
+
+	err = service.UserService.ModifyUserPassword(thisUser.UserName, changePasswordReq.Password)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	ctx.Success(nil)
+}
+
+/*
+Handle func for POST /user/info/:user_id/entity
+*/
+func (user *userApi) ChangeUserEntity(ctx *utils.Context) {
+	userID, err := service.EntityService.GetParamID(ctx, "user_id")
+	if err != nil {
+		return
+	}
+
+	thisUser, err := service.UserService.GetUserByID(userID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	} else if thisUser == nil {
+		ctx.BadRequest(myerror.USER_NOT_FOUND, myerror.USER_NOT_FOUND_INFO)
+		return
+	}
+
+	var changeUserEntityReq define.ChangeUserEntityReq
+	err = ctx.MustBindWith(&changeUserEntityReq, binding.JSON)
+	if err != nil {
+		ctx.BadRequest(myerror.INVALID_BODY, myerror.INVALID_BODY_INFO)
+	}
+
+	exists, err := service.EntityService.ExistsEntityByID(changeUserEntityReq.EntityID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+	if !exists {
+		ctx.NotFound(myerror.ENTITY_NOT_FOUND, myerror.ENTITY_NOT_FOUND_INFO)
+		return
+	}
+
+	err = service.UserService.ModifyUserEntity(userID, changeUserEntityReq.EntityID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	ctx.Success(nil)
+}
+
+/*
+Handle func for POST /user/info/{user_id}/department
+*/
+func (user *userApi) ChangeUserDepartment(ctx *utils.Context) {
+	userID, err := service.EntityService.GetParamID(ctx, "user_id")
+	if err != nil {
+		return
+	}
+
+	thisUser, err := service.UserService.GetUserByID(userID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	} else if thisUser == nil {
+		ctx.BadRequest(myerror.USER_NOT_FOUND, myerror.USER_NOT_FOUND_INFO)
+		return
+	}
+
+	entityID, err := service.EntityService.GetParamID(ctx, "entity_id")
+	if err != nil {
+		return
+	}
+	hasIdentity := DepartmentApi.CheckDepartmentModifyIdentity(ctx, entityID)
+	if !hasIdentity {
+		return
+	}
+
+	var changeUserDepartmentReq define.ChangeUserDepartmentReq
+	err = ctx.MustBindWith(&changeUserDepartmentReq, binding.JSON)
+	if err != nil {
+		ctx.BadRequest(myerror.INVALID_BODY, myerror.INVALID_BODY_INFO)
+		return
+	}
+
+	isValid := DepartmentApi.CheckEntityDepartmentValid(ctx, thisUser.EntityID, changeUserDepartmentReq.DepartmentID)
+	if !isValid {
+		return
+	}
+
+	err = service.UserService.ModifyUserDepartment(userID, changeUserDepartmentReq.DepartmentID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	ctx.Success(nil)
 }

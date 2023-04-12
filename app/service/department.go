@@ -61,7 +61,10 @@ func (department *departmentService) CheckIsAncestor(userDepartmentID uint, oper
 			flag = true
 			break
 		}
-		operateDepartment = operateDepartment.Parent
+		operateDepartment, err = dao.DepartmentDao.GetDepartmentByID(operateDepartment.ParentID)
+		if err != nil {
+			return false, err
+		}
 	}
 	return flag, nil
 }

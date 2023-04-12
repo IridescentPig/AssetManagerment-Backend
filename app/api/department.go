@@ -15,12 +15,12 @@ type departmentApi struct {
 
 var DepartmentApi *departmentApi
 
-func newdepartmentApi() *departmentApi {
+func newDepartmentApi() *departmentApi {
 	return &departmentApi{}
 }
 
 func init() {
-	DepartmentApi = newdepartmentApi()
+	DepartmentApi = newDepartmentApi()
 }
 
 func (department *departmentApi) CheckEntityDepartmentValid(ctx *utils.Context, entityID uint, departmentID uint) bool {
@@ -66,6 +66,23 @@ func (department *departmentApi) GetTwoIDs(ctx *utils.Context) (uint, uint, erro
 		return 0, 0, err
 	}
 	return entityID, departmentID, nil
+}
+
+/*
+只有本实体的系统管理员才可以进行修改该实体内的部门相关操作
+*/
+func (department *departmentApi) CheckDepartmentModifyIdentity(ctx *utils.Context, entityID uint) bool {
+	entitySuper := service.UserService.EntitySuper(ctx)
+	if !entitySuper {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return false
+	}
+	isInEntity := service.EntityService.CheckIsInEntity(ctx, entityID)
+	if !isInEntity {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return false
+	}
+	return true
 }
 
 /*
@@ -150,14 +167,8 @@ func (department *departmentApi) DeleteDepartment(ctx *utils.Context) {
 		return
 	}
 
-	isEntitySuper := service.UserService.EntitySuper(ctx)
-	if !isEntitySuper {
-		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
-		return
-	}
-	isInEntity := service.EntityService.CheckIsInEntity(ctx, entityID)
-	if !isInEntity {
-		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+	hasIdentity := department.CheckDepartmentModifyIdentity(ctx, entityID)
+	if !hasIdentity {
 		return
 	}
 
@@ -339,19 +350,13 @@ func (department *departmentApi) CreateUserInDepartment(ctx *utils.Context) {
 		return
 	}
 
-	entitySuper := service.UserService.EntitySuper(ctx)
-	if !entitySuper {
-		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
-		return
-	}
-	isInEntity := service.EntityService.CheckIsInEntity(ctx, entityID)
-	if !isInEntity {
-		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+	isValid := department.CheckEntityDepartmentValid(ctx, entityID, departmentID)
+	if !isValid {
 		return
 	}
 
-	isValid := department.CheckEntityDepartmentValid(ctx, entityID, departmentID)
-	if !isValid {
+	hasIdentity := department.CheckDepartmentModifyIdentity(ctx, entityID)
+	if !hasIdentity {
 		return
 	}
 
@@ -390,19 +395,13 @@ func (department *departmentApi) SetManager(ctx *utils.Context) {
 		return
 	}
 
-	entitySuper := service.UserService.EntitySuper(ctx)
-	if !entitySuper {
-		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
-		return
-	}
-	isInEntity := service.EntityService.CheckIsInEntity(ctx, entityID)
-	if !isInEntity {
-		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+	isValid := department.CheckEntityDepartmentValid(ctx, entityID, departmentID)
+	if !isValid {
 		return
 	}
 
-	isValid := department.CheckEntityDepartmentValid(ctx, entityID, departmentID)
-	if !isValid {
+	hasIdentity := department.CheckDepartmentModifyIdentity(ctx, entityID)
+	if !hasIdentity {
 		return
 	}
 
@@ -445,19 +444,13 @@ func (department *departmentApi) DeleteDepartmentManager(ctx *utils.Context) {
 		return
 	}
 
-	entitySuper := service.UserService.EntitySuper(ctx)
-	if !entitySuper {
-		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
-		return
-	}
-	isInEntity := service.EntityService.CheckIsInEntity(ctx, entityID)
-	if !isInEntity {
-		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+	isValid := department.CheckEntityDepartmentValid(ctx, entityID, departmentID)
+	if !isValid {
 		return
 	}
 
-	isValid := department.CheckEntityDepartmentValid(ctx, entityID, departmentID)
-	if !isValid {
+	hasIdentity := department.CheckDepartmentModifyIdentity(ctx, entityID)
+	if !hasIdentity {
 		return
 	}
 
@@ -502,19 +495,25 @@ func (department *departmentApi) GetDepartmentManager(ctx *utils.Context) {
 		return
 	}
 
-	entitySuper := service.UserService.EntitySuper(ctx)
-	if !entitySuper {
-		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
-		return
-	}
-	isInEntity := service.EntityService.CheckIsInEntity(ctx, entityID)
-	if !isInEntity {
-		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
-		return
-	}
+	// abandon later
+	// entitySuper := service.UserService.EntitySuper(ctx)
+	// if !entitySuper {
+	// 	ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+	// 	return
+	// }
+	// isInEntity := service.EntityService.CheckIsInEntity(ctx, entityID)
+	// if !isInEntity {
+	// 	ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+	// 	return
+	// }
 
 	isValid := department.CheckEntityDepartmentValid(ctx, entityID, departmentID)
 	if !isValid {
+		return
+	}
+
+	hasIdentity := department.CheckDepartmentModifyIdentity(ctx, entityID)
+	if !hasIdentity {
 		return
 	}
 

@@ -259,3 +259,9 @@ func (asset *assetDao) ModifyAssetClass(AssetID uint, ClassID uint) error {
 	query_asset.ClassID = target_class.ID
 	return utils.DBError(db.Session(&gorm.Session{FullSaveAssociations: true}).Updates(&query_asset))
 }
+
+func (asset *assetDao) GetAssetListByClassID(assetClassID uint) ([]*model.Asset, error) {
+	var assetList []*model.Asset
+	err := utils.DBError(db.Model(&model.Asset{}).Where("class_id = ?", assetClassID).Find(&assetList))
+	return assetList, err
+}
