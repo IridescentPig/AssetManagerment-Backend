@@ -38,6 +38,13 @@ var (
 )
 
 func Init(r *gin.Engine) {
+	InitForUser(r)
+	InitForEntity(r)
+
+	dao.InitForTest()
+}
+
+func InitForUser(r *gin.Engine) {
 	group := r.Group("/user")
 
 	group.POST("/register", utils.Handler(UserApi.UserRegister))
@@ -47,33 +54,6 @@ func Init(r *gin.Engine) {
 	group.PATCH("/:username", utils.Handler(middleware.JWTMiddleware()), utils.Handler(UserApi.ResetContent))
 	group.GET("/:username/lock", utils.Handler(middleware.JWTMiddleware()), utils.Handler(UserApi.LockUser))
 	group.GET("/:username/unlock", utils.Handler(middleware.JWTMiddleware()), utils.Handler(UserApi.UnlockUser))
-
-	group = r.Group("/entity")
-	group.Use(utils.Handler(middleware.CheckSystemSuper()))
-	{
-		group.POST("/", utils.Handler(EntityApi.CreateEntity))
-		group.DELETE("/:entity_id", utils.Handler(EntityApi.DeleteEntity))
-		group.GET("/list", utils.Handler(EntityApi.GetEntityList))
-		group.GET("/:entity_id", utils.Handler(EntityApi.GetEntityByID))
-		group.POST("/:entity_id/manager", utils.Handler(EntityApi.SetManager))
-		group.DELETE("/:entity_id/manager/:user_id", utils.Handler(EntityApi.DeleteManager))
-	}
-	group.GET("/:entity_id/user/list", utils.Handler(EntityApi.UsersInEntity))
-	group.GET("/:entity_id/department/list", utils.Handler(EntityApi.DepartmentsInEntity)) // change later
-	group.PATCH("/:entity_id", utils.Handler(EntityApi.ModifyEntityInfo))
-
-	group.POST("/:entity_id/department", utils.Handler(DepartmentApi.CreateDepartment))
-	group.POST("/:entity_id/department/:department_id/department", utils.Handler(DepartmentApi.CreateDepartment))
-	group.DELETE("/:entity_id/department/:department_id", utils.Handler(DepartmentApi.DeleteDepartment))
-	group.GET("/:entity_id/department/:department_id", utils.Handler(DepartmentApi.GetDepartmentByID))
-	group.GET("/:entity_id/department/:department_id/department/list", utils.Handler(DepartmentApi.GetSubDepartments))
-	group.GET("/:entity_id/department/:department_id/user/list", utils.Handler(DepartmentApi.GetAllUsersUnderDepartment))
-	group.POST("/:entity_id/department/:department_id/user", utils.Handler(DepartmentApi.CreateUserInDepartment))
-	group.POST("/:entity_id/department/:department_id/manager", utils.Handler(DepartmentApi.SetManager))
-	group.DELETE("/:entity_id/department/:department_id/manager/:user_id", utils.Handler(DepartmentApi.DeleteDepartmentManager))
-	group.GET("/:entity_id/department/:department_id/manager", utils.Handler(DepartmentApi.GetDepartmentManager))
-
-	dao.InitForTest()
 }
 
 func GetJsonBody(data interface{}) io.Reader {
