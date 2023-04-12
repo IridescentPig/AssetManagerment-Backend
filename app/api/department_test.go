@@ -19,7 +19,7 @@ import (
 func TestDepartment(t *testing.T) {
 	res := httptest.NewRecorder()
 	_, r := gin.CreateTestContext(res)
-	Init(r)
+	InitForTest(r)
 
 	admin := model.User{
 		UserName:        "admin",
@@ -200,4 +200,5 @@ func TestDepartment(t *testing.T) {
 		r.ServeHTTP(res, req)
 		assert.Equal(t, http.StatusBadRequest, res.Result().StatusCode, "response failed")
 	}
+
 }

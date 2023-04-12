@@ -17,7 +17,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func print_errormessage(res *httptest.ResponseRecorder) {
+// assistant function
+/*func print_errormessage(res *httptest.ResponseRecorder) {
 	b, err := io.ReadAll(res.Result().Body)
 	if err != nil {
 		log.Fatal(err)
@@ -28,7 +29,7 @@ func print_errormessage(res *httptest.ResponseRecorder) {
 	code := data["code"].(float64)
 	msg := data["message"].(string)
 	log.Print("code ", code, ";message ", msg)
-}
+}*/
 
 func InitForEntity(r *gin.Engine) {
 	group := r.Group("/entity")
@@ -62,7 +63,7 @@ func InitForEntity(r *gin.Engine) {
 func TestEntity(t *testing.T) {
 	res := httptest.NewRecorder()
 	_, r := gin.CreateTestContext(res)
-	Init(r)
+	InitForTest(r)
 
 	admin := model.User{
 		UserName:    "admin",

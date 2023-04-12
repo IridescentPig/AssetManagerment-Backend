@@ -13,12 +13,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Init() {
+func InitForTest() {
 	dao.InitForTest()
 }
 
 func TestUser(t *testing.T) {
-	Init()
+	InitForTest()
+
 	err := UserService.CreateUser("admin", "admin")
 	if err != nil {
 		log.Fatal(err)
@@ -102,4 +103,5 @@ func TestUser(t *testing.T) {
 	username, err = UserService.UserName(&context)
 	assert.Equal(t, "admin", username, "service error")
 	assert.Equal(t, nil, err, "service error")
+
 }
