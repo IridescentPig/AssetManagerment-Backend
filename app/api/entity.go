@@ -24,6 +24,44 @@ func init() {
 }
 
 /*
+检查与实体有关的查看信息权限，暂时认为只有超级管理员以及本实体的系统管理员有该权限
+修改实体信息权限与此相同
+*/
+func (entity *entityApi) CheckViewIdentity(ctx *utils.Context) (bool, uint) {
+	systemSuper := service.UserService.SystemSuper(ctx)
+	entitySuper := service.UserService.EntitySuper(ctx)
+	if !systemSuper && !entitySuper {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return false, 0
+	}
+	entityID, err := service.EntityService.GetParamID(ctx, "entity_id")
+	if err != nil {
+		return false, 0
+	}
+
+	exists, err := service.EntityService.ExistsEntityByID(entityID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return false, 0
+	}
+	if !exists {
+		ctx.NotFound(myerror.ENTITY_NOT_FOUND, myerror.ENTITY_NOT_FOUND_INFO)
+		return false, 0
+	}
+
+	if systemSuper {
+		return true, entityID
+	}
+
+	isInEntity := service.EntityService.CheckIsInEntity(ctx, entityID)
+	if !isInEntity {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return false, 0
+	}
+	return true, entityID
+}
+
+/*
 Handle func for POST /entity
 */
 func (entity *entityApi) CreateEntity(ctx *utils.Context) {
@@ -133,8 +171,8 @@ func (entity *entityApi) GetEntityByID(ctx *utils.Context) {
 	// 	ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
 	// 	return
 	// }
-	entityID, err := service.EntityService.GetParamID(ctx, "entity_id")
-	if err != nil {
+	hasIdentity, entityID := entity.CheckViewIdentity(ctx)
+	if !hasIdentity {
 		return
 	}
 
@@ -142,10 +180,11 @@ func (entity *entityApi) GetEntityByID(ctx *utils.Context) {
 	if err != nil {
 		ctx.InternalError(err.Error())
 		return
-	} else if thisEntity == nil {
-		ctx.BadRequest(myerror.ENTITY_NOT_FOUND, myerror.ENTITY_NOT_FOUND_INFO)
-		return
 	}
+	// else if thisEntity == nil {
+	// 	ctx.BadRequest(myerror.ENTITY_NOT_FOUND, myerror.ENTITY_NOT_FOUND_INFO)
+	// 	return
+	// }
 
 	managerList, err := service.EntityService.GetEntityManagerList(entityID)
 	if err != nil {
@@ -174,16 +213,32 @@ func (entity *entityApi) GetEntityByID(ctx *utils.Context) {
 Handle func for GET /entity/{entity_id}/user/list
 */
 func (entity *entityApi) UsersInEntity(ctx *utils.Context) {
-	systemSuper := service.UserService.SystemSuper(ctx)
-	entitySuper := service.UserService.EntitySuper(ctx)
-	if !systemSuper && !entitySuper {
-		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+	// systemSuper := service.UserService.SystemSuper(ctx)
+	// entitySuper := service.UserService.EntitySuper(ctx)
+	// if !systemSuper && !entitySuper {
+	// 	ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+	// 	return
+	// }
+	// entityID, err := service.EntityService.GetParamID(ctx, "entity_id")
+	// if err != nil {
+	// 	return
+	// }
+
+	// exists, err := service.EntityService.ExistsEntityByID(entityID)
+	// if err != nil {
+	// 	ctx.InternalError(err.Error())
+	// 	return
+	// }
+	// if !exists {
+	// 	ctx.NotFound(myerror.ENTITY_NOT_FOUND, myerror.ENTITY_NOT_FOUND_INFO)
+	// 	return
+	// }
+
+	hasIdentity, entityID := entity.CheckViewIdentity(ctx)
+	if !hasIdentity {
 		return
 	}
-	entityID, err := service.EntityService.GetParamID(ctx, "entity_id")
-	if err != nil {
-		return
-	}
+
 	userList, err := service.EntityService.GetUsersUnderEntity(entityID)
 	if err != nil {
 		ctx.InternalError(err.Error())
@@ -214,6 +269,23 @@ func (entity *entityApi) DepartmentsInEntity(ctx *utils.Context) {
 	if err != nil {
 		return
 	}
+
+	exists, err := service.EntityService.ExistsEntityByID(entityID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+	if !exists {
+		ctx.NotFound(myerror.ENTITY_NOT_FOUND, myerror.ENTITY_NOT_FOUND_INFO)
+		return
+	}
+
+	isInEntity := service.EntityService.CheckIsInEntity(ctx, entityID)
+	if !isInEntity {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
 	departmentList, err := service.EntityService.GetAllDepartmentsUnderEntity(entityID)
 	if err != nil {
 		ctx.InternalError(err.Error())
@@ -325,18 +397,13 @@ func (entity *entityApi) DeleteManager(ctx *utils.Context) {
 Handle func for PATCH /entity/{entity_id}
 */
 func (entity *entityApi) ModifyEntityInfo(ctx *utils.Context) {
-	systemSuper := service.UserService.SystemSuper(ctx)
-	entitySuper := service.UserService.EntitySuper(ctx)
-	if !systemSuper && !entitySuper {
-		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+	hasIdentity, entityID := entity.CheckViewIdentity(ctx)
+	if !hasIdentity {
 		return
 	}
-	entityID, err := service.EntityService.GetParamID(ctx, "entity_id")
-	if err != nil {
-		return
-	}
+
 	var modifyEntityInfoReq define.ModifyEntityInfoReq
-	err = ctx.MustBindWith(&modifyEntityInfoReq, binding.JSON)
+	err := ctx.MustBindWith(&modifyEntityInfoReq, binding.JSON)
 	if err != nil {
 		ctx.BadRequest(myerror.INVALID_BODY, myerror.INVALID_BODY_INFO)
 		return

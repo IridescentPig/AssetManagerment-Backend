@@ -71,9 +71,52 @@ func (assetClass *assetClassService) GetSubAssetClass(parentID uint, departmentI
 }
 
 func (assetClass *assetClassService) ModifyAssetClassInfo(req define.ModifyAssetClassReq, id uint) error {
-	return dao.AssetClassDao.UpdateByStruct(id, model.AssetClass{
-		Name:     req.ClassName,
-		ParentID: req.ParentID,
-		Type:     req.Type,
+	err := dao.AssetClassDao.UpdateByStruct(id, model.AssetClass{
+		Name: req.ClassName,
+		Type: req.Type,
 	})
+	if err != nil {
+		return err
+	}
+	if req.ParentID != nil {
+		err = dao.AssetClassDao.Update(id, map[string]interface{}{
+			"parent_id": *req.ParentID,
+		})
+	}
+	return err
+}
+
+func (assetClass *assetClassService) CheckIsAncestor(srcClassID uint, targetClassID uint) (bool, error) {
+	targetClass, err := dao.AssetClassDao.GetAssetClassByID(targetClassID)
+	if err != nil {
+		return false, nil
+	}
+
+	flag := false
+	for {
+		if targetClass == nil {
+			break
+		}
+		if targetClass.ID == srcClassID {
+			flag = true
+			break
+		}
+		targetClass, err = dao.AssetClassDao.GetAssetClassByID(targetClass.ParentID)
+		if err != nil {
+			return true, err
+		}
+	}
+	return flag, nil
+}
+
+func (assetClass *assetClassService) ClassHasAsset(classID uint) (bool, error) {
+	assetList, err := dao.AssetDao.GetAssetListByClassID(classID)
+	if err != nil {
+		return true, err
+	}
+	return len(assetList) != 0, nil
+}
+
+func (assetClass *assetClassService) DeleteAssetClass(classID uint) error {
+	return dao.AssetClassDao.Delete([]uint{classID})
 }

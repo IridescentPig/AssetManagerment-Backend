@@ -8,7 +8,7 @@ type CreateAssetClassReq struct {
 
 type ModifyAssetClassReq struct {
 	ClassName string `json:"class_name"`
-	ParentID  uint   `json:"parent_id"`
+	ParentID  *uint  `json:"parent_id"`
 	Type      int    `json:"type"`
 }
 

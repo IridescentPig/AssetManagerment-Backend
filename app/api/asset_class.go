@@ -128,7 +128,7 @@ func (assetClass *assetClassApi) ModifyAssetClassInfo(ctx *utils.Context) {
 		return
 	}
 	if modifyAssetClassReq.Type > 2 || modifyAssetClassReq.Type < 0 {
-		ctx.BadRequest(myerror.INVALID_BODY, myerror.INVALID_BODY_INFO)
+		ctx.BadRequest(myerror.INVALID_TYPE_OF_CLASS, myerror.INVALID_TYPE_OF_CLASS_INFO)
 		return
 	}
 
@@ -147,5 +147,80 @@ func (assetClass *assetClassApi) ModifyAssetClassInfo(ctx *utils.Context) {
 		ctx.BadRequest(myerror.ASSET_CLASS_NOT_FOUND, myerror.ASSET_CLASS_NOT_FOUND_INFO)
 		return
 	}
+	if modifyAssetClassReq.ParentID != nil && *modifyAssetClassReq.ParentID != 0 {
+		existAssetClass, err = service.AssetClassService.ExistsAssetClass(*modifyAssetClassReq.ParentID)
+		if err != nil {
+			ctx.InternalError(err.Error())
+			return
+		}
 
+		if !existAssetClass {
+			ctx.BadRequest(myerror.PARENT_ASSET_CLASS_NOT_FOUND, myerror.PARENT_ASSET_CLASS_NOT_FOUND_INFO)
+			return
+		}
+
+		isAncestor, err := service.AssetClassService.CheckIsAncestor(classID, *modifyAssetClassReq.ParentID)
+		if err != nil {
+			ctx.InternalError(err.Error())
+			return
+		}
+		if isAncestor {
+			ctx.BadRequest(myerror.PARENT_CANNOOT_BE_SUCCESSOR, myerror.PARENT_CANNOOT_BE_SUCCESSOR_INFO)
+			return
+		}
+	}
+
+	err = service.AssetClassService.ModifyAssetClassInfo(modifyAssetClassReq, classID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	ctx.Success(nil)
+}
+
+/*
+Handle func for DELETE /department/:department_id/asset_class/:class_id
+*/
+func (assetClass *assetClassApi) DeleteAssetClass(ctx *utils.Context) {
+	hasIdentity, _, err := assetClass.CheckAssetIdentity(ctx)
+	if err != nil {
+		return
+	} else if !hasIdentity {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	classID, err := service.EntityService.GetParamID(ctx, "user_id")
+	if err != nil {
+		return
+	}
+
+	existAssetClass, err := service.AssetClassService.ExistsAssetClass(classID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+	if !existAssetClass {
+		ctx.BadRequest(myerror.ASSET_CLASS_NOT_FOUND, myerror.ASSET_CLASS_NOT_FOUND_INFO)
+		return
+	}
+
+	hasAsset, err := service.AssetClassService.ClassHasAsset(classID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+	if hasAsset {
+		ctx.BadRequest(myerror.CLASS_HAS_ASSET, myerror.CLASS_HAS_ASSET_INFO)
+		return
+	}
+
+	err = service.AssetClassService.DeleteAssetClass(classID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	ctx.Success(nil)
 }
