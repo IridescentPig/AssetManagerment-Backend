@@ -438,7 +438,7 @@ func TestAsset(t *testing.T) {
 	assert.Equal(t, nil, err, database_error)
 	new_line, err = AssetDao.GetAssetByID(1)
 	assert.Equal(t, nil, err, database_error)
-	assert.Equal(t, 5, int(new_line.UserID), database_error)
+	assert.Equal(t, 1, int(new_line.UserID), database_error)
 	new_user_s, err := AssetDao.GetAssetUser(1)
 	assert.Equal(t, nil, err, database_error)
 	assert.Equal(t, "test_asset_user", new_user_s.UserName, database_error)
