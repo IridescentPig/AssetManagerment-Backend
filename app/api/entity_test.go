@@ -100,7 +100,7 @@ func TestEntity(t *testing.T) {
 	headerFormToken["Authorization"] = token
 
 	CreateEntity := define.CreateEntityReq{
-		EntityName: "test_entity1",
+		EntityName: "test_entity111",
 	}
 
 	// POST /entity/
@@ -108,6 +108,7 @@ func TestEntity(t *testing.T) {
 		req := GetRequest(http.MethodPost, "/entity/", headerFormToken, GetJsonBody(CreateEntity))
 		res = httptest.NewRecorder()
 		r.ServeHTTP(res, req)
+		//print_errormessage(res)
 		assert.Equal(t, http.StatusOK, res.Result().StatusCode, "response failed")
 	}
 

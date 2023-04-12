@@ -10,15 +10,15 @@ import (
 func TestEntity(t *testing.T) {
 	InitForTest()
 
-	err := EntityService.CreateEntity("test_entity")
+	err := EntityService.CreateEntity("test_entity222")
 	assert.Equal(t, nil, err, "service error")
 
 	entities, err := EntityService.GetAllEntity()
 	assert.Equal(t, nil, err, "service error")
-	assert.Equal(t, 1, len(entities), "service error")
+	assert.Equal(t, 2, len(entities), "service error")
 	assert.Equal(t, "test_entity", entities[0].Name, "service error")
 
-	exist, err := EntityService.ExistsEntityByName("test_entity")
+	exist, err := EntityService.ExistsEntityByName("test_entity222")
 	assert.Equal(t, nil, err, "service error")
 	assert.Equal(t, true, exist, "service error")
 	exist, err = EntityService.ExistsEntityByName("not_exist")
@@ -28,7 +28,7 @@ func TestEntity(t *testing.T) {
 	exist, err = EntityService.ExistsEntityByID(1)
 	assert.Equal(t, nil, err, "service error")
 	assert.Equal(t, true, exist, "service error")
-	exist, err = EntityService.ExistsEntityByID(2)
+	exist, err = EntityService.ExistsEntityByID(3)
 	assert.Equal(t, nil, err, "service error")
 	assert.Equal(t, false, exist, "service error")
 
@@ -71,7 +71,7 @@ func TestEntity(t *testing.T) {
 
 	departments, err := EntityService.GetAllDepartmentsUnderEntity(1)
 	assert.Equal(t, nil, err, "service error")
-	assert.Equal(t, 0, len(departments), "service error")
+	assert.Equal(t, 2, len(departments), "service error")
 
 	err = EntityService.DeleteEntity(1)
 	assert.Equal(t, nil, err, "service error")
