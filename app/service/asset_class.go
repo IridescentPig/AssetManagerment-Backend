@@ -6,6 +6,7 @@ import (
 	"asset-management/app/model"
 
 	"github.com/jinzhu/copier"
+	"gorm.io/gorm"
 )
 
 type assetClassService struct{}
@@ -79,9 +80,15 @@ func (assetClass *assetClassService) ModifyAssetClassInfo(req define.ModifyAsset
 		return err
 	}
 	if req.ParentID != nil {
-		err = dao.AssetClassDao.Update(id, map[string]interface{}{
-			"parent_id": *req.ParentID,
-		})
+		if *req.ParentID != 0 {
+			err = dao.AssetClassDao.Update(id, map[string]interface{}{
+				"parent_id": *req.ParentID,
+			})
+		} else {
+			err = dao.AssetClassDao.Update(id, map[string]interface{}{
+				"parent_id": gorm.Expr("NULL"),
+			})
+		}
 	}
 	return err
 }

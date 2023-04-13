@@ -25,6 +25,7 @@ func (router *router) Init(r *gin.Engine) *gin.Engine {
 	UserRouter.Init(r.Group("/user"))
 	EntityRouter.Init(r.Group("/entity"))
 	AssetClassRouter.Init(r.Group("/department"))
+	AssetRouter.Init(r.Group("/department"))
 
 	return r
 }
