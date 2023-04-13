@@ -41,6 +41,7 @@ func InitForTest(r *gin.Engine) {
 	InitForUser(r)
 	InitForEntity(r)
 	InitForAssetClass(r)
+	InitForAsset(r)
 
 	dao.InitForTest()
 }
