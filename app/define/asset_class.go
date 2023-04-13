@@ -1,9 +1,9 @@
 package define
 
 type CreateAssetClassReq struct {
-	ClassName string `json:"class_name" binding:"required"`
-	ParentID  uint   `json:"parent_id" binding:"required"`
-	Type      int    `json:"type" binding:"required"`
+	ClassName string `json:"class_name"`
+	ParentID  uint   `json:"parent_id"`
+	Type      int    `json:"type"`
 }
 
 type ModifyAssetClassReq struct {
