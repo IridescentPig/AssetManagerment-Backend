@@ -40,6 +40,7 @@ var (
 func InitForTest(r *gin.Engine) {
 	InitForUser(r)
 	InitForEntity(r)
+	InitForAssetClass(r)
 
 	dao.InitForTest()
 }

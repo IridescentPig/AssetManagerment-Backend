@@ -10,10 +10,10 @@ import (
 func TestDepartment(t *testing.T) {
 	InitForTest()
 
-	err := EntityService.CreateEntity("test_entity")
+	_ = EntityService.CreateEntity("test_entity")
 	//assert.Equal(t, nil, err, "service error")
 
-	err = DepartmentService.CreateDepartment("test_department", 1, 0)
+	err := DepartmentService.CreateDepartment("test_department", 1, 0)
 	assert.Equal(t, nil, err, "service error")
 
 	department, err := DepartmentService.GetDepartmentInfoByID(1)
