@@ -148,3 +148,11 @@ func (assetClass *assetClassService) GetSubClass(parentID uint, departmentID uin
 
 	return subTreeNodeList, nil
 }
+
+func (assetClass *assetClassService) ClassHasSubClass(classID uint, departmentID uint) (bool, error) {
+	classList, err := assetClass.GetSubClass(classID, departmentID)
+	if err != nil {
+		return true, err
+	}
+	return len(classList) != 0, err
+}

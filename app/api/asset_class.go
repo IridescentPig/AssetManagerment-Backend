@@ -187,7 +187,7 @@ func (assetClass *assetClassApi) ModifyAssetClassInfo(ctx *utils.Context) {
 Handle func for DELETE /department/:department_id/asset_class/:class_id
 */
 func (assetClass *assetClassApi) DeleteAssetClass(ctx *utils.Context) {
-	hasIdentity, _, err := assetClass.CheckAssetIdentity(ctx)
+	hasIdentity, departmentID, err := assetClass.CheckAssetIdentity(ctx)
 	if err != nil {
 		return
 	} else if !hasIdentity {
@@ -217,6 +217,14 @@ func (assetClass *assetClassApi) DeleteAssetClass(ctx *utils.Context) {
 	}
 	if hasAsset {
 		ctx.BadRequest(myerror.CLASS_HAS_ASSET, myerror.CLASS_HAS_ASSET_INFO)
+		return
+	}
+
+	hasSubClass, err := service.AssetClassService.ClassHasSubClass(classID, departmentID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+	} else if hasSubClass {
+		ctx.BadRequest(myerror.ClASS_HAS_SUB_CLASS, myerror.CLASS_HAS_SUB_CLASS_INFO)
 		return
 	}
 
