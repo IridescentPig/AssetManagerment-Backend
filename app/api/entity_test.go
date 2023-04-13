@@ -109,7 +109,7 @@ func TestEntity(t *testing.T) {
 		req := GetRequest(http.MethodPost, "/entity/", headerFormToken, GetJsonBody(CreateEntity))
 		res = httptest.NewRecorder()
 		r.ServeHTTP(res, req)
-		//print_errormessage(res)
+		print_errormessage(res)
 		assert.Equal(t, http.StatusOK, res.Result().StatusCode, "response failed")
 	}
 

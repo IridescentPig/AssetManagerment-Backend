@@ -497,7 +497,7 @@ func TestAdmin(t *testing.T) {
 		res = httptest.NewRecorder()
 		r.ServeHTTP(res, req)
 
-		//assert.Equal(t, http.StatusOK, res.Result().StatusCode, "response failed")
+		//assert.Equal(t, http.StatusOK, res.Result().StatusCode, print_errormessage(res))
 	}
 	{
 		req := GetRequest(http.MethodDelete, "/user/9", headerFormToken, nil)
@@ -600,6 +600,37 @@ func TestAdmin(t *testing.T) {
 	}
 	{
 		req := GetRequest(http.MethodPost, "/user/info/1/entity", headerForm, GetJsonBody(entity))
+		res = httptest.NewRecorder()
+		r.ServeHTTP(res, req)
+
+		//assert.Equal(t, http.StatusOK, res.Result().StatusCode, "response failed")
+	}
+	department := define.ChangeUserDepartmentReq{
+		DepartmentID: 1,
+	}
+	{
+		req := GetRequest(http.MethodPost, "/user/info/1/department", headerFormToken, GetJsonBody(department))
+		res = httptest.NewRecorder()
+		r.ServeHTTP(res, req)
+
+		//assert.Equal(t, http.StatusOK, res.Result().StatusCode, "response failed")
+	}
+	{
+		req := GetRequest(http.MethodPost, "/user/info/9/department", headerFormToken, GetJsonBody(department))
+		res = httptest.NewRecorder()
+		r.ServeHTTP(res, req)
+
+		//assert.Equal(t, http.StatusOK, res.Result().StatusCode, "response failed")
+	}
+	{
+		req := GetRequest(http.MethodPost, "/user/info/1/department", headerFormToken, nil)
+		res = httptest.NewRecorder()
+		r.ServeHTTP(res, req)
+
+		//assert.Equal(t, http.StatusOK, res.Result().StatusCode, "response failed")
+	}
+	{
+		req := GetRequest(http.MethodPost, "/user/info/1/department", headerForm, GetJsonBody(department))
 		res = httptest.NewRecorder()
 		r.ServeHTTP(res, req)
 
