@@ -63,6 +63,18 @@ func TestDepartment(t *testing.T) {
 		r.ServeHTTP(res, req)
 		assert.Equal(t, http.StatusOK, res.Result().StatusCode, "response failed")
 	}
+	{
+		req := GetRequest(http.MethodPost, "/entity/", headerJson, GetJsonBody(CreateEntity))
+		res = httptest.NewRecorder()
+		r.ServeHTTP(res, req)
+		assert.Equal(t, http.StatusUnauthorized, res.Result().StatusCode, "response failed")
+	}
+	{
+		req := GetRequest(http.MethodPost, "/entity/", headerFormToken, nil)
+		res = httptest.NewRecorder()
+		r.ServeHTTP(res, req)
+		assert.Equal(t, http.StatusBadRequest, res.Result().StatusCode, "response failed")
+	}
 
 	password := "123456"
 	managerReq2 := define.ManagerReq{
@@ -74,6 +86,18 @@ func TestDepartment(t *testing.T) {
 		res = httptest.NewRecorder()
 		r.ServeHTTP(res, req)
 		assert.Equal(t, http.StatusOK, res.Result().StatusCode, "response failed")
+	}
+	{
+		req := GetRequest(http.MethodPost, "/entity/1/manager", headerJson, GetJsonBody(managerReq2))
+		res = httptest.NewRecorder()
+		r.ServeHTTP(res, req)
+		assert.Equal(t, http.StatusUnauthorized, res.Result().StatusCode, "response failed")
+	}
+	{
+		req := GetRequest(http.MethodPost, "/entity/1/manager", headerFormToken, nil)
+		res = httptest.NewRecorder()
+		r.ServeHTTP(res, req)
+		assert.Equal(t, http.StatusBadRequest, res.Result().StatusCode, "response failed")
 	}
 	UserLogin2 := define.UserLoginReq{
 		UserName: "entity_manager",
@@ -108,6 +132,18 @@ func TestDepartment(t *testing.T) {
 		r.ServeHTTP(res, req)
 		assert.Equal(t, http.StatusOK, res.Result().StatusCode, "response failed")
 	}
+	{
+		req := GetRequest(http.MethodPost, "/entity/1/department", headerJson, GetJsonBody(CreateDepartment))
+		res = httptest.NewRecorder()
+		r.ServeHTTP(res, req)
+		assert.Equal(t, http.StatusUnauthorized, res.Result().StatusCode, "response failed")
+	}
+	{
+		req := GetRequest(http.MethodPost, "/entity/1/department", headerFormToken, nil)
+		res = httptest.NewRecorder()
+		r.ServeHTTP(res, req)
+		assert.Equal(t, http.StatusBadRequest, res.Result().StatusCode, "response failed")
+	}
 
 	// GET /:entity_id/department/list
 	{
@@ -116,6 +152,12 @@ func TestDepartment(t *testing.T) {
 		r.ServeHTTP(res, req)
 		assert.Equal(t, http.StatusOK, res.Result().StatusCode, "response failed")
 	}
+	{
+		req := GetRequest(http.MethodGet, "/entity/1/department/list", headerJson, nil)
+		res = httptest.NewRecorder()
+		r.ServeHTTP(res, req)
+		assert.Equal(t, http.StatusUnauthorized, res.Result().StatusCode, "response failed")
+	}
 
 	// GET /:entity_id/department/:department_id
 	{
@@ -123,6 +165,12 @@ func TestDepartment(t *testing.T) {
 		res = httptest.NewRecorder()
 		r.ServeHTTP(res, req)
 		assert.Equal(t, http.StatusOK, res.Result().StatusCode, "response failed")
+	}
+	{
+		req := GetRequest(http.MethodGet, "/entity/1/department/1", headerJson, nil)
+		res = httptest.NewRecorder()
+		r.ServeHTTP(res, req)
+		assert.Equal(t, http.StatusUnauthorized, res.Result().StatusCode, "response failed")
 	}
 
 	CreateDepartmentUser := define.CreateDepartmentUserReq{
@@ -138,6 +186,18 @@ func TestDepartment(t *testing.T) {
 		r.ServeHTTP(res, req)
 		assert.Equal(t, http.StatusOK, res.Result().StatusCode, "response failed")
 	}
+	{
+		req := GetRequest(http.MethodPost, "/entity/1/department/1/user", headerJson, GetJsonBody(CreateDepartmentUser))
+		res = httptest.NewRecorder()
+		r.ServeHTTP(res, req)
+		assert.Equal(t, http.StatusUnauthorized, res.Result().StatusCode, "response failed")
+	}
+	{
+		req := GetRequest(http.MethodPost, "/entity/1/department/1/user", headerFormToken, nil)
+		res = httptest.NewRecorder()
+		r.ServeHTTP(res, req)
+		assert.Equal(t, http.StatusBadRequest, res.Result().StatusCode, "response failed")
+	}
 
 	// POST /:entity_id/department/:department_id/manager
 	SetDepartmentManager := define.SetDepartmentManagerReq{
@@ -149,6 +209,18 @@ func TestDepartment(t *testing.T) {
 		r.ServeHTTP(res, req)
 		assert.Equal(t, http.StatusOK, res.Result().StatusCode, "response failed")
 	}
+	{
+		req := GetRequest(http.MethodPost, "/entity/1/department/1/manager", headerJson, GetJsonBody(SetDepartmentManager))
+		res = httptest.NewRecorder()
+		r.ServeHTTP(res, req)
+		assert.Equal(t, http.StatusUnauthorized, res.Result().StatusCode, "response failed")
+	}
+	{
+		req := GetRequest(http.MethodPost, "/entity/1/department/1/manager", headerFormToken, nil)
+		res = httptest.NewRecorder()
+		r.ServeHTTP(res, req)
+		assert.Equal(t, http.StatusBadRequest, res.Result().StatusCode, "response failed")
+	}
 
 	// GET /:entity_id/department/:department_id/user/list
 	{
@@ -157,6 +229,12 @@ func TestDepartment(t *testing.T) {
 		r.ServeHTTP(res, req)
 		assert.Equal(t, http.StatusOK, res.Result().StatusCode, "response failed")
 	}
+	{
+		req := GetRequest(http.MethodGet, "/entity/1/department/1/user/list", headerJson, nil)
+		res = httptest.NewRecorder()
+		r.ServeHTTP(res, req)
+		assert.Equal(t, http.StatusUnauthorized, res.Result().StatusCode, "response failed")
+	}
 
 	// GET /:entity_id/department/:department_id/manager
 	{
@@ -164,6 +242,12 @@ func TestDepartment(t *testing.T) {
 		res = httptest.NewRecorder()
 		r.ServeHTTP(res, req)
 		assert.Equal(t, http.StatusOK, res.Result().StatusCode, "response failed")
+	}
+	{
+		req := GetRequest(http.MethodGet, "/entity/1/department/1/manager", headerJson, nil)
+		res = httptest.NewRecorder()
+		r.ServeHTTP(res, req)
+		assert.Equal(t, http.StatusUnauthorized, res.Result().StatusCode, "response failed")
 	}
 
 	// POST /:entity_id/department/:department_id/department
@@ -176,6 +260,18 @@ func TestDepartment(t *testing.T) {
 		r.ServeHTTP(res, req)
 		assert.Equal(t, http.StatusOK, res.Result().StatusCode, "response failed")
 	}
+	{
+		req := GetRequest(http.MethodPost, "/entity/1/department/1/department", headerJson, GetJsonBody(CreateDepartment2))
+		res = httptest.NewRecorder()
+		r.ServeHTTP(res, req)
+		assert.Equal(t, http.StatusUnauthorized, res.Result().StatusCode, "response failed")
+	}
+	{
+		req := GetRequest(http.MethodPost, "/entity/1/department/1/department", headerFormToken, nil)
+		res = httptest.NewRecorder()
+		r.ServeHTTP(res, req)
+		assert.Equal(t, http.StatusBadRequest, res.Result().StatusCode, "response failed")
+	}
 
 	// GET /:entity_id/department/:department_id/department/list
 	{
@@ -183,6 +279,12 @@ func TestDepartment(t *testing.T) {
 		res = httptest.NewRecorder()
 		r.ServeHTTP(res, req)
 		assert.Equal(t, http.StatusOK, res.Result().StatusCode, "response failed")
+	}
+	{
+		req := GetRequest(http.MethodGet, "/entity/1/department/1/department/list", headerJson, nil)
+		res = httptest.NewRecorder()
+		r.ServeHTTP(res, req)
+		assert.Equal(t, http.StatusUnauthorized, res.Result().StatusCode, "response failed")
 	}
 
 	// DELETE /:entity_id/department/:department_id/manager/:user_id
@@ -192,6 +294,12 @@ func TestDepartment(t *testing.T) {
 		r.ServeHTTP(res, req)
 		assert.Equal(t, http.StatusOK, res.Result().StatusCode, "response failed")
 	}
+	{
+		req := GetRequest(http.MethodDelete, "/entity/1/department/1/manager/3", headerJson, nil)
+		res = httptest.NewRecorder()
+		r.ServeHTTP(res, req)
+		assert.Equal(t, http.StatusUnauthorized, res.Result().StatusCode, "response failed")
+	}
 
 	// DELETE /:entity_id/department/:department_id
 	{
@@ -199,6 +307,12 @@ func TestDepartment(t *testing.T) {
 		res = httptest.NewRecorder()
 		r.ServeHTTP(res, req)
 		assert.Equal(t, http.StatusBadRequest, res.Result().StatusCode, "response failed")
+	}
+	{
+		req := GetRequest(http.MethodDelete, "/entity/1/department/1", headerJson, nil)
+		res = httptest.NewRecorder()
+		r.ServeHTTP(res, req)
+		assert.Equal(t, http.StatusUnauthorized, res.Result().StatusCode, "response failed")
 	}
 
 }
