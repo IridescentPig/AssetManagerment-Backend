@@ -319,6 +319,21 @@ func TestDepartmentEntity(t *testing.T) {
 	assert.Equal(t, 1, len(sd), "database error")
 	assert.Equal(t, "parent_department", sd[0].Name, "database error")
 
+	DepartmentDao.GetDepartmentSub("test_department", 1, 1)
+	DepartmentDao.GetSubDepartmentByID(1)
+	DepartmentDao.GetDepartmentDirectUserByID(1)
+	DepartmentDao.GetDepartmentDirectUser("test_department")
+	DepartmentDao.GetDepartmentManager(1)
+
+	EntityDao.GetEntitysByNames([]string{"test_entity"})
+	EntityDao.GetEntityByID(1)
+	EntityDao.GetEntityManager(1)
+	EntityDao.GetEntitySubDepartmentByID(1)
+	UserDao.GetLimitUser(1, 10)
+	UserDao.GetUserByID(1)
+	UserDao.ModifyUserEntityByID(1, 1)
+	UserDao.ModifyUserDepartmentByID(1, 1)
+
 }
 
 var database_error string = "database error"

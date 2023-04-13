@@ -2,8 +2,11 @@ package service
 
 import (
 	"asset-management/app/define"
+	"asset-management/utils"
+	"net/http/httptest"
 	"testing"
 
+	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -51,4 +54,21 @@ func TestDepartment(t *testing.T) {
 	err = DepartmentService.DeleteDepartmentManager(1)
 	assert.Equal(t, nil, err, "service error")
 
+	res := httptest.NewRecorder()
+	ctx, _ := gin.CreateTestContext(res)
+	context := utils.Context{Context: ctx}
+	ctx.Set("user", define.UserBasicInfo{
+		UserID:          1,
+		UserName:        "admin",
+		EntitySuper:     true,
+		DepartmentSuper: true,
+		SystemSuper:     true,
+	})
+	DepartmentService.GetHeaderDepartmentID(&context)
+	DepartmentService.CheckIsInDepartment(&context, 1)
+	DepartmentService.CheckIsAncestor(1, 2)
+	DepartmentService.ExistsDepartmentByID(1)
+	DepartmentService.ExistsDepartmentSub("sub_department", 1, 1)
+	DepartmentService.CheckDepartmentIdentity(&context, 1, 1)
+	DepartmentService.GetSubDepartmentTreeNodes(1, 1)
 }
