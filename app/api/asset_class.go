@@ -132,7 +132,7 @@ func (assetClass *assetClassApi) ModifyAssetClassInfo(ctx *utils.Context) {
 		return
 	}
 
-	classID, err := service.EntityService.GetParamID(ctx, "user_id")
+	classID, err := service.EntityService.GetParamID(ctx, "class_id")
 	if err != nil {
 		return
 	}
@@ -191,7 +191,7 @@ func (assetClass *assetClassApi) DeleteAssetClass(ctx *utils.Context) {
 		return
 	}
 
-	classID, err := service.EntityService.GetParamID(ctx, "user_id")
+	classID, err := service.EntityService.GetParamID(ctx, "class_id")
 	if err != nil {
 		return
 	}
