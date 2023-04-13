@@ -535,3 +535,44 @@ func (department *departmentApi) GetDepartmentManager(ctx *utils.Context) {
 
 	ctx.Success(managerListResponse)
 }
+
+/*
+Handle func for GET /entity/{entity_id}/department/tree
+*/
+func (department *departmentApi) GetDepartmentTree(ctx *utils.Context) {
+	entityID, err := service.EntityService.GetParamID(ctx, "entity_id")
+	if err != nil {
+		return
+	}
+	entitySuper := service.UserService.EntitySuper(ctx)
+	departmentSuper := service.UserService.DepartmentSuper(ctx)
+	if !entitySuper && !departmentSuper {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+	operatorInfo := UserApi.GetOperatorInfo(ctx)
+	if operatorInfo.EntityID != entityID {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+	exists, err := service.EntityService.ExistsEntityByID(entityID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	} else if !exists {
+		ctx.BadRequest(myerror.ENTITY_NOT_FOUND, myerror.ENTITY_NOT_FOUND_INFO)
+		return
+	}
+
+	departmentSubTree, err := service.DepartmentService.GetSubDepartmentTreeNodes(0, entityID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	departmentTreeRes := define.DepartmentTreeResponse{
+		DepartmentList: departmentSubTree,
+	}
+
+	ctx.Success(departmentTreeRes)
+}

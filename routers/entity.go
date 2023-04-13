@@ -53,4 +53,5 @@ func (entity *entityRouter) routerCheckAtHandler(group *gin.RouterGroup) {
 	group.POST("/:entity_id/department/:department_id/manager", utils.Handler(api.DepartmentApi.SetManager))
 	group.DELETE("/:entity_id/department/:department_id/manager/:user_id", utils.Handler(api.DepartmentApi.DeleteDepartmentManager))
 	group.GET("/:entity_id/department/:department_id/manager", utils.Handler(api.DepartmentApi.GetDepartmentManager))
+	group.GET("/:entity_id/department/tree", utils.Handler(api.DepartmentApi.GetDepartmentTree))
 }

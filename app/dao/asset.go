@@ -27,8 +27,18 @@ func (asset *assetDao) Create(newAsset model.Asset) error {
 	return utils.DBError(result)
 }
 
+func (asset *assetDao) CreateAndGetID(newAsset model.Asset) (uint, error) {
+	result := db.Model(&model.Asset{}).Create(&newAsset)
+	return newAsset.ID, utils.DBError(result)
+}
+
 func (asset *assetDao) Update(id uint, data map[string]interface{}) error {
 	result := db.Model(&model.Asset{}).Where("id = ?", id).Updates(data)
+	return utils.DBError(result)
+}
+
+func (asset *assetDao) UpdateByStruct(id uint, data model.Asset) error {
+	result := db.Model(model.Asset{}).Where("id = ?", id).Updates(data)
 	return utils.DBError(result)
 }
 
@@ -87,22 +97,22 @@ func (asset *assetDao) GetAssetByName(name string) (list []model.Asset, err erro
 
 func (asset *assetDao) GetAssetByID(id uint) (*model.Asset, error) {
 	ret := &model.Asset{}
-	result := db.Model(&model.Asset{}).Where("ID = ?", id).First(ret)
+	result := db.Model(&model.Asset{}).Preload("Parent").Preload("User").Preload("Department").Preload("Class").Where("ID = ?", id).First(ret)
 	if result.Error == gorm.ErrRecordNotFound {
 		return nil, nil
 	}
-	user := &model.User{}
-	err := db.Model(&ret).Association("User").Find(&user)
-	if err != nil {
-		return nil, err
-	}
-	ret.User = *user
-	asset_class := &model.AssetClass{}
-	err = db.Model(&ret).Association("Class").Find(&asset_class)
-	if err != nil {
-		return nil, err
-	}
-	ret.Class = *asset_class
+	// user := &model.User{}
+	// err := db.Model(&ret).Association("User").Find(&user)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// ret.User = *user
+	// asset_class := &model.AssetClass{}
+	// err = db.Model(&ret).Association("Class").Find(&asset_class)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// ret.Class = *asset_class
 	return ret, utils.DBError(result)
 }
 
@@ -179,11 +189,12 @@ func (asset *assetDao) ExpireAsset(ids []uint) error {
 
 // asset and asset
 func (asset *assetDao) GetSubAsset(id uint) (assets []*model.Asset, err error) {
-	query_asset, err := asset.GetAssetByID(id)
-	if err != nil {
-		return
-	}
-	err = utils.DBError(db.Model(&query_asset).Where("parent_id = ?", query_asset.ID).Find(&assets))
+	err = utils.DBError(db.Model(&model.Asset{}).Preload("Parent").Preload("User").Preload("Department").Preload("Class").Where("parent_id = ?", id).Find(&assets))
+	return
+}
+
+func (asset *assetDao) GetAssetDirectDepartment(departmentID uint) (assets []*model.Asset, err error) {
+	err = utils.DBError(db.Model(&model.Asset{}).Preload("Parent").Preload("User").Preload("Department").Preload("Class").Where("department_id = ? and parent_id IS NULL", departmentID).Find(&assets))
 	return
 }
 
@@ -262,6 +273,15 @@ func (asset *assetDao) ModifyAssetClass(AssetID uint, ClassID uint) error {
 
 func (asset *assetDao) GetAssetListByClassID(assetClassID uint) ([]*model.Asset, error) {
 	var assetList []*model.Asset
-	err := utils.DBError(db.Model(&model.Asset{}).Where("class_id = ?", assetClassID).Find(&assetList))
+	err := utils.DBError(db.Model(&model.Asset{}).Preload("Parent").Preload("User").Preload("Department").Preload("Class").Where("class_id = ?", assetClassID).Find(&assetList))
 	return assetList, err
+}
+
+func (asset *assetDao) GetSubAssetsByParents(ids []uint) (assets []*model.Asset, err error) {
+	result := db.Model(&model.Asset{}).Preload("Parent").Preload("User").Preload("Department").Preload("Class").Where("parent_id IN (?)", ids).Find(&assets)
+	if result.Error == gorm.ErrRecordNotFound {
+		return nil, nil
+	}
+	err = utils.DBError(result)
+	return
 }

@@ -56,7 +56,7 @@ type DepartmentUserInfo struct {
 	SystemSuper     bool              `json:"id3"`
 	EntitySuper     bool              `json:"id2"`
 	DepartmentSuper bool              `json:"id1"`
-	Employee        bool              `json:"id0" default:"true"`
+	IsEmployee      bool              `json:"id0" default:"true"`
 	Department      *model.Department `json:"department"`
 }
 
@@ -71,4 +71,15 @@ type DepartmentManager struct {
 
 type DepartmentManagerListResponse struct {
 	ManagerList []DepartmentManager `json:"manager_list"`
+}
+
+type DepartmentTreeNodeInfo struct {
+	ID       uint                      `json:"department_id"`
+	Name     string                    `json:"department_name"`
+	ParentID uint                      `json:"parent_id"`
+	Children []*DepartmentTreeNodeInfo `json:"children"`
+}
+
+type DepartmentTreeResponse struct {
+	DepartmentList []*DepartmentTreeNodeInfo `json:"department_list"`
 }

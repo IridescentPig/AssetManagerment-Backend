@@ -47,6 +47,16 @@ func (user *userApi) GetOperatorID(ctx *utils.Context) uint {
 	return 0
 }
 
+func (user *userApi) GetOperatorInfo(ctx *utils.Context) *define.UserBasicInfo {
+	userInfo, exists := ctx.Get("user")
+	if exists {
+		if userInfo, ok := userInfo.(define.UserBasicInfo); ok {
+			return &userInfo
+		}
+	}
+	return nil
+}
+
 func (user *userApi) UserRegister(ctx *utils.Context) {
 	var req define.UserRegisterReq
 

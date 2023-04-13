@@ -99,12 +99,11 @@ func (department *departmentDao) DepartmentCount() (count int64, err error) {
 }
 
 func (department *departmentDao) GetSubDepartmentByID(id uint) (departments []*model.Department, err error) {
-	query_department, err := department.GetDepartmentByID(id)
-	if err != nil {
-		return
+	result := db.Model(&model.Department{}).Preload("Parent").Preload("Entity").Where("parent_id = ?", id).Find(&departments)
+	if result.Error == gorm.ErrRecordNotFound {
+		return nil, nil
 	}
-	err = utils.DBError(db.Model(&query_department).Where("parent_id = ?", query_department.ID).Find(&departments))
-	return
+	return departments, utils.DBError(result)
 }
 
 // department and department
@@ -154,7 +153,7 @@ func (department *departmentDao) GetDepartmentDirectUserByID(id uint) (users []*
 	if err != nil {
 		return
 	}
-	err = utils.DBError(db.Model(&model.User{}).Where("department_id = ?", query_department.ID).Find(&users))
+	err = utils.DBError(db.Model(&model.User{}).Preload("Department").Preload("Entity").Where("department_id = ?", query_department.ID).Find(&users))
 	return
 }
 

@@ -77,7 +77,7 @@ func (entity *entityDao) GetEntityAllUser(id uint) (users []*model.User, err err
 	// if err != nil {
 	// 	return
 	// }
-	err = utils.DBError(db.Model(&model.User{}).Where("entity_id = ?", id).Find(&users))
+	err = utils.DBError(db.Model(&model.User{}).Preload("Department").Preload("Entity").Where("entity_id = ?", id).Find(&users))
 	return
 }
 
@@ -92,7 +92,7 @@ func (entity *entityDao) GetEntityAllDepartment(id uint) (departments []*model.D
 	// if err != nil {
 	// 	return
 	// }
-	err = utils.DBError(db.Model(&model.Department{}).Where("entity_id = ?", id).Find(&departments))
+	err = utils.DBError(db.Model(&model.Department{}).Preload("Parent").Preload("Entity").Where("entity_id = ?", id).Find(&departments))
 	return
 }
 
@@ -101,6 +101,17 @@ func (entity *entityDao) GetEntitySubDepartment(name string) (departments []*mod
 	if err != nil {
 		return
 	}
-	err = utils.DBError(db.Model(&model.Department{}).Where("entity_id = ? and parent_id IS NULL", query_entity.ID, 0).Find(&departments))
+	err = utils.DBError(db.Model(&model.Department{}).Preload("Parent").Preload("Entity").Where("entity_id = ? and parent_id IS NULL", query_entity.ID, 0).Find(&departments))
+	return
+}
+
+func (entity *entityDao) GetEntitySubDepartmentByID(id uint) (departments []*model.Department, err error) {
+	result := db.Model(&model.Department{}).Preload("Parent").Preload("Entity").Where("entity_id = ? and parent_id IS NULL", id, 0).Find(&departments)
+	if result.Error == gorm.ErrRecordNotFound {
+		err = nil
+		departments = nil
+		return
+	}
+	err = utils.DBError(result)
 	return
 }

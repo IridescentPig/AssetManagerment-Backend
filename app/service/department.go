@@ -7,6 +7,8 @@ import (
 	"asset-management/myerror"
 	"asset-management/utils"
 	"errors"
+
+	"github.com/jinzhu/copier"
 )
 
 type departmentService struct{}
@@ -195,4 +197,32 @@ func (department *departmentService) DepartmentHasUsers(departmentID uint) (bool
 		return true, err
 	}
 	return len(hasUsers) != 0, nil
+}
+
+func (department *departmentService) GetSubDepartmentTreeNodes(parentID uint, entityID uint) ([]*define.DepartmentTreeNodeInfo, error) {
+	var subDepartments []*model.Department
+	var err error
+	if parentID == 0 {
+		subDepartments, err = dao.EntityDao.GetEntitySubDepartmentByID(entityID)
+	} else {
+		subDepartments, err = dao.DepartmentDao.GetSubDepartmentByID(parentID)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	subTreeNodes := []*define.DepartmentTreeNodeInfo{}
+	err = copier.Copy(&subTreeNodes, subDepartments)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, subNode := range subTreeNodes {
+		subNode.Children, err = department.GetSubDepartmentTreeNodes(subNode.ID, entityID)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return subTreeNodes, nil
 }

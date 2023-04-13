@@ -261,7 +261,8 @@ Handler func for GET /entity/{entity_id}/department/list
 */
 func (entity *entityApi) DepartmentsInEntity(ctx *utils.Context) {
 	entitySuper := service.UserService.EntitySuper(ctx)
-	if !entitySuper {
+	departmentSuper := service.UserService.DepartmentSuper(ctx)
+	if !entitySuper && !departmentSuper {
 		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
 		return
 	}
