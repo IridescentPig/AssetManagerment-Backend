@@ -159,6 +159,13 @@ func TestAssetClass(t *testing.T) {
 
 		//assert.Equal(t, http.StatusOK, res.Result().StatusCode, "response failed")
 	}
+	{
+		req := GetRequest(http.MethodPost, "/department/9/asset_class", headerJsonToken, GetJsonBody(CreateAssetClass))
+		res = httptest.NewRecorder()
+		r.ServeHTTP(res, req)
+
+		//assert.Equal(t, http.StatusOK, res.Result().StatusCode, "response failed")
+	}
 	CreateAssetClass = define.CreateAssetClassReq{
 		ClassName: "sub",
 		ParentID:  1,
@@ -187,7 +194,7 @@ func TestAssetClass(t *testing.T) {
 	}
 
 	// PATCH /:department_id/asset_class/:class_id
-	parent_id := uint(0)
+	parent_id := uint(1)
 	ModifyAssetClass := define.ModifyAssetClassReq{
 		ClassName: "new",
 		ParentID:  &parent_id,
@@ -195,6 +202,20 @@ func TestAssetClass(t *testing.T) {
 	}
 	{
 		req := GetRequest(http.MethodPatch, "/department/1/asset_class/1", headerJsonToken, GetJsonBody(ModifyAssetClass))
+		res = httptest.NewRecorder()
+		r.ServeHTTP(res, req)
+
+		//assert.Equal(t, http.StatusOK, res.Result().StatusCode, "response failed")
+	}
+	{
+		req := GetRequest(http.MethodPatch, "/department/9/asset_class/1", headerJsonToken, GetJsonBody(ModifyAssetClass))
+		res = httptest.NewRecorder()
+		r.ServeHTTP(res, req)
+
+		//assert.Equal(t, http.StatusOK, res.Result().StatusCode, "response failed")
+	}
+	{
+		req := GetRequest(http.MethodPatch, "/department/1/asset_class/9", headerJsonToken, GetJsonBody(ModifyAssetClass))
 		res = httptest.NewRecorder()
 		r.ServeHTTP(res, req)
 
@@ -214,10 +235,30 @@ func TestAssetClass(t *testing.T) {
 
 		//assert.Equal(t, http.StatusOK, res.Result().StatusCode, "response failed")
 	}
+	parent_id = uint(0)
+	ModifyAssetClass = define.ModifyAssetClassReq{
+		ClassName: "new",
+		ParentID:  &parent_id,
+		Type:      1,
+	}
+	{
+		req := GetRequest(http.MethodPatch, "/department/1/asset_class/1", headerJsonToken, GetJsonBody(ModifyAssetClass))
+		res = httptest.NewRecorder()
+		r.ServeHTTP(res, req)
+
+		//assert.Equal(t, http.StatusOK, res.Result().StatusCode, "response failed")
+	}
 
 	// GET /:department_id/asset_class/tree
 	{
 		req := GetRequest(http.MethodGet, "/department/1/asset_class/tree", headerJsonToken, nil)
+		res = httptest.NewRecorder()
+		r.ServeHTTP(res, req)
+
+		//assert.Equal(t, http.StatusOK, res.Result().StatusCode, "response failed")
+	}
+	{
+		req := GetRequest(http.MethodGet, "/department/9/asset_class/tree", headerJsonToken, nil)
 		res = httptest.NewRecorder()
 		r.ServeHTTP(res, req)
 
@@ -234,6 +275,20 @@ func TestAssetClass(t *testing.T) {
 	// DELETE /:department_id/asset_class/:class_id
 	{
 		req := GetRequest(http.MethodDelete, "/department/1/asset_class/1", headerJsonToken, nil)
+		res = httptest.NewRecorder()
+		r.ServeHTTP(res, req)
+
+		//assert.Equal(t, http.StatusOK, res.Result().StatusCode, "response failed")
+	}
+	{
+		req := GetRequest(http.MethodDelete, "/department/9/asset_class/1", headerJsonToken, nil)
+		res = httptest.NewRecorder()
+		r.ServeHTTP(res, req)
+
+		//assert.Equal(t, http.StatusOK, res.Result().StatusCode, "response failed")
+	}
+	{
+		req := GetRequest(http.MethodDelete, "/department/1/asset_class/9", headerJsonToken, nil)
 		res = httptest.NewRecorder()
 		r.ServeHTTP(res, req)
 
