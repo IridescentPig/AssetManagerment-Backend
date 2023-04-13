@@ -152,7 +152,7 @@ func (asset *assetService) ExpireAssets(assetIDs []uint) error {
 	return err
 }
 
-func (asset *assetService) TransferAssets(assetIDs []uint, userID uint) error {
+func (asset *assetService) TransferAssets(assetIDs []uint, userID uint, departmentID uint) error {
 	subAssets, err := dao.AssetDao.GetSubAssetsByParents(assetIDs)
 	if err != nil {
 		return err
@@ -170,8 +170,9 @@ func (asset *assetService) TransferAssets(assetIDs []uint, userID uint) error {
 		return err
 	}
 	err = dao.AssetDao.AllUpdate(assetIDs, map[string]interface{}{
-		"user_id":   userID,
-		"parent_id": gorm.Expr("NULL"),
+		"user_id":       userID,
+		"parent_id":     gorm.Expr("NULL"),
+		"department_id": departmentID,
 	})
 	return err
 }
