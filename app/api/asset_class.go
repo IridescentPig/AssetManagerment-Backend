@@ -84,6 +84,8 @@ func (assetClass *assetClassApi) CreateAssetClass(ctx *utils.Context) {
 		ctx.InternalError(err.Error())
 		return
 	}
+
+	ctx.Success(nil)
 }
 
 /*

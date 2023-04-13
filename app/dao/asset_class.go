@@ -47,7 +47,7 @@ func (assetclass *assetClassDao) Delete(id []uint) error {
 
 func (assetclass *assetClassDao) GetAssetClassByID(id uint) (*model.AssetClass, error) {
 	ret := &model.AssetClass{}
-	result := db.Model(&model.AssetClass{}).Where("ID = ?", id).First(ret)
+	result := db.Model(&model.AssetClass{}).Where("id = ?", id).First(ret)
 	if result.Error == gorm.ErrRecordNotFound {
 		return nil, nil
 	}
