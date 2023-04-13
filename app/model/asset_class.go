@@ -9,7 +9,3 @@ type AssetClass struct {
 	Department   Department  `gorm:"foreignKey:DepartmentID;references:ID;default:null" json:"department"`
 	Type         int         `gorm:"column:type" json:"type"` // 1-条目型资产 2-数量型资产
 }
-
-func (AssetClass) TableName() string {
-	return "assetclass"
-}

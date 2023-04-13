@@ -53,12 +53,24 @@ func Initial() {
 	connect()
 }
 
+func ClearDatabase(db *gorm.DB) {
+	db.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&model.User{}).Delete(&model.Department{}).Delete(&model.Entity{}).Delete(&model.Asset{}).Delete(&model.AssetClass{})
+}
+
+/*type lockDb struct {
+	Db    *gorm.DB
+	Mutex sync.Mutex
+}
+
+var Lockdb *lockDb*/
+
 func InitForTest() {
 	var err error
 	db, err = gorm.Open(sqlite.Open("file::memory:?cache=shared&parseTime=True&loc=Local"))
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	connect()
+	ClearDatabase(db)
+	//Lockdb = &lockDb{Db: db}
 }

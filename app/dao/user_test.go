@@ -15,6 +15,7 @@ func Init() {
 
 func TestUser(t *testing.T) {
 	Init()
+
 	user := model.User{
 		UserName: "test",
 		Password: "123456",
@@ -134,10 +135,12 @@ func TestUser(t *testing.T) {
 	count, err = UserDao.UserCount()
 	assert.Equal(t, nil, err, "database error")
 	assert.Equal(t, int64(2), count, "database error")
+
 }
 
 func TestDepartmentEntity(t *testing.T) {
 	Init()
+
 	user := model.User{
 		UserName: "test",
 		Password: "123456",
@@ -322,6 +325,7 @@ var database_error string = "database error"
 
 func TestAsset(t *testing.T) {
 	Init()
+
 	asset_class := model.AssetClass{
 		Name: "test_class",
 		Type: 1,
@@ -438,7 +442,7 @@ func TestAsset(t *testing.T) {
 	assert.Equal(t, nil, err, database_error)
 	new_line, err = AssetDao.GetAssetByID(1)
 	assert.Equal(t, nil, err, database_error)
-	assert.Equal(t, 5, int(new_line.UserID), database_error)
+	assert.Equal(t, 1, int(new_line.UserID), database_error)
 	new_user_s, err := AssetDao.GetAssetUser(1)
 	assert.Equal(t, nil, err, database_error)
 	assert.Equal(t, "test_asset_user", new_user_s.UserName, database_error)
@@ -476,5 +480,4 @@ func TestAsset(t *testing.T) {
 	assert.Equal(t, decimal.New(0, 0), new_line.Price, database_error)
 	assert.Equal(t, true, new_num_s.Expire, database_error)
 	assert.Equal(t, decimal.New(0, 0), new_num_s.Price, database_error)
-
 }

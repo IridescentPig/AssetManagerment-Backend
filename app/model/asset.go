@@ -22,7 +22,3 @@ type Asset struct {
 	Number       int             `gorm:"column:number" json:"number"`
 	Type         int             `gorm:"column:type" json:"type"` // 1-条目型资产 2-数量型资产
 }
-
-func (Asset) TableName() string {
-	return "asset"
-}

@@ -37,7 +37,14 @@ var (
 	}
 )
 
-func Init(r *gin.Engine) {
+func InitForTest(r *gin.Engine) {
+	InitForUser(r)
+	InitForEntity(r)
+
+	dao.InitForTest()
+}
+
+func InitForUser(r *gin.Engine) {
 	group := r.Group("/user")
 
 	group.POST("/register", utils.Handler(UserApi.UserRegister))
@@ -47,7 +54,6 @@ func Init(r *gin.Engine) {
 	group.PATCH("/:username", utils.Handler(middleware.JWTMiddleware()), utils.Handler(UserApi.ResetContent))
 	group.GET("/:username/lock", utils.Handler(middleware.JWTMiddleware()), utils.Handler(UserApi.LockUser))
 	group.GET("/:username/unlock", utils.Handler(middleware.JWTMiddleware()), utils.Handler(UserApi.UnlockUser))
-	dao.InitForTest()
 }
 
 func GetJsonBody(data interface{}) io.Reader {
@@ -89,7 +95,7 @@ func GetRequest(method string, url string, header map[string]string, body io.Rea
 func TestUser(t *testing.T) {
 	res := httptest.NewRecorder()
 	_, r := gin.CreateTestContext(res)
-	Init(r)
+	InitForTest(r)
 
 	UserRegister := define.UserRegisterReq{
 		UserName: "test",
@@ -159,12 +165,13 @@ func TestUser(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, res.Result().StatusCode, "response failed")
 	}
+
 }
 
 func TestAdmin(t *testing.T) {
 	res := httptest.NewRecorder()
 	_, r := gin.CreateTestContext(res)
-	Init(r)
+	InitForTest(r)
 
 	admin := model.User{
 		UserName:    "admin",

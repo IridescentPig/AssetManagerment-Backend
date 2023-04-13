@@ -65,11 +65,11 @@ func (entity *entityApi) CheckViewIdentity(ctx *utils.Context) (bool, uint) {
 Handle func for POST /entity
 */
 func (entity *entityApi) CreateEntity(ctx *utils.Context) {
-	// isSystemSuper := service.UserService.SystemSuper(ctx)
-	// if !isSystemSuper {
-	// 	ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
-	// 	return
-	// }
+	isSystemSuper := service.UserService.SystemSuper(ctx)
+	if !isSystemSuper {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
 
 	var createReq define.CreateEntityReq
 	err := ctx.MustBindWith(&createReq, binding.JSON)
@@ -311,7 +311,7 @@ func (entity *entityApi) SetManager(ctx *utils.Context) {
 	// isSystemSuper := service.UserService.SystemSuper(ctx)
 	// if !isSystemSuper {
 	// 	ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
-	// 	return
+	// 	return-
 	// }
 	entityID, err := service.EntityService.GetParamID(ctx, "entity_id")
 	if err != nil {
