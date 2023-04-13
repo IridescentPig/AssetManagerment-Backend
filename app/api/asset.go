@@ -130,14 +130,22 @@ func (asset *assetApi) CreateAssets(ctx *utils.Context) {
 
 	userID := UserApi.GetOperatorID(ctx)
 
-	var assetsCreateReq []define.CreateAssetReq
+	var assetsCreateReq define.CreateAssetListReq
 	err = ctx.MustBindWith(&assetsCreateReq, binding.JSON)
 	if err != nil {
 		ctx.BadRequest(myerror.INVALID_BODY, myerror.INVALID_BODY_INFO)
 		return
 	}
 
-	for _, asset := range assetsCreateReq {
+	for _, asset := range assetsCreateReq.AssetList {
+		exists, err := service.AssetClassService.ExistsAssetClass(asset.ClassID)
+		if err != nil {
+			ctx.InternalError(err.Error())
+			return
+		} else if !exists {
+			ctx.BadRequest(myerror.ASSET_CLASS_NOT_FOUND, myerror.ASSET_CLASS_NOT_FOUND_INFO)
+			return
+		}
 		err = service.AssetService.CreateAsset(&asset, departmentID, 0, userID)
 		if err != nil {
 			ctx.InternalError(err.Error())
@@ -160,7 +168,7 @@ func (asset *assetApi) ExpireAsset(ctx *utils.Context) {
 		return
 	}
 
-	var expireReq []define.ExpireAssetReq
+	var expireReq define.ExpireAssetListReq
 	err = ctx.MustBindWith(&expireReq, binding.JSON)
 	if err != nil {
 		ctx.InternalError(err.Error())
@@ -168,7 +176,7 @@ func (asset *assetApi) ExpireAsset(ctx *utils.Context) {
 	}
 
 	assetIDs := []uint{}
-	for _, assetID := range expireReq {
+	for _, assetID := range expireReq.ExpireList {
 		exists, err := service.AssetService.ExistAsset(assetID.AssetID)
 		if err != nil {
 			ctx.InternalError(err.Error())

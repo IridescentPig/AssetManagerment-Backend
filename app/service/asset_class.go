@@ -127,3 +127,24 @@ func (assetClass *assetClassService) ClassHasAsset(classID uint) (bool, error) {
 func (assetClass *assetClassService) DeleteAssetClass(classID uint) error {
 	return dao.AssetClassDao.Delete([]uint{classID})
 }
+
+func (assetClass *assetClassService) GetSubClass(parentID uint, departmentID uint) ([]*define.AssetClassTreeNode, error) {
+	var subClassList []*model.AssetClass
+	var err error
+	if parentID == 0 {
+		subClassList, err = dao.AssetClassDao.GetDepartmentDirectClass(departmentID)
+	} else {
+		subClassList, err = dao.AssetClassDao.GetSubAssetClass(parentID)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	subTreeNodeList := []*define.AssetClassTreeNode{}
+	err = copier.Copy(&subTreeNodeList, subClassList)
+	if err != nil {
+		return nil, err
+	}
+
+	return subTreeNodeList, nil
+}

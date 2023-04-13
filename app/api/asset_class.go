@@ -228,3 +228,34 @@ func (assetClass *assetClassApi) DeleteAssetClass(ctx *utils.Context) {
 
 	ctx.Success(nil)
 }
+
+/*
+Handle func for /department/:department_id/asset_class/:class_id
+*/
+func (assetClass *assetClassApi) GetSubAssetClass(ctx *utils.Context) {
+	hasIdentity, departmentID, err := assetClass.CheckAssetIdentity(ctx)
+	if err != nil {
+		return
+	} else if !hasIdentity {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	classID, err := service.EntityService.GetParamID(ctx, "class_id")
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	assetClassTree, err := service.AssetClassService.GetSubAssetClass(classID, departmentID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	assetClassTreeResponse := define.AssetClassTreeResponse{
+		AssetClassTree: assetClassTree,
+	}
+
+	ctx.Success(assetClassTreeResponse)
+}

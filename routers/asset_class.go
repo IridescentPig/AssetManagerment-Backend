@@ -30,4 +30,5 @@ func (assetClass *assetClassRouter) routerCheckAtHandler(group *gin.RouterGroup)
 	group.POST("/:department_id/asset_class", utils.Handler(api.AssetClassApi.CreateAssetClass))
 	group.DELETE("/:department_id/asset_class/:class_id", utils.Handler(api.AssetClassApi.DeleteAssetClass))
 	group.PATCH("/:department_id/asset_class/:class_id", utils.Handler(api.AssetClassApi.ModifyAssetClassInfo))
+	group.GET("/:department_id/asset_class/:class_id", utils.Handler(api.AssetClassApi.GetSubAssetClass))
 }
