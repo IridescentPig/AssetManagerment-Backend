@@ -18,7 +18,7 @@ import (
 )
 
 // assistant function
-func print_errormessage(res *httptest.ResponseRecorder) {
+/*func print_errormessage(res *httptest.ResponseRecorder) {
 	b, err := io.ReadAll(res.Result().Body)
 	if err != nil {
 		log.Fatal(err)
@@ -29,7 +29,7 @@ func print_errormessage(res *httptest.ResponseRecorder) {
 	code := data["code"].(float64)
 	msg := data["message"].(string)
 	log.Print("code ", code, ";message ", msg)
-}
+}*/
 
 func InitForEntity(r *gin.Engine) {
 	group := r.Group("/entity")
@@ -48,6 +48,7 @@ func InitForEntity(r *gin.Engine) {
 	group.POST("/:entity_id/department/:department_id/manager", utils.Handler(DepartmentApi.SetManager))                         //
 	group.DELETE("/:entity_id/department/:department_id/manager/:user_id", utils.Handler(DepartmentApi.DeleteDepartmentManager)) //
 	group.GET("/:entity_id/department/:department_id/manager", utils.Handler(DepartmentApi.GetDepartmentManager))                //
+	group.GET("/:entity_id/department/tree", utils.Handler(DepartmentApi.GetDepartmentTree))
 
 	group.Use(utils.Handler(middleware.CheckSystemSuper()))
 	{

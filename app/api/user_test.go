@@ -639,7 +639,3 @@ func TestUserInfo(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, res.Result().StatusCode, "response failed")
 	}
 }
-
-func TestApi(t *testing.T) {
-	Initial()
-}

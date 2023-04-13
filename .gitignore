@@ -13,3 +13,5 @@ coverage.html
 
 # Dependencies installed by dep
 vendor/
+
+.vscode
