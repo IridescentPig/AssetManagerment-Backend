@@ -149,11 +149,11 @@ func (department *departmentDao) GetDepartmentDirectUser(name string) (users []*
 }
 
 func (department *departmentDao) GetDepartmentDirectUserByID(id uint) (users []*model.User, err error) {
-	query_department, err := department.GetDepartmentByID(id)
+	_, err = department.GetDepartmentByID(id)
 	if err != nil {
 		return
 	}
-	err = utils.DBError(db.Model(&model.User{}).Preload("Department").Preload("Entity").Where("department_id = ?", query_department.ID).Find(&users))
+	err = utils.DBError(db.Model(&model.User{}).Preload("Department").Preload("Entity").Where("department_id = ?", id).Find(&users))
 	return
 }
 
