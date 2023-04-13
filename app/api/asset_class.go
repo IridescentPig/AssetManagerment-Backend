@@ -67,14 +67,16 @@ func (assetClass *assetClassApi) CreateAssetClass(ctx *utils.Context) {
 		return
 	}
 
-	existsParentClass, err := service.AssetClassService.ExistsAssetClass(createAssetClassReq.ParentID)
-	if err != nil {
-		ctx.InternalError(err.Error())
-		return
-	}
-	if !existsParentClass {
-		ctx.BadRequest(myerror.INVALID_BODY, myerror.INVALID_BODY_INFO)
-		return
+	if createAssetClassReq.ParentID != 0 {
+		existsParentClass, err := service.AssetClassService.ExistsAssetClass(createAssetClassReq.ParentID)
+		if err != nil {
+			ctx.InternalError(err.Error())
+			return
+		}
+		if !existsParentClass {
+			ctx.BadRequest(myerror.INVALID_BODY, myerror.INVALID_BODY_INFO)
+			return
+		}
 	}
 
 	err = service.AssetClassService.CreateAssetClass(createAssetClassReq, departmentID)
