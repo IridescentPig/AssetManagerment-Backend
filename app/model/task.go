@@ -11,5 +11,5 @@ type Task struct {
 	TargetID   uint     `gorm:"default:null;column:target_id;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"target_id"`
 	TargetName string   `gorm:"column:target_name" json:"target_name"`
 	Target     User     `gorm:"foreignKey:TargetID;references:ID;default:null" json:"target"`
-	AssetList  []*Asset `json:"asset_list"`
+	AssetList  []*Asset `gorm:"many2many:article_tags;" json:"asset_list"`
 }
