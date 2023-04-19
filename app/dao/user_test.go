@@ -427,6 +427,8 @@ func TestAsset(t *testing.T) {
 	assert.Equal(t, "M78", new_line.Position, database_error)
 	err = AssetDao.ModifyAssetNum(2, 233)
 	assert.Equal(t, nil, err, database_error)
+	err = AssetDao.ModifyAssetState(2, 3)
+	assert.Equal(t, nil, err, database_error)
 	new_line, err = AssetDao.GetAssetByID(2)
 	assert.Equal(t, nil, err, database_error)
 	assert.Equal(t, 233, new_line.Number, database_error)
