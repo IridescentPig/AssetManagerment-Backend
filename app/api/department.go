@@ -105,6 +105,10 @@ func (department *departmentApi) CreateDepartment(ctx *utils.Context) {
 		ctx.BadRequest(myerror.INVALID_BODY, myerror.INVALID_BODY_INFO)
 		return
 	}
+	if createDepartmentReq.DepartmentName == "" {
+		ctx.BadRequest(myerror.DEPARTMENT_NAME_CANNOT_BE_EMPTY, myerror.DEPARTMENT_NAME_CANNOT_BE_EMPTY_INFO)
+		return
+	}
 
 	param := ctx.Param("department_id")
 	if param == "" {

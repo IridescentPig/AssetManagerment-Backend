@@ -77,6 +77,10 @@ func (entity *entityApi) CreateEntity(ctx *utils.Context) {
 		ctx.BadRequest(myerror.INVALID_BODY, myerror.INVALID_BODY_INFO)
 		return
 	}
+	if createReq.EntityName == "" {
+		ctx.BadRequest(myerror.ENTITY_NAME_CANNOT_BE_EMPTY, myerror.ENTITY_NAME_CANNOT_BE_EMPTY_INFO)
+		return
+	}
 	isExist, err := service.EntityService.ExistsEntityByName(createReq.EntityName)
 	if err != nil {
 		ctx.InternalError(err.Error())

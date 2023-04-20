@@ -7,6 +7,7 @@ import (
 	"asset-management/utils"
 
 	"github.com/gin-gonic/gin/binding"
+	"github.com/shopspring/decimal"
 )
 
 type assetApi struct {
@@ -137,6 +138,9 @@ func (asset *assetApi) CreateAssets(ctx *utils.Context) {
 		return
 	}
 
+	minimalPrice := decimal.NewFromFloat(0)
+	maxiumPrice, _ := decimal.NewFromString("100000000.00")
+
 	for _, asset := range assetsCreateReq.AssetList {
 		exists, err := service.AssetClassService.ExistsAssetClass(asset.ClassID)
 		if err != nil {
@@ -146,6 +150,12 @@ func (asset *assetApi) CreateAssets(ctx *utils.Context) {
 			ctx.BadRequest(myerror.ASSET_CLASS_NOT_FOUND, myerror.ASSET_CLASS_NOT_FOUND_INFO)
 			return
 		}
+
+		if minimalPrice.Cmp(asset.Price) == 1 || maxiumPrice.Cmp(asset.Price) == -1 {
+			ctx.BadRequest(myerror.PRICE_OUT_OF_RANGE, myerror.PRICE_OUT_OF_RANGE_INFO)
+			return
+		}
+
 		err = service.AssetService.CreateAsset(&asset, departmentID, 0, userID)
 		if err != nil {
 			ctx.InternalError(err.Error())
