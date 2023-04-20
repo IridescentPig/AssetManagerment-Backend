@@ -18,7 +18,7 @@ import (
 )
 
 // assistant function
-/*func print_errormessage(res *httptest.ResponseRecorder) {
+func print_errormessage(res *httptest.ResponseRecorder) string {
 	b, err := io.ReadAll(res.Result().Body)
 	if err != nil {
 		log.Fatal(err)
@@ -29,7 +29,8 @@ import (
 	code := data["code"].(float64)
 	msg := data["message"].(string)
 	log.Print("code ", code, ";message ", msg)
-}*/
+	return msg
+}
 
 func InitForEntity(r *gin.Engine) {
 	group := r.Group("/entity")
@@ -109,7 +110,7 @@ func TestEntity(t *testing.T) {
 		req := GetRequest(http.MethodPost, "/entity/", headerFormToken, GetJsonBody(CreateEntity))
 		res = httptest.NewRecorder()
 		r.ServeHTTP(res, req)
-		//print_errormessage(res)
+		print_errormessage(res)
 		assert.Equal(t, http.StatusOK, res.Result().StatusCode, "response failed")
 	}
 	{

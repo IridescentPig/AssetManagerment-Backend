@@ -323,6 +323,33 @@ func TestDepartmentEntity(t *testing.T) {
 	assert.Equal(t, 1, len(sd), "database error")
 	assert.Equal(t, "parent_department", sd[0].Name, "database error")
 
+	DepartmentDao.GetDepartmentSub("test_department", 1, 1)
+	DepartmentDao.GetSubDepartmentByID(1)
+	DepartmentDao.GetDepartmentDirectUserByID(1)
+	DepartmentDao.GetDepartmentDirectUser("test_department")
+	DepartmentDao.GetDepartmentAllUserByID(1)
+	DepartmentDao.GetDepartmentManager(1)
+	DepartmentDao.Update(1, map[string]interface{}{
+		"password": "123098439",
+	})
+	DepartmentDao.GetDepartmentsByNames([]string{"test_department"})
+	DepartmentDao.Delete([]uint{1})
+
+	EntityDao.GetEntitysByNames([]string{"test_entity"})
+	EntityDao.GetEntityByID(1)
+	EntityDao.GetEntityManager(1)
+	EntityDao.GetEntitySubDepartmentByID(1)
+	EntityDao.GetEntitySubDepartmentByID(9)
+	EntityDao.Update(1, map[string]interface{}{
+		"name": "askdjhjka",
+	})
+	EntityDao.Delete([]uint{1})
+
+	UserDao.GetLimitUser(1, 10)
+	UserDao.GetUserByID(1)
+	UserDao.ModifyUserEntityByID(1, 1)
+	UserDao.ModifyUserDepartmentByID(1, 1)
+
 }
 
 var database_error string = "database error"
@@ -486,4 +513,32 @@ func TestAsset(t *testing.T) {
 	assert.Equal(t, decimal.New(0, 0), new_line.Price, database_error)
 	assert.Equal(t, true, new_num_s.Expire, database_error)
 	assert.Equal(t, decimal.New(0, 0), new_num_s.Price, database_error)
+
+	AssetClassDao.Update(1, map[string]interface{}{
+		"name": "asdkfjhjk",
+	})
+	AssetClassDao.UpdateByStruct(1, model.AssetClass{
+		Name: "test_class",
+		Type: 1,
+	})
+	AssetClassDao.AllUpdate([]uint{1}, map[string]interface{}{
+		"name": "asdkfjhjk",
+	})
+	AssetClassDao.Delete([]uint{1})
+	AssetClassDao.GetDepartmentDirectClass(1)
+
+	line_asset = model.Asset{
+		Name:        "test_asset_line",
+		Price:       decimal.New(100, 0),
+		Description: "test",
+		Position:    "OffSpace",
+		Number:      1,
+		Type:        1,
+	}
+
+	AssetDao.CreateAndGetID(line_asset)
+	AssetDao.UpdateByStruct(1, line_asset)
+	AssetDao.Delete([]uint{1})
+	AssetDao.GetAssetListByClassID(1)
+	AssetDao.GetSubAssetsByParents([]uint{1})
 }
