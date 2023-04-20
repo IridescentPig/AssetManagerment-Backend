@@ -180,6 +180,20 @@ func (asset *assetDao) ModifyAssetNum(id uint, num int) error {
 	return err
 }
 
+func (asset *assetDao) ModifyAssetState(id uint, state uint) error {
+	thisAsset, err := asset.GetAssetByID(id)
+	if err != nil {
+		return err
+	}
+	if thisAsset == nil {
+		return errors.New(asset_not_exist)
+	}
+	err = asset.Update(thisAsset.ID, map[string]interface{}{
+		"State": state,
+	})
+	return err
+}
+
 func (asset *assetDao) ExpireAsset(ids []uint) error {
 	return asset.AllUpdate(ids, map[string]interface{}{
 		"expire": true,
