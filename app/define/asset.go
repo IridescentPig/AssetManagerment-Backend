@@ -44,8 +44,16 @@ type CreateAssetReq struct {
 	Children    []*CreateAssetReq `json:"children"`
 }
 
+type CreateAssetListReq struct {
+	AssetList []CreateAssetReq `json:"asset_list"`
+}
+
 type ExpireAssetReq struct {
 	AssetID uint `json:"asset_id" copier:"ID"`
+}
+
+type ExpireAssetListReq struct {
+	ExpireList []ExpireAssetReq `json:"asset_list"`
 }
 
 type AssetListResponse struct {

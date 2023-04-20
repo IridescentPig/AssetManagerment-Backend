@@ -84,6 +84,8 @@ func (assetClass *assetClassApi) CreateAssetClass(ctx *utils.Context) {
 		ctx.InternalError(err.Error())
 		return
 	}
+
+	ctx.Success(nil)
 }
 
 /*
@@ -185,7 +187,7 @@ func (assetClass *assetClassApi) ModifyAssetClassInfo(ctx *utils.Context) {
 Handle func for DELETE /department/:department_id/asset_class/:class_id
 */
 func (assetClass *assetClassApi) DeleteAssetClass(ctx *utils.Context) {
-	hasIdentity, _, err := assetClass.CheckAssetIdentity(ctx)
+	hasIdentity, departmentID, err := assetClass.CheckAssetIdentity(ctx)
 	if err != nil {
 		return
 	} else if !hasIdentity {
@@ -218,6 +220,14 @@ func (assetClass *assetClassApi) DeleteAssetClass(ctx *utils.Context) {
 		return
 	}
 
+	hasSubClass, err := service.AssetClassService.ClassHasSubClass(classID, departmentID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+	} else if hasSubClass {
+		ctx.BadRequest(myerror.ClASS_HAS_SUB_CLASS, myerror.CLASS_HAS_SUB_CLASS_INFO)
+		return
+	}
+
 	err = service.AssetClassService.DeleteAssetClass(classID)
 	if err != nil {
 		ctx.InternalError(err.Error())
@@ -225,4 +235,35 @@ func (assetClass *assetClassApi) DeleteAssetClass(ctx *utils.Context) {
 	}
 
 	ctx.Success(nil)
+}
+
+/*
+Handle func for /department/:department_id/asset_class/:class_id
+*/
+func (assetClass *assetClassApi) GetSubAssetClass(ctx *utils.Context) {
+	hasIdentity, departmentID, err := assetClass.CheckAssetIdentity(ctx)
+	if err != nil {
+		return
+	} else if !hasIdentity {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	classID, err := service.EntityService.GetParamID(ctx, "class_id")
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	assetClassTree, err := service.AssetClassService.GetSubAssetClass(classID, departmentID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	assetClassTreeResponse := define.AssetClassTreeResponse{
+		AssetClassTree: assetClassTree,
+	}
+
+	ctx.Success(assetClassTreeResponse)
 }
