@@ -441,6 +441,12 @@ func (entity *entityApi) GetEntitySubDepartments(ctx *utils.Context) {
 		ctx.NotFound(myerror.ENTITY_NOT_FOUND, myerror.ENTITY_NOT_FOUND_INFO)
 		return
 	}
+	entitySuper := service.UserService.EntitySuper(ctx)
+	departmentSuper := service.UserService.DepartmentSuper(ctx)
+	if !entitySuper && !departmentSuper {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
 
 	isInEntity := service.EntityService.CheckIsInEntity(ctx, entityID)
 	if !isInEntity {
