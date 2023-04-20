@@ -79,6 +79,6 @@ func TestAsset(t *testing.T) {
 	AssetService.ExpireAssets(assets)
 	assets = []uint{2}
 	AssetService.ExpireAssets(assets)
-	AssetService.TransferAssets([]uint{1}, 1)
+	AssetService.TransferAssets([]uint{1}, 1, 1)
 
 }
