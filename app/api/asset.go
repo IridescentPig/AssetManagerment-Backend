@@ -86,6 +86,12 @@ func (asset *assetApi) ModifyAssetInfo(ctx *utils.Context) {
 		ctx.BadRequest(myerror.INVALID_BODY, myerror.INVALID_BODY_INFO)
 		return
 	}
+	minimalPrice := decimal.NewFromFloat(0)
+	maxiumPrice, _ := decimal.NewFromString("99999999.99")
+	if minimalPrice.Cmp(modifyAssetReq.Price) == 1 || maxiumPrice.Cmp(modifyAssetReq.Price) == -1 {
+		ctx.BadRequest(myerror.PRICE_OUT_OF_RANGE, myerror.PRICE_OUT_OF_RANGE_INFO)
+		return
+	}
 
 	if modifyAssetReq.ParentID != nil && *modifyAssetReq.ParentID != 0 {
 		exists, err := service.AssetService.ExistAsset(*modifyAssetReq.ParentID)
@@ -139,7 +145,7 @@ func (asset *assetApi) CreateAssets(ctx *utils.Context) {
 	}
 
 	minimalPrice := decimal.NewFromFloat(0)
-	maxiumPrice, _ := decimal.NewFromString("100000000.00")
+	maxiumPrice, _ := decimal.NewFromString("99999999.99")
 
 	for _, asset := range assetsCreateReq.AssetList {
 		exists, err := service.AssetClassService.ExistsAssetClass(asset.ClassID)
