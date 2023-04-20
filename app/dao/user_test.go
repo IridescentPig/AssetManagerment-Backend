@@ -13,6 +13,10 @@ func Init() {
 	InitForTest()
 }
 
+func TestInit(t *testing.T) {
+	Initial()
+}
+
 func TestUser(t *testing.T) {
 	Init()
 
