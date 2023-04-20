@@ -180,6 +180,20 @@ func (asset *assetDao) ModifyAssetNum(id uint, num int) error {
 	return err
 }
 
+func (asset *assetDao) ModifyAssetState(id uint, state uint) error {
+	thisAsset, err := asset.GetAssetByID(id)
+	if err != nil {
+		return err
+	}
+	if thisAsset == nil {
+		return errors.New(asset_not_exist)
+	}
+	err = asset.Update(thisAsset.ID, map[string]interface{}{
+		"State": state,
+	})
+	return err
+}
+
 func (asset *assetDao) ExpireAsset(ids []uint) error {
 	return asset.AllUpdate(ids, map[string]interface{}{
 		"expire": true,
@@ -241,6 +255,15 @@ func (asset *assetDao) ModifyAssetUser(AssetID uint, Username string) error {
 	}
 	query_asset.UserID = target_user.ID
 	return utils.DBError(db.Session(&gorm.Session{FullSaveAssociations: true}).Updates(&query_asset))
+}
+
+func (asset *assetDao) GetAssetsByUser(user_id uint) (assets []*model.Asset, err error) {
+	result := db.Model(&model.Asset{}).Preload("Parent").Preload("User").Preload("Department").Preload("Class").Where("user_id = ?", user_id).Find(&assets)
+	if result.Error == gorm.ErrRecordNotFound {
+		return nil, nil
+	}
+	err = utils.DBError(result)
+	return
 }
 
 // asset and asset_class

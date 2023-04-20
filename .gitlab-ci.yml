@@ -37,7 +37,7 @@ unit-test:
     - go mod tidy
 
   script:
-    - go test -cover -race -v -coverprofile=coverage.out ./... -p 1
+    - go test -cover -race -v -coverprofile=coverage.out ./...
   after_script:
     - SUFFIX=$RANDOM
     - curl "http://api.secoder.net/static/sonar-scanner.tar.gz" -s -o "/tmp/sonar-$SUFFIX.tar.gz"

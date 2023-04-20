@@ -77,6 +77,21 @@ func (department *departmentDao) GetDepartmentSub(name string, entityID uint, de
 	return ret, utils.DBError(result)
 }
 
+func (department *departmentDao) GetDepartmentsSubByID(entityID uint, departmentID uint) ([]*model.Department, error) {
+	ret := []*model.Department{}
+	var result *gorm.DB
+	if departmentID != 0 {
+		result = db.Model(&model.Department{}).Preload("Parent").Preload("Entity").Where("entity_id = ? and parent_id = ?", entityID, departmentID).Find(&ret)
+	} else {
+		result = db.Model(&model.Department{}).Preload("Parent").Preload("Entity").Where("entity_id = ? and parent_id IS NULL", entityID).Find(&ret)
+	}
+
+	if result.Error == gorm.ErrRecordNotFound {
+		return nil, nil
+	}
+	return ret, utils.DBError(result)
+}
+
 func (department *departmentDao) GetDepartmentByID(id uint) (*model.Department, error) {
 	ret := &model.Department{}
 	result := db.Model(&model.Department{}).Preload("Parent").Preload("Entity").Where("id = ?", id).First(ret)
@@ -149,11 +164,11 @@ func (department *departmentDao) GetDepartmentDirectUser(name string) (users []*
 }
 
 func (department *departmentDao) GetDepartmentDirectUserByID(id uint) (users []*model.User, err error) {
-	query_department, err := department.GetDepartmentByID(id)
+	_, err = department.GetDepartmentByID(id)
 	if err != nil {
 		return
 	}
-	err = utils.DBError(db.Model(&model.User{}).Preload("Department").Preload("Entity").Where("department_id = ?", query_department.ID).Find(&users))
+	err = utils.DBError(db.Model(&model.User{}).Preload("Department").Preload("Entity").Where("department_id = ?", id).Find(&users))
 	return
 }
 

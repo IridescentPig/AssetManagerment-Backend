@@ -13,12 +13,13 @@ type Asset struct {
 	User         User            `gorm:"foreignKey:UserID;references:ID;default:null" json:"user"`
 	DepartmentID uint            `gorm:"default:null;column:department_id;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"department_id"`
 	Department   Department      `gorm:"foreignKey:DepartmentID;references:ID;default:null" json:"department"`
-	Price        decimal.Decimal `gorm:"type:decimal(8,2);column:price" json:"price"`
+	Price        decimal.Decimal `gorm:"type:decimal(10,2);column:price" json:"price"`
 	Description  string          `gorm:"column:description" json:"description"`
 	Position     string          `gorm:"column:position" json:"position"`
 	Expire       bool            `gorm:"column:expire;default:false" json:"expire"`
 	ClassID      uint            `gorm:"default:null;column:class_id;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"class_id"`
 	Class        AssetClass      `gorm:"foreignKey:ClassID;references:ID;default:null" json:"class"`
 	Number       int             `gorm:"column:number" json:"number"`
-	Type         int             `gorm:"column:type" json:"type"` // 1-条目型资产 2-数量型资产
+	Type         int             `gorm:"column:type" json:"type"`   // 1-条目型资产 2-数量型资产
+	State        uint            `gorm:"column:state" json:"state"` // 0idle;1in_use;2in_maintain;3retired;4deleted
 }
