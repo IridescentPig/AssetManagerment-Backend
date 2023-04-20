@@ -42,6 +42,7 @@ func (entity *entityRouter) routerCheckAtHandler(group *gin.RouterGroup) {
 	group.GET("/:entity_id/user/list", utils.Handler(api.EntityApi.UsersInEntity))
 	group.GET("/:entity_id/department/list", utils.Handler(api.EntityApi.DepartmentsInEntity)) // change later
 	group.PATCH("/:entity_id", utils.Handler(api.EntityApi.ModifyEntityInfo))
+	group.GET("/:entity_id/department/sub", utils.Handler(api.EntityApi.GetEntitySubDepartments))
 
 	group.POST("/:entity_id/department", utils.Handler(api.DepartmentApi.CreateDepartment))
 	group.POST("/:entity_id/department/:department_id/department", utils.Handler(api.DepartmentApi.CreateDepartment))

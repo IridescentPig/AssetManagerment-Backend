@@ -422,3 +422,45 @@ func (entity *entityApi) ModifyEntityInfo(ctx *utils.Context) {
 
 	ctx.Success(nil)
 }
+
+/*
+Handle func for GET /entity/:entity_id/department/sub
+*/
+func (entity *entityApi) GetEntitySubDepartments(ctx *utils.Context) {
+	entityID, err := service.EntityService.GetParamID(ctx, "entity_id")
+	if err != nil {
+		return
+	}
+
+	exists, err := service.EntityService.ExistsEntityByID(entityID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+	if !exists {
+		ctx.NotFound(myerror.ENTITY_NOT_FOUND, myerror.ENTITY_NOT_FOUND_INFO)
+		return
+	}
+
+	isInEntity := service.EntityService.CheckIsInEntity(ctx, entityID)
+	if !isInEntity {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	departmentList, err := service.EntityService.GetEntitySubDepartments(entityID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+	departmentListRes := []define.DepartmentBasicInfo{}
+	err = copier.Copy(&departmentListRes, departmentList)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+	departmentListResponse := define.DepartmentListResponse{
+		DepartmentList: departmentListRes,
+	}
+	ctx.Success(departmentListResponse)
+}
