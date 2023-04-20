@@ -31,4 +31,5 @@ const (
 	TARGET_USER_NOT_FOUND        = 27
 	NOT_IN_SAME_ENTITY           = 28
 	TARGET_NOT_DEPARTMENT_SUPER  = 29
+	ClASS_HAS_SUB_CLASS          = 30
 )

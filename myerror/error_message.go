@@ -30,4 +30,5 @@ const (
 	TARGET_USER_NOT_FOUND_INFO        = "Target user not found"
 	NOT_IN_SAME_ENTITY_INFO           = "Not in the same entity"
 	TARGET_NOT_DEPARTMENT_SUPER_INFO  = "Target user is not department manager"
+	CLASS_HAS_SUB_CLASS_INFO          = "Class has sub class"
 )
