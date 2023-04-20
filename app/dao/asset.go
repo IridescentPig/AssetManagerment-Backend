@@ -243,6 +243,15 @@ func (asset *assetDao) ModifyAssetUser(AssetID uint, Username string) error {
 	return utils.DBError(db.Session(&gorm.Session{FullSaveAssociations: true}).Updates(&query_asset))
 }
 
+func (asset *assetDao) GetAssetsByUser(user_id uint) (assets []*model.Asset, err error) {
+	result := db.Model(&model.Asset{}).Preload("Parent").Preload("User").Preload("Department").Preload("Class").Where("user_id = ?", user_id).Find(&assets)
+	if result.Error == gorm.ErrRecordNotFound {
+		return nil, nil
+	}
+	err = utils.DBError(result)
+	return
+}
+
 // asset and asset_class
 func (asset *assetDao) GetAssetClass(id uint) (class model.AssetClass, err error) {
 	query_asset, err := asset.GetAssetByID(id)

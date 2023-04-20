@@ -495,3 +495,31 @@ func (user *userApi) ChangeUserDepartment(ctx *utils.Context) {
 
 	ctx.Success(nil)
 }
+
+/*
+Handle func for GET /users/{userId}/assets
+*/
+func (user *userApi) GetAssetsByUser(ctx *utils.Context) {
+	userID, err := service.EntityService.GetParamID(ctx, "user_id")
+	if err != nil {
+		return
+	}
+
+	thisUser, err := service.UserService.GetUserByID(userID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	} else if thisUser == nil {
+		ctx.BadRequest(myerror.USER_NOT_FOUND, myerror.USER_NOT_FOUND_INFO)
+		return
+	}
+
+	assets, err := service.AssetService.GetAssetByUser(thisUser.ID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	ctx.Success(assets)
+
+}
