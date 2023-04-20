@@ -1,6 +1,7 @@
 package routers
 
 import (
+	"asset-management/app/api"
 	"asset-management/middleware"
 	"asset-management/utils"
 
@@ -25,5 +26,5 @@ func (users *usersRouter) Init(group *gin.RouterGroup) {
 }
 
 func (users *usersRouter) routerCheckAtHandler(group *gin.RouterGroup) {
-
+	group.GET("/:user_id/assets", utils.Handler(api.UserApi.GetAssetsByUser))
 }
