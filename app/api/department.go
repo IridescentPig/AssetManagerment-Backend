@@ -105,6 +105,10 @@ func (department *departmentApi) CreateDepartment(ctx *utils.Context) {
 		ctx.BadRequest(myerror.INVALID_BODY, myerror.INVALID_BODY_INFO)
 		return
 	}
+	if createDepartmentReq.DepartmentName == "" {
+		ctx.BadRequest(myerror.DEPARTMENT_NAME_CANNOT_BE_EMPTY, myerror.DEPARTMENT_NAME_CANNOT_BE_EMPTY_INFO)
+		return
+	}
 
 	param := ctx.Param("department_id")
 	if param == "" {
@@ -267,11 +271,12 @@ func (department *departmentApi) GetSubDepartments(ctx *utils.Context) {
 		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
 		return
 	}
-	identity, err := service.DepartmentService.CheckDepartmentIdentity(ctx, entityID, departmentID)
-	if err != nil {
-		ctx.InternalError(err.Error())
-		return
-	}
+	// identity, err := service.DepartmentService.CheckDepartmentIdentity(ctx, entityID, departmentID)
+	identity := service.EntityService.CheckIsInEntity(ctx, entityID)
+	// if err != nil {
+	// 	ctx.InternalError(err.Error())
+	// 	return
+	// }
 	if !identity {
 		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
 		return
@@ -512,10 +517,22 @@ func (department *departmentApi) GetDepartmentManager(ctx *utils.Context) {
 		return
 	}
 
-	hasIdentity := department.CheckDepartmentModifyIdentity(ctx, entityID)
-	if !hasIdentity {
+	entitySuper := service.UserService.EntitySuper(ctx)
+	departmentSuper := service.UserService.DepartmentSuper(ctx)
+	if !entitySuper && !departmentSuper {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
 		return
 	}
+	identity := service.EntityService.CheckIsInEntity(ctx, entityID)
+	if !identity {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	// hasIdentity := department.CheckDepartmentModifyIdentity(ctx, entityID)
+	// if !hasIdentity {
+	// 	return
+	// }
 
 	managerList, err := service.DepartmentService.GetDepartmentManagerList(departmentID)
 	if err != nil {

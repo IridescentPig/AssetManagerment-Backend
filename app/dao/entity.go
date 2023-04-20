@@ -106,7 +106,7 @@ func (entity *entityDao) GetEntitySubDepartment(name string) (departments []*mod
 }
 
 func (entity *entityDao) GetEntitySubDepartmentByID(id uint) (departments []*model.Department, err error) {
-	result := db.Model(&model.Department{}).Preload("Parent").Preload("Entity").Where("entity_id = ? and parent_id IS NULL", id, 0).Find(&departments)
+	result := db.Model(&model.Department{}).Preload("Parent").Preload("Entity").Where("entity_id = ? and parent_id IS NULL", id).Find(&departments)
 	if result.Error == gorm.ErrRecordNotFound {
 		err = nil
 		departments = nil

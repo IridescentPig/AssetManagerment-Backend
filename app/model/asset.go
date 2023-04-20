@@ -13,7 +13,7 @@ type Asset struct {
 	User         User            `gorm:"foreignKey:UserID;references:ID;default:null" json:"user"`
 	DepartmentID uint            `gorm:"default:null;column:department_id;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"department_id"`
 	Department   Department      `gorm:"foreignKey:DepartmentID;references:ID;default:null" json:"department"`
-	Price        decimal.Decimal `gorm:"type:decimal(8,2);column:price" json:"price"`
+	Price        decimal.Decimal `gorm:"type:decimal(10,2);column:price" json:"price"`
 	Description  string          `gorm:"column:description" json:"description"`
 	Position     string          `gorm:"column:position" json:"position"`
 	Expire       bool            `gorm:"column:expire;default:false" json:"expire"`
