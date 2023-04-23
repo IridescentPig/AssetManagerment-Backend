@@ -36,4 +36,5 @@ const (
 	ENTITY_NAME_CANNOT_BE_EMPTY     = 32
 	DEPARTMENT_NAME_CANNOT_BE_EMPTY = 33
 	TARGET_EMPTY                    = 34
+	ASSET_LIST_INVALID              = 35
 )
