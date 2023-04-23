@@ -31,3 +31,13 @@ func (task *taskService) CreateTask(req define.CreateTaskReq, userID uint, depar
 
 	return err
 }
+
+func (task *taskService) GetTasksByUserID(userID uint) (taskList []*model.Task, err error) {
+	taskList, err = dao.TaskDao.GetTaskListByUserID(userID)
+	return
+}
+
+func (task *taskService) GetTasksByDepartmentID(departmentID uint) (taskList []*model.Task, err error) {
+	taskList, err = dao.TaskDao.GetTaskListByDepartmentID(departmentID)
+	return
+}

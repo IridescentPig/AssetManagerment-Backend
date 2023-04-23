@@ -8,6 +8,7 @@ import (
 	"asset-management/utils"
 
 	"github.com/gin-gonic/gin/binding"
+	"github.com/thoas/go-funk"
 )
 
 type taskApi struct {
@@ -65,6 +66,8 @@ func (task *taskApi) CreateNewTask(ctx *utils.Context) {
 	for _, asset := range req.AssetList {
 		assetIdList = append(assetIdList, asset.AssetID)
 	}
+
+	assetIdList = funk.UniqUInt(assetIdList)
 
 	if req.TaskType == 0 {
 		assetList, err = service.AssetService.GetDepartmentAssetsByIDs(assetIdList, thisUser.DepartmentID)
@@ -125,4 +128,117 @@ func (task *taskApi) CreateNewTask(ctx *utils.Context) {
 		return
 	}
 	ctx.Success(nil)
+}
+
+/*
+Handle func for GET /user/:user_id/assets/tasks
+*/
+func (task *taskApi) GetUserTask(ctx *utils.Context) {
+	userID, err := service.EntityService.GetParamID(ctx, "user_id")
+	if err != nil {
+		return
+	}
+
+	thisUser := UserApi.GetOperatorInfo(ctx)
+	if thisUser.UserID != userID {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	existUser, err := service.UserService.ExistsUserByID(userID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	} else if !existUser {
+		ctx.NotFound(myerror.USER_NOT_FOUND, myerror.USER_HAS_EXISTED_INFO)
+		return
+	}
+
+	taskList, err := service.TaskService.GetTasksByUserID(userID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	taskInfoList := funk.Map(taskList, func(thisTask *model.Task) define.TaskInfo {
+		taskInfo := define.TaskInfo{
+			ID:              thisTask.ID,
+			TaskType:        thisTask.TaskType,
+			TaskDescription: thisTask.TaskDescription,
+			UserID:          thisTask.UserID,
+			UserName:        thisTask.User.UserName,
+			DepartmentID:    thisTask.DepartmentID,
+			DepartmentName:  thisTask.Department.Name,
+			AssetList:       thisTask.AssetList,
+			State:           thisTask.State,
+		}
+		if thisTask.TargetID != 0 {
+			taskInfo.TargetID = thisTask.TargetID
+			taskInfo.TargetName = thisTask.Target.UserName
+		}
+		return taskInfo
+	}).([]define.TaskInfo)
+
+	taskListRes := define.TaskListResponse{
+		TaskList: taskInfoList,
+	}
+
+	ctx.Success(taskListRes)
+}
+
+/*
+Handle func for GET /departments/:department_id/assets/tasks
+*/
+func (task *taskApi) GetDepartmentTaskList(ctx *utils.Context) {
+	departmentID, err := service.EntityService.GetParamID(ctx, "department_id")
+	if err != nil {
+		return
+	}
+
+	departmentSuper := service.UserService.DepartmentSuper(ctx)
+	thisUser := UserApi.GetOperatorInfo(ctx)
+	if !departmentSuper || thisUser.DepartmentID != departmentID {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	existDepartment, err := service.DepartmentService.ExistsDepartmentByID(departmentID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	} else if !existDepartment {
+		ctx.NotFound(myerror.DEPARTMENT_NOT_FOUND, myerror.DEPARTMENT_NOT_FOUND_INFO)
+		return
+	}
+
+	taskList, err := service.TaskService.GetTasksByDepartmentID(departmentID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	taskInfoList := funk.Map(taskList, func(thisTask *model.Task) define.TaskInfo {
+		taskInfo := define.TaskInfo{
+			ID:              thisTask.ID,
+			TaskType:        thisTask.TaskType,
+			TaskDescription: thisTask.TaskDescription,
+			UserID:          thisTask.UserID,
+			UserName:        thisTask.User.UserName,
+			DepartmentID:    thisTask.DepartmentID,
+			DepartmentName:  thisTask.Department.Name,
+			AssetList:       thisTask.AssetList,
+			State:           thisTask.State,
+		}
+		if thisTask.TargetID != 0 {
+			taskInfo.TargetID = thisTask.TargetID
+			taskInfo.TargetName = thisTask.Target.UserName
+		}
+		return taskInfo
+	}).([]define.TaskInfo)
+
+	taskListRes := define.TaskListResponse{
+		TaskList: taskInfoList,
+	}
+
+	ctx.Success(taskListRes)
 }

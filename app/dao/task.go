@@ -156,3 +156,25 @@ func (task *taskDao) ModifyAssetList(id uint, list []*model.Asset) error {
 	err = utils.DBError(db.Session(&gorm.Session{FullSaveAssociations: true}).Updates(&thisTask))
 	return err
 }
+
+func (task *taskDao) GetTaskListByUserID(userID uint) (taskList []*model.Task, err error) {
+	result := db.Model(&model.Task{}).Preload("User").
+		Preload("Target").Preload("Department").
+		Preload("AssetList").Where("user_id = ?", userID).Find(&taskList)
+	if result.Error == gorm.ErrRecordNotFound {
+		return nil, nil
+	}
+	err = utils.DBError(result)
+	return
+}
+
+func (task *taskDao) GetTaskListByDepartmentID(departmentID uint) (taskList []*model.Task, err error) {
+	result := db.Model(&model.Task{}).Preload("User").
+		Preload("Target").Preload("Department").
+		Preload("AssetList").Where("department_id = ?", departmentID).Find(&taskList)
+	if result.Error == gorm.ErrRecordNotFound {
+		return nil, nil
+	}
+	err = utils.DBError(result)
+	return
+}
