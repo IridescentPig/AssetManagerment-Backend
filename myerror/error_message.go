@@ -34,4 +34,5 @@ const (
 	PRICE_OUT_OF_RANGE_INFO              = "Price out of range"
 	ENTITY_NAME_CANNOT_BE_EMPTY_INFO     = "Entity name cannot be empty"
 	DEPARTMENT_NAME_CANNOT_BE_EMPTY_INFO = "Department name cannot be empty"
+	TARGET_EMPTY_INFO                    = "Target user cannot be empty"
 )

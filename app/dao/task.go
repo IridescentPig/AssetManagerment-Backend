@@ -38,7 +38,7 @@ func (task *taskDao) Update(id uint, data map[string]interface{}) error {
 
 func (task *taskDao) GetTaskByID(id uint) (*model.Task, error) {
 	ret := &model.Task{}
-	result := db.Model(&model.Task{}).Preload("User").Preload("Target").Preload("AssetList").Where("id = ?", id).First(ret)
+	result := db.Model(&model.Task{}).Preload("User").Preload("Target").Preload("Department").Preload("AssetList").Where("id = ?", id).First(ret)
 	if result.Error == gorm.ErrRecordNotFound {
 		return nil, nil
 	}
@@ -96,7 +96,7 @@ func (task *taskDao) ModifyTaskUser(id uint, user model.User) error {
 		return err
 	}
 	thisTask.UserID = user.ID
-	thisTask.UserName = user.UserName
+	// thisTask.UserName = user.UserName
 	err = utils.DBError(db.Session(&gorm.Session{FullSaveAssociations: true}).Updates(&thisTask))
 	return err
 }
@@ -124,7 +124,7 @@ func (task *taskDao) ModifyTaskTarget(id uint, user model.User) error {
 		return err
 	}
 	thisTask.TargetID = user.ID
-	thisTask.TargetName = user.UserName
+	// thisTask.TargetName = user.UserName
 	err = utils.DBError(db.Session(&gorm.Session{FullSaveAssociations: true}).Updates(&thisTask))
 	return err
 }

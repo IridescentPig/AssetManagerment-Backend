@@ -35,4 +35,5 @@ const (
 	PRICE_OUT_OF_RANGE              = 31
 	ENTITY_NAME_CANNOT_BE_EMPTY     = 32
 	DEPARTMENT_NAME_CANNOT_BE_EMPTY = 33
+	TARGET_EMPTY                    = 34
 )

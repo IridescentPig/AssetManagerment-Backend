@@ -80,6 +80,14 @@ func (user *userService) ExistsUser(username string) (bool, error) {
 	return true, nil
 }
 
+func (user *userService) ExistsUserByID(userID uint) (bool, error) {
+	thisUser, err := dao.UserDao.GetUserByID(userID)
+	if err != nil || thisUser == nil {
+		return false, err
+	}
+	return true, nil
+}
+
 func (user *userService) SystemSuper(ctx *utils.Context) bool {
 	userInfo, exists := ctx.Get("user")
 	if exists {
