@@ -197,6 +197,7 @@ func (asset *assetDao) ModifyAssetState(id uint, state uint) error {
 func (asset *assetDao) ExpireAsset(ids []uint) error {
 	return asset.AllUpdate(ids, map[string]interface{}{
 		"expire": true,
+		"state":  3,
 		"price":  decimal.NewFromFloat(0),
 	})
 }

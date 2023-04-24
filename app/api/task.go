@@ -109,6 +109,9 @@ func (task *taskApi) CreateNewTask(ctx *utils.Context) {
 		if thisUser.EntityID != targetUser.EntityID {
 			ctx.BadRequest(myerror.NOT_IN_SAME_ENTITY, myerror.NOT_IN_SAME_ENTITY_INFO)
 			return
+		} else if targetUser.DepartmentID == 0 {
+			ctx.BadRequest(myerror.TARGET_NOT_IN_DEPARTMENT, myerror.TARGET_NOT_IN_DEPARTMENT_INFO)
+			return
 		}
 
 		assetList, err = service.AssetService.GetUserAssetsByIDs(assetIdList, thisUser.UserID)
@@ -386,14 +389,104 @@ func (task *taskApi) ApproveTask(ctx *utils.Context) {
 			ctx.InternalError(err.Error())
 			return
 		}
-
-		err = service.TaskService.ModifyTaskState(taskInfo.ID, 1)
+	} else if taskInfo.TaskType == 1 {
+		assetList, err := service.AssetService.GetUserAssetsByIDs(assetIDs, departmentID)
 		if err != nil {
 			ctx.InternalError(err.Error())
 			return
 		}
-	} else if taskInfo.TaskType == 1 {
+		if len(assetList) != len(assetIDs) {
+			ctx.BadRequest(myerror.ASSET_LIST_INVALID, myerror.ASSET_LIST_INVALID_INFO)
+			return
+		}
 
+		err = service.AssetService.CancelAssets(assetIDs, thisUser.UserID)
+		if err != nil {
+			ctx.InternalError(err.Error())
+			return
+		}
+	} else if taskInfo.TaskType == 2 {
+
+	} else {
+		assetList, err := service.AssetService.GetUserAssetsByIDs(assetIDs, departmentID)
+		if err != nil {
+			ctx.InternalError(err.Error())
+			return
+		}
+		if len(assetList) != len(assetIDs) {
+			ctx.BadRequest(myerror.ASSET_LIST_INVALID, myerror.ASSET_LIST_INVALID_INFO)
+			return
+		}
+
+		targetUser, err := service.UserService.GetUserByID(taskInfo.TargetID)
+		if err != nil {
+			ctx.InternalError(err.Error())
+			return
+		} else if targetUser == nil {
+			ctx.BadRequest(myerror.TARGET_USER_NOT_FOUND, myerror.TARGET_USER_NOT_FOUND_INFO)
+			return
+		}
+
+		if targetUser.EntityID != thisUser.EntityID {
+			ctx.BadRequest(myerror.NOT_IN_SAME_ENTITY, myerror.NOT_IN_SAME_ENTITY_INFO)
+			return
+		} else if targetUser.DepartmentID == 0 {
+			ctx.BadRequest(myerror.TARGET_NOT_IN_DEPARTMENT, myerror.TARGET_NOT_IN_DEPARTMENT_INFO)
+			return
+		}
+
+		err = service.AssetService.TransferAssets(assetIDs, taskInfo.TargetID, taskInfo.Target.DepartmentID)
+		if err != nil {
+			ctx.InternalError(err.Error())
+			return
+		}
+	}
+
+	err = service.TaskService.ModifyTaskState(taskInfo.ID, 1)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	ctx.Success(nil)
+}
+
+/*
+Handle func for DELETE /departments/:department_id/assets/task/:task_id
+*/
+func (task *taskApi) CancelTask(ctx *utils.Context) {
+	departmentID, err := service.EntityService.GetParamID(ctx, "department_id")
+	if err != nil {
+		return
+	}
+	task_id, err := service.EntityService.GetParamID(ctx, "task_id")
+	if err != nil {
+		return
+	}
+	thisUser := UserApi.GetOperatorInfo(ctx)
+	if !thisUser.DepartmentSuper || thisUser.DepartmentID != departmentID {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	taskInfo, err := service.TaskService.GetTaskInfoByID(task_id)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	} else if taskInfo == nil {
+		ctx.NotFound(myerror.TASK_NOT_FOUND, myerror.TASK_NOT_FOUND_INFO)
+		return
+	}
+
+	if taskInfo.DepartmentID != departmentID {
+		ctx.BadRequest(myerror.TASK_NOT_IN_DEPARTMENT, myerror.TASK_NOT_IN_DEPARTMENT_INFO)
+		return
+	}
+
+	err = service.TaskService.ModifyTaskState(taskInfo.ID, 2)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
 	}
 
 	ctx.Success(nil)

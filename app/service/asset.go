@@ -221,3 +221,8 @@ func (asset *assetService) AcquireAssets(ids []uint, userID uint) error {
 	err := dao.AssetDao.ModifyAssetsUserAndState(ids, userID, 1)
 	return err
 }
+
+func (asset *assetService) CancelAssets(ids []uint, userID uint) error {
+	err := dao.AssetDao.ModifyAssetsUserAndState(ids, userID, 0)
+	return err
+}

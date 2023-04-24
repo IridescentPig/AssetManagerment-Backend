@@ -39,4 +39,5 @@ const (
 	TASK_NOT_FOUND_INFO                  = "Task not found"
 	TASK_NOT_IN_DEPARTMENT_INFO          = "Task not in department"
 	TASK_NOT_BELONG_TO_USER_INFO         = "Task does not belong to this user"
+	TARGET_NOT_IN_DEPARTMENT_INFO        = "Target not in department"
 )

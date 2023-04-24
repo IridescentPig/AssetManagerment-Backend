@@ -40,4 +40,5 @@ const (
 	TASK_NOT_FOUND                  = 36
 	TASK_NOT_IN_DEPARTMENT          = 37
 	TASK_NOT_BELONG_TO_USER         = 38
+	TARGET_NOT_IN_DEPARTMENT        = 39
 )
