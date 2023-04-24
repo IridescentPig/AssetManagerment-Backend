@@ -37,4 +37,6 @@ const (
 	DEPARTMENT_NAME_CANNOT_BE_EMPTY = 33
 	TARGET_EMPTY                    = 34
 	ASSET_LIST_INVALID              = 35
+	TASK_NOT_FOUND                  = 36
+	TASK_NOT_IN_DEPARTMENT          = 37
 )

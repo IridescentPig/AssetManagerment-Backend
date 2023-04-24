@@ -36,4 +36,6 @@ const (
 	DEPARTMENT_NAME_CANNOT_BE_EMPTY_INFO = "Department name cannot be empty"
 	TARGET_EMPTY_INFO                    = "Target user cannot be empty"
 	ASSET_LIST_INVALID_INFO              = "Asset list invalid"
+	TASK_NOT_FOUND_INFO                  = "Task not found"
+	TASK_NOT_IN_DEPARTMENT_INFO          = "Task not in department"
 )

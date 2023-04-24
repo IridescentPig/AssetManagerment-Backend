@@ -9,6 +9,15 @@ type CreateTaskReq struct {
 	AssetList       []ExpireAssetReq `json:"asset_list" binding:"gt=0,dive,gt=0"`
 }
 
+type TaskBasicInfo struct {
+	ID              uint   `json:"task_id"`
+	TaskType        uint   `json:"task_type"` // 0领用、1退库、2维保、3转移
+	TaskDescription string `json:"task_description"`
+	UserID          uint   `json:"user_id"`
+	UserName        string `json:"username"`
+	State           uint   `json:"state"`
+}
+
 type TaskInfo struct {
 	ID              uint           `json:"task_id"`
 	TaskType        uint           `json:"task_type"` // 0领用、1退库、2维保、3转移
@@ -24,5 +33,5 @@ type TaskInfo struct {
 }
 
 type TaskListResponse struct {
-	TaskList []TaskInfo `json:"task_list"`
+	TaskList []TaskBasicInfo `json:"task_list"`
 }

@@ -133,7 +133,7 @@ func (task *taskApi) CreateNewTask(ctx *utils.Context) {
 /*
 Handle func for GET /user/:user_id/assets/tasks
 */
-func (task *taskApi) GetUserTask(ctx *utils.Context) {
+func (task *taskApi) GetUserTaskList(ctx *utils.Context) {
 	userID, err := service.EntityService.GetParamID(ctx, "user_id")
 	if err != nil {
 		return
@@ -160,24 +160,17 @@ func (task *taskApi) GetUserTask(ctx *utils.Context) {
 		return
 	}
 
-	taskInfoList := funk.Map(taskList, func(thisTask *model.Task) define.TaskInfo {
-		taskInfo := define.TaskInfo{
+	taskInfoList := funk.Map(taskList, func(thisTask *model.Task) define.TaskBasicInfo {
+		taskInfo := define.TaskBasicInfo{
 			ID:              thisTask.ID,
 			TaskType:        thisTask.TaskType,
 			TaskDescription: thisTask.TaskDescription,
 			UserID:          thisTask.UserID,
 			UserName:        thisTask.User.UserName,
-			DepartmentID:    thisTask.DepartmentID,
-			DepartmentName:  thisTask.Department.Name,
-			AssetList:       thisTask.AssetList,
 			State:           thisTask.State,
 		}
-		if thisTask.TargetID != 0 {
-			taskInfo.TargetID = thisTask.TargetID
-			taskInfo.TargetName = thisTask.Target.UserName
-		}
 		return taskInfo
-	}).([]define.TaskInfo)
+	}).([]define.TaskBasicInfo)
 
 	taskListRes := define.TaskListResponse{
 		TaskList: taskInfoList,
@@ -197,6 +190,8 @@ func (task *taskApi) GetDepartmentTaskList(ctx *utils.Context) {
 
 	departmentSuper := service.UserService.DepartmentSuper(ctx)
 	thisUser := UserApi.GetOperatorInfo(ctx)
+	// log.Println(thisUser.DepartmentID)
+	// log.Println(thisUser.DepartmentID)
 	if !departmentSuper || thisUser.DepartmentID != departmentID {
 		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
 		return
@@ -217,28 +212,70 @@ func (task *taskApi) GetDepartmentTaskList(ctx *utils.Context) {
 		return
 	}
 
-	taskInfoList := funk.Map(taskList, func(thisTask *model.Task) define.TaskInfo {
-		taskInfo := define.TaskInfo{
+	taskInfoList := funk.Map(taskList, func(thisTask *model.Task) define.TaskBasicInfo {
+		taskInfo := define.TaskBasicInfo{
 			ID:              thisTask.ID,
 			TaskType:        thisTask.TaskType,
 			TaskDescription: thisTask.TaskDescription,
 			UserID:          thisTask.UserID,
 			UserName:        thisTask.User.UserName,
-			DepartmentID:    thisTask.DepartmentID,
-			DepartmentName:  thisTask.Department.Name,
-			AssetList:       thisTask.AssetList,
 			State:           thisTask.State,
 		}
-		if thisTask.TargetID != 0 {
-			taskInfo.TargetID = thisTask.TargetID
-			taskInfo.TargetName = thisTask.Target.UserName
-		}
 		return taskInfo
-	}).([]define.TaskInfo)
+	}).([]define.TaskBasicInfo)
 
 	taskListRes := define.TaskListResponse{
 		TaskList: taskInfoList,
 	}
 
 	ctx.Success(taskListRes)
+}
+
+/*
+Handle func for GET /departments/:department_id/assets/tasks/:task_id
+*/
+func (task *taskApi) GetTaskInfo(ctx *utils.Context) {
+	departmentID, err := service.EntityService.GetParamID(ctx, "department_id")
+	if err != nil {
+		return
+	}
+	task_id, err := service.EntityService.GetParamID(ctx, "task_id")
+	if err != nil {
+		return
+	}
+	thisUser := UserApi.GetOperatorInfo(ctx)
+	if !thisUser.DepartmentSuper || thisUser.DepartmentID != departmentID {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	taskInfo, err := service.TaskService.GetTaskInfoByID(task_id)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	} else if taskInfo == nil {
+		ctx.NotFound(myerror.TASK_NOT_FOUND, myerror.TASK_NOT_FOUND_INFO)
+		return
+	}
+
+	if taskInfo.DepartmentID != departmentID {
+		ctx.BadRequest(myerror.TASK_NOT_IN_DEPARTMENT, myerror.TASK_NOT_IN_DEPARTMENT_INFO)
+		return
+	}
+
+	taskInfoRes := define.TaskInfo{
+		ID:              taskInfo.ID,
+		TaskType:        taskInfo.TaskType,
+		TaskDescription: taskInfo.TaskDescription,
+		UserID:          taskInfo.UserID,
+		UserName:        taskInfo.User.UserName,
+		TargetID:        taskInfo.TargetID,
+		TargetName:      taskInfo.Target.UserName,
+		DepartmentID:    taskInfo.DepartmentID,
+		DepartmentName:  taskInfo.Department.Name,
+		AssetList:       taskInfo.AssetList,
+		State:           taskInfo.State,
+	}
+
+	ctx.Success(taskInfoRes)
 }

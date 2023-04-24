@@ -41,3 +41,8 @@ func (task *taskService) GetTasksByDepartmentID(departmentID uint) (taskList []*
 	taskList, err = dao.TaskDao.GetTaskListByDepartmentID(departmentID)
 	return
 }
+
+func (task *taskService) GetTaskInfoByID(taskID uint) (taskInfo *model.Task, err error) {
+	taskInfo, err = dao.TaskDao.GetTaskByID(taskID)
+	return
+}
