@@ -81,7 +81,7 @@ func (task *taskApi) CreateNewTask(ctx *utils.Context) {
 		}
 		req.TargetID = 0
 	} else if req.TaskType == 1 {
-		assetList, err = service.AssetService.GetDepartmentAssetsByIDs(assetIdList, thisUser.DepartmentID)
+		assetList, err = service.AssetService.GetUserAssetsByIDs(assetIdList, thisUser.UserID)
 		if err != nil {
 			ctx.InternalError(err.Error())
 			return
@@ -111,7 +111,7 @@ func (task *taskApi) CreateNewTask(ctx *utils.Context) {
 			return
 		}
 
-		assetList, err = service.AssetService.GetDepartmentAssetsByIDs(assetIdList, thisUser.DepartmentID)
+		assetList, err = service.AssetService.GetUserAssetsByIDs(assetIdList, thisUser.UserID)
 		if err != nil {
 			ctx.InternalError(err.Error())
 			return
@@ -327,4 +327,74 @@ func (task *taskApi) GetUserTaskInfo(ctx *utils.Context) {
 	}
 
 	ctx.Success(taskInfoRes)
+}
+
+/*
+Handle func for POST /departments/:department_id/assets/task/:task_id
+*/
+func (task *taskApi) ApproveTask(ctx *utils.Context) {
+	departmentID, err := service.EntityService.GetParamID(ctx, "department_id")
+	if err != nil {
+		return
+	}
+	task_id, err := service.EntityService.GetParamID(ctx, "task_id")
+	if err != nil {
+		return
+	}
+	thisUser := UserApi.GetOperatorInfo(ctx)
+	if !thisUser.DepartmentSuper || thisUser.DepartmentID != departmentID {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	taskInfo, err := service.TaskService.GetTaskInfoByID(task_id)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	} else if taskInfo == nil {
+		ctx.NotFound(myerror.TASK_NOT_FOUND, myerror.TASK_NOT_FOUND_INFO)
+		return
+	}
+
+	if taskInfo.DepartmentID != departmentID {
+		ctx.BadRequest(myerror.TASK_NOT_IN_DEPARTMENT, myerror.TASK_NOT_IN_DEPARTMENT_INFO)
+		return
+	}
+
+	if taskInfo.User.DepartmentID != departmentID {
+		ctx.BadRequest(myerror.USER_NOT_IN_DEPARTMENT, myerror.USER_NOT_IN_DEPARTMENT_INFO)
+		return
+	}
+
+	assetIDs := funk.Map(taskInfo.AssetList, func(thisAsset *model.Asset) uint {
+		return thisAsset.ID
+	}).([]uint)
+
+	if taskInfo.TaskType == 0 {
+		assetList, err := service.AssetService.GetDepartmentIdleAssets(assetIDs, departmentID)
+		if err != nil {
+			ctx.InternalError(err.Error())
+			return
+		}
+		if len(assetList) != len(assetIDs) {
+			ctx.BadRequest(myerror.ASSET_LIST_INVALID, myerror.ASSET_LIST_INVALID_INFO)
+			return
+		}
+
+		err = service.AssetService.AcquireAssets(assetIDs, taskInfo.UserID)
+		if err != nil {
+			ctx.InternalError(err.Error())
+			return
+		}
+
+		err = service.TaskService.ModifyTaskState(taskInfo.ID, 1)
+		if err != nil {
+			ctx.InternalError(err.Error())
+			return
+		}
+	} else if taskInfo.TaskType == 1 {
+
+	}
+
+	ctx.Success(nil)
 }

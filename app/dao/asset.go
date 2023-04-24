@@ -312,7 +312,7 @@ func (asset *assetDao) GetSubAssetsByParents(ids []uint) (assets []*model.Asset,
 func (asset *assetDao) GetDepartmentAssetsByIDs(ids []uint, departmentID uint) (assets []*model.Asset, err error) {
 	result := db.Model(&model.Asset{}).Preload("Parent").Preload("User").
 		Preload("Department").Preload("Class").
-		Where("id IN (?) and department_id = ? and state <= ?", ids, departmentID, 3).Find(&assets)
+		Where("id IN (?) and department_id = ? and state <= ?", ids, departmentID, 2).Find(&assets)
 
 	if result.Error == gorm.ErrRecordNotFound {
 		return nil, nil
@@ -324,11 +324,31 @@ func (asset *assetDao) GetDepartmentAssetsByIDs(ids []uint, departmentID uint) (
 func (asset *assetDao) GetUserAssetsByIDs(ids []uint, userID uint) (assets []*model.Asset, err error) {
 	result := db.Model(&model.Asset{}).Preload("Parent").Preload("User").
 		Preload("Department").Preload("Class").
-		Where("id IN (?) and user_id = ? and state <= ?", ids, userID, 3).Find(&assets)
+		Where("id IN (?) and user_id = ? and state IN (?)", ids, userID, []uint{1, 2}).Find(&assets)
 
 	if result.Error == gorm.ErrRecordNotFound {
 		return nil, nil
 	}
 	err = utils.DBError(result)
 	return
+}
+
+func (asset *assetDao) GetDepartmentIdleAssetsByIDs(ids []uint, departmentID uint) (assets []*model.Asset, err error) {
+	result := db.Model(&model.Asset{}).Preload("Parent").Preload("User").
+		Preload("Department").Preload("Class").
+		Where("id IN (?) and department_id = ? and state = ?", ids, departmentID, 0).Find(&assets)
+
+	if result.Error == gorm.ErrRecordNotFound {
+		return nil, nil
+	}
+	err = utils.DBError(result)
+	return
+}
+
+func (asset *assetDao) ModifyAssetsUserAndState(ids []uint, userID uint, state uint) error {
+	result := db.Model(&model.Asset{}).Where("id IN (?)", ids).Updates(map[string]interface{}{
+		"user_id": userID,
+		"state":   state,
+	})
+	return utils.DBError(result)
 }

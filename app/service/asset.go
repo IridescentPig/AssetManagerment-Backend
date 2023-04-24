@@ -208,3 +208,16 @@ func (asset *assetService) GetUserAssetsByIDs(ids []uint, userID uint) ([]*model
 	}
 	return assetList, nil
 }
+
+func (asset *assetService) GetDepartmentIdleAssets(ids []uint, departmentID uint) ([]*model.Asset, error) {
+	assetList, err := dao.AssetDao.GetDepartmentIdleAssetsByIDs(ids, departmentID)
+	if err != nil {
+		return nil, err
+	}
+	return assetList, nil
+}
+
+func (asset *assetService) AcquireAssets(ids []uint, userID uint) error {
+	err := dao.AssetDao.ModifyAssetsUserAndState(ids, userID, 1)
+	return err
+}

@@ -46,3 +46,8 @@ func (task *taskService) GetTaskInfoByID(taskID uint) (taskInfo *model.Task, err
 	taskInfo, err = dao.TaskDao.GetTaskByID(taskID)
 	return
 }
+
+func (task *taskService) ModifyTaskState(taskID uint, state uint) error {
+	err := dao.TaskDao.ModifyTaskState(taskID, state)
+	return err
+}

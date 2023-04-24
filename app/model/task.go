@@ -11,5 +11,5 @@ type Task struct {
 	DepartmentID    uint       `gorm:"default:null;column:department_id;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"department_id"`
 	Department      Department `gorm:"foreignKey:DepartmentID;references:ID;default:null" json:"department"`
 	AssetList       []*Asset   `gorm:"many2many:task_assets;" json:"asset_list"`
-	State           uint       `gorm:"default:0;colunm:state" json:"state"`
+	State           uint       `gorm:"default:0;colunm:state" json:"state"` // 0提交未审批、1批准、2不通过、3自行撤销
 }

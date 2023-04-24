@@ -178,3 +178,10 @@ func (task *taskDao) GetTaskListByDepartmentID(departmentID uint) (taskList []*m
 	err = utils.DBError(result)
 	return
 }
+
+func (task *taskDao) ModifyTaskState(taskID uint, state uint) error {
+	result := db.Model(&model.Task{}).Where("id = ?", taskID).Updates(map[string]interface{}{
+		"state": state,
+	})
+	return utils.DBError(result)
+}
