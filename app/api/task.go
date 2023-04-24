@@ -234,7 +234,7 @@ func (task *taskApi) GetDepartmentTaskList(ctx *utils.Context) {
 /*
 Handle func for GET /departments/:department_id/assets/tasks/:task_id
 */
-func (task *taskApi) GetTaskInfo(ctx *utils.Context) {
+func (task *taskApi) GetDepartmentTaskInfo(ctx *utils.Context) {
 	departmentID, err := service.EntityService.GetParamID(ctx, "department_id")
 	if err != nil {
 		return
@@ -260,6 +260,55 @@ func (task *taskApi) GetTaskInfo(ctx *utils.Context) {
 
 	if taskInfo.DepartmentID != departmentID {
 		ctx.BadRequest(myerror.TASK_NOT_IN_DEPARTMENT, myerror.TASK_NOT_IN_DEPARTMENT_INFO)
+		return
+	}
+
+	taskInfoRes := define.TaskInfo{
+		ID:              taskInfo.ID,
+		TaskType:        taskInfo.TaskType,
+		TaskDescription: taskInfo.TaskDescription,
+		UserID:          taskInfo.UserID,
+		UserName:        taskInfo.User.UserName,
+		TargetID:        taskInfo.TargetID,
+		TargetName:      taskInfo.Target.UserName,
+		DepartmentID:    taskInfo.DepartmentID,
+		DepartmentName:  taskInfo.Department.Name,
+		AssetList:       taskInfo.AssetList,
+		State:           taskInfo.State,
+	}
+
+	ctx.Success(taskInfoRes)
+}
+
+/*
+Handle func for GET /users/:user_id/assets/tasks/:task_id
+*/
+func (task *taskApi) GetUserTaskInfo(ctx *utils.Context) {
+	userID, err := service.EntityService.GetParamID(ctx, "user_id")
+	if err != nil {
+		return
+	}
+	task_id, err := service.EntityService.GetParamID(ctx, "task_id")
+	if err != nil {
+		return
+	}
+	thisUser := UserApi.GetOperatorInfo(ctx)
+	if thisUser.UserID != userID {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	taskInfo, err := service.TaskService.GetTaskInfoByID(task_id)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	} else if taskInfo == nil {
+		ctx.NotFound(myerror.TASK_NOT_FOUND, myerror.TASK_NOT_FOUND_INFO)
+		return
+	}
+
+	if taskInfo.UserID != userID {
+		ctx.BadRequest(myerror.TASK_NOT_BELONG_TO_USER, myerror.TASK_NOT_BELONG_TO_USER_INFO)
 		return
 	}
 
