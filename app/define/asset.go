@@ -12,6 +12,7 @@ type AssetInfo struct {
 	ParentID    uint             `json:"parent_id"`
 	User        model.User       `json:"user"`
 	Department  model.Department `json:"department"`
+	Maintainer  model.User       `json:"maintainer"`
 	Price       decimal.Decimal  `json:"price"`
 	Description string           `json:"description"`
 	Position    string           `json:"position"`
@@ -20,6 +21,7 @@ type AssetInfo struct {
 	Number      int              `json:"count"`
 	Type        int              `json:"type"`
 	Children    []*AssetInfo     `json:"children"`
+	State       uint             `json:"state"`
 }
 
 type ModifyAssetInfoReq struct {
@@ -41,6 +43,7 @@ type CreateAssetReq struct {
 	ClassID     uint              `json:"class_id"`
 	Number      int               `json:"count"`
 	Type        int               `json:"type"`
+	ParentID    uint              `json:"parent_id"`
 	Children    []*CreateAssetReq `json:"children"`
 }
 

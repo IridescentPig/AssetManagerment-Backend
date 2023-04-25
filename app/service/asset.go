@@ -178,17 +178,57 @@ func (asset *assetService) TransferAssets(assetIDs []uint, userID uint, departme
 }
 
 func (asset *assetService) GetAssetByUser(user_id uint) (assets []*define.AssetInfo, err error) {
-	asset_list, err := dao.AssetDao.GetAssetsByUser(user_id)
+	assetList, err := dao.AssetDao.GetAssetsByUser(user_id)
 	if err != nil {
 		return
 	}
-	for _, this_asset := range asset_list {
-		var assetInfo define.AssetInfo
-		err = copier.Copy(&assetInfo, this_asset)
-		if err != nil {
-			return
-		}
-		assets = append(assets, &assetInfo)
+	err = copier.Copy(&assets, assetList)
+	if err != nil {
+		return
 	}
 	return
+}
+
+func (asset *assetService) GetDepartmentAssetsByIDs(ids []uint, departmentID uint) ([]*model.Asset, error) {
+	assetList, err := dao.AssetDao.GetDepartmentAssetsByIDs(ids, departmentID)
+	if err != nil {
+		return nil, err
+	}
+	return assetList, nil
+}
+
+func (asset *assetService) GetUserAssetsByIDs(ids []uint, userID uint) ([]*model.Asset, error) {
+	assetList, err := dao.AssetDao.GetUserAssetsByIDs(ids, userID)
+	if err != nil {
+		return nil, err
+	}
+	return assetList, nil
+}
+
+func (asset *assetService) GetDepartmentIdleAssets(ids []uint, departmentID uint) ([]*model.Asset, error) {
+	assetList, err := dao.AssetDao.GetDepartmentIdleAssetsByIDs(ids, departmentID)
+	if err != nil {
+		return nil, err
+	}
+	return assetList, nil
+}
+
+func (asset *assetService) AcquireAssets(ids []uint, userID uint) error {
+	err := dao.AssetDao.ModifyAssetsUserAndState(ids, userID, 1)
+	return err
+}
+
+func (asset *assetService) CancelAssets(ids []uint, userID uint) error {
+	err := dao.AssetDao.ModifyAssetsUserAndState(ids, userID, 0)
+	return err
+}
+
+func (asset *assetService) GetUserMaintainAssets(userID uint) ([]*model.Asset, error) {
+	assetList, err := dao.AssetDao.GetUserMaintainAssets(userID)
+	return assetList, err
+}
+
+func (asset *assetService) ModifyAssetMaintainerAndState(assetIDs []uint, maintainerID uint) error {
+	err := dao.AssetDao.ModifyAssetMaintainerAndState(assetIDs, maintainerID)
+	return err
 }

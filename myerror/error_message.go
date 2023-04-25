@@ -34,4 +34,13 @@ const (
 	PRICE_OUT_OF_RANGE_INFO              = "Price out of range"
 	ENTITY_NAME_CANNOT_BE_EMPTY_INFO     = "Entity name cannot be empty"
 	DEPARTMENT_NAME_CANNOT_BE_EMPTY_INFO = "Department name cannot be empty"
+	TARGET_EMPTY_INFO                    = "Target user cannot be empty"
+	ASSET_LIST_INVALID_INFO              = "Asset list invalid"
+	TASK_NOT_FOUND_INFO                  = "Task not found"
+	TASK_NOT_IN_DEPARTMENT_INFO          = "Task not in department"
+	TASK_NOT_BELONG_TO_USER_INFO         = "Task does not belong to this user"
+	TARGET_NOT_IN_DEPARTMENT_INFO        = "Target not in department"
+	ASSET_NOT_IN_MAINTENCE_INFO          = "Asset not in maintence"
+	NOT_YOUR_MAINTENCE_ASSET_INFO        = "This asset is not int your maintence"
+	TASK_NOT_PENDING_INFO                = "Task is not pending"
 )

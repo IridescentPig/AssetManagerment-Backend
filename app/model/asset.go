@@ -22,4 +22,6 @@ type Asset struct {
 	Number       int             `gorm:"column:number" json:"number"`
 	Type         int             `gorm:"column:type" json:"type"`   // 1-条目型资产 2-数量型资产
 	State        uint            `gorm:"column:state" json:"state"` // 0idle;1in_use;2in_maintain;3retired;4deleted
+	MaintainerID uint            `gorm:"default:null;column:maintainer_id;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"maintainer_id"`
+	Maintainer   User            `gorm:"foreignKey:MaintainerID;references:ID;default:null" json:"maintainer"`
 }

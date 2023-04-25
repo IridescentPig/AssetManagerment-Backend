@@ -168,7 +168,11 @@ func (department *departmentDao) GetDepartmentDirectUserByID(id uint) (users []*
 	if err != nil {
 		return
 	}
-	err = utils.DBError(db.Model(&model.User{}).Preload("Department").Preload("Entity").Where("department_id = ?", id).Find(&users))
+	result := db.Model(&model.User{}).Preload("Department").Preload("Entity").Where("department_id = ?", id).Find(&users)
+	if result.Error == gorm.ErrRecordNotFound {
+		return nil, nil
+	}
+	err = utils.DBError(result)
 	return
 }
 
