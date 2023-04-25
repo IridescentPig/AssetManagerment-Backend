@@ -369,6 +369,11 @@ func (task *taskApi) ApproveTask(ctx *utils.Context) {
 		return
 	}
 
+	if taskInfo.State != 0 {
+		ctx.BadRequest(myerror.TASK_NOT_PENDING, myerror.TASK_NOT_PENDING_INFO)
+		return
+	}
+
 	assetIDs := funk.Map(taskInfo.AssetList, func(thisAsset *model.Asset) uint {
 		return thisAsset.ID
 	}).([]uint)
@@ -512,6 +517,9 @@ func (task *taskApi) RejectTask(ctx *utils.Context) {
 	if taskInfo.DepartmentID != departmentID {
 		ctx.BadRequest(myerror.TASK_NOT_IN_DEPARTMENT, myerror.TASK_NOT_IN_DEPARTMENT_INFO)
 		return
+	} else if taskInfo.State != 0 {
+		ctx.BadRequest(myerror.TASK_NOT_PENDING, myerror.TASK_NOT_PENDING_INFO)
+		return
 	}
 
 	err = service.TaskService.ModifyTaskState(taskInfo.ID, 2)
@@ -552,6 +560,9 @@ func (task *taskApi) CancelTasks(ctx *utils.Context) {
 
 	if taskInfo.UserID != userID {
 		ctx.BadRequest(myerror.TASK_NOT_BELONG_TO_USER, myerror.TASK_NOT_BELONG_TO_USER_INFO)
+		return
+	} else if taskInfo.State != 0 {
+		ctx.BadRequest(myerror.TASK_NOT_PENDING, myerror.TASK_NOT_PENDING_INFO)
 		return
 	}
 
