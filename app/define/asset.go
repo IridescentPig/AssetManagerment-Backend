@@ -42,6 +42,7 @@ type CreateAssetReq struct {
 	ClassID     uint              `json:"class_id"`
 	Number      int               `json:"count"`
 	Type        int               `json:"type"`
+	ParentID    uint              `json:"parent_id"`
 	Children    []*CreateAssetReq `json:"children"`
 }
 

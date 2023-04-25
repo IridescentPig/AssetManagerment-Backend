@@ -162,7 +162,18 @@ func (asset *assetApi) CreateAssets(ctx *utils.Context) {
 			return
 		}
 
-		err = service.AssetService.CreateAsset(&asset, departmentID, 0, userID)
+		if asset.ParentID != 0 {
+			exists, err := service.AssetService.ExistAsset(asset.ParentID)
+			if err != nil {
+				ctx.InternalError(err.Error())
+				return
+			} else if !exists {
+				ctx.BadRequest(myerror.PARENT_ASSET_NOT_FOUND, myerror.PARENT_ASSET_NOT_FOUND_INFO)
+				return
+			}
+		}
+
+		err = service.AssetService.CreateAsset(&asset, departmentID, asset.ParentID, userID)
 		if err != nil {
 			ctx.InternalError(err.Error())
 			return

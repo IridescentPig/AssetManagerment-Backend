@@ -6,7 +6,6 @@ import (
 	"asset-management/app/service"
 	"asset-management/myerror"
 	"asset-management/utils"
-	"log"
 
 	"github.com/gin-gonic/gin/binding"
 	"github.com/thoas/go-funk"
@@ -397,7 +396,6 @@ func (task *taskApi) ApproveTask(ctx *utils.Context) {
 			return
 		}
 		if len(assetList) != len(assetIDs) {
-			log.Println(len(assetList))
 			ctx.BadRequest(myerror.ASSET_LIST_INVALID, myerror.ASSET_LIST_INVALID_INFO)
 			return
 		}
@@ -498,5 +496,39 @@ func (task *taskApi) RejectTask(ctx *utils.Context) {
 Handle func for DELETE /users/:user_id/assets/tasks/:task_id
 */
 func (task *taskApi) CancelTasks(ctx *utils.Context) {
+	userID, err := service.EntityService.GetParamID(ctx, "user_id")
+	if err != nil {
+		return
+	}
+	task_id, err := service.EntityService.GetParamID(ctx, "task_id")
+	if err != nil {
+		return
+	}
+	thisUser := UserApi.GetOperatorInfo(ctx)
+	if thisUser.UserID != userID {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
 
+	taskInfo, err := service.TaskService.GetTaskInfoByID(task_id)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	} else if taskInfo == nil {
+		ctx.NotFound(myerror.TASK_NOT_FOUND, myerror.TASK_NOT_FOUND_INFO)
+		return
+	}
+
+	if taskInfo.UserID != userID {
+		ctx.BadRequest(myerror.TASK_NOT_BELONG_TO_USER, myerror.TASK_NOT_BELONG_TO_USER_INFO)
+		return
+	}
+
+	err = service.TaskService.ModifyTaskState(taskInfo.ID, 3)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	ctx.Success(nil)
 }
