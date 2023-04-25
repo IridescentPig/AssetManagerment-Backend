@@ -222,3 +222,13 @@ func (asset *assetService) CancelAssets(ids []uint, userID uint) error {
 	err := dao.AssetDao.ModifyAssetsUserAndState(ids, userID, 0)
 	return err
 }
+
+func (asset *assetService) GetUserMaintainAssets(userID uint) ([]*model.Asset, error) {
+	assetList, err := dao.AssetDao.GetUserMaintainAssets(userID)
+	return assetList, err
+}
+
+func (asset *assetService) ModifyAssetMaintainerAndState(assetIDs []uint, maintainerID uint) error {
+	err := dao.AssetDao.ModifyAssetMaintainerAndState(assetIDs, maintainerID)
+	return err
+}

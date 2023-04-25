@@ -40,4 +40,6 @@ const (
 	TASK_NOT_IN_DEPARTMENT_INFO          = "Task not in department"
 	TASK_NOT_BELONG_TO_USER_INFO         = "Task does not belong to this user"
 	TARGET_NOT_IN_DEPARTMENT_INFO        = "Target not in department"
+	ASSET_NOT_IN_MAINTENCE_INFO          = "Asset not in maintence"
+	NOT_YOUR_MAINTENCE_ASSET_INFO        = "This asset is not int your maintence"
 )

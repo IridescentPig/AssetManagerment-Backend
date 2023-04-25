@@ -12,6 +12,7 @@ type AssetInfo struct {
 	ParentID    uint             `json:"parent_id"`
 	User        model.User       `json:"user"`
 	Department  model.Department `json:"department"`
+	Maintainer  model.User       `json:"maintainer"`
 	Price       decimal.Decimal  `json:"price"`
 	Description string           `json:"description"`
 	Position    string           `json:"position"`

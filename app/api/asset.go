@@ -7,6 +7,7 @@ import (
 	"asset-management/utils"
 
 	"github.com/gin-gonic/gin/binding"
+	"github.com/jinzhu/copier"
 	"github.com/shopspring/decimal"
 )
 
@@ -292,6 +293,124 @@ func (asset *assetApi) TransferAssets(ctx *utils.Context) {
 	}
 
 	err = service.AssetService.TransferAssets(assetIDs, targetUser.ID, targetUser.DepartmentID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	ctx.Success(nil)
+}
+
+/*
+Handle func for GET /users/:user_id/assets/maintain
+*/
+func (asset *assetApi) GetUserMaintainAssets(ctx *utils.Context) {
+	userID, err := service.EntityService.GetParamID(ctx, "user_id")
+	if err != nil {
+		return
+	}
+
+	operatorUser := UserApi.GetOperatorInfo(ctx)
+	if operatorUser.UserID != userID {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	thisUser, err := service.UserService.GetUserByID(userID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	} else if thisUser == nil {
+		ctx.NotFound(myerror.USER_NOT_FOUND, myerror.USER_NOT_FOUND_INFO)
+		return
+	}
+
+	if thisUser.EntityID == 0 {
+		ctx.BadRequest(myerror.USER_NOT_IN_ENTITY, myerror.USER_NOT_IN_ENTITY_INFO)
+		return
+	} else if thisUser.DepartmentID == 0 {
+		ctx.BadRequest(myerror.USER_NOT_IN_DEPARTMENT, myerror.USER_NOT_IN_DEPARTMENT_INFO)
+		return
+	}
+
+	var assetListRes []*define.AssetInfo
+
+	assetList, err := service.AssetService.GetUserMaintainAssets(userID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	err = copier.Copy(&assetListRes, assetList)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	for _, thisAsset := range assetListRes {
+		thisAsset.Children = nil
+	}
+
+	assetListResponse := define.AssetListResponse{
+		AssetList: assetListRes,
+	}
+
+	ctx.Success(assetListResponse)
+}
+
+/*
+Handle func for POST /users/:user_id/assets/:asset_id/maintain
+*/
+func (asset *assetApi) FinishMaintenance(ctx *utils.Context) {
+	userID, err := service.EntityService.GetParamID(ctx, "user_id")
+	if err != nil {
+		return
+	}
+
+	operatorUser := UserApi.GetOperatorInfo(ctx)
+	if operatorUser.UserID != userID {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	thisUser, err := service.UserService.GetUserByID(userID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	} else if thisUser == nil {
+		ctx.NotFound(myerror.USER_NOT_FOUND, myerror.USER_NOT_FOUND_INFO)
+		return
+	}
+
+	if thisUser.EntityID == 0 {
+		ctx.BadRequest(myerror.USER_NOT_IN_ENTITY, myerror.USER_NOT_IN_ENTITY_INFO)
+		return
+	} else if thisUser.DepartmentID == 0 {
+		ctx.BadRequest(myerror.USER_NOT_IN_DEPARTMENT, myerror.USER_NOT_IN_DEPARTMENT_INFO)
+		return
+	}
+
+	assetID, err := service.EntityService.GetParamID(ctx, "asset_id")
+	if err != nil {
+		return
+	}
+
+	thisAsset, err := service.AssetService.GetAssetByID(assetID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	} else if thisAsset == nil {
+		ctx.BadRequest(myerror.ASSET_NOT_FOUND, myerror.ASSET_NOT_FOUND_INFO)
+		return
+	} else if thisAsset.State != 2 {
+		ctx.BadRequest(myerror.ASSET_NOT_IN_MAINTENCE, myerror.ASSET_NOT_IN_MAINTENCE_INFO)
+		return
+	} else if thisAsset.MaintainerID != userID {
+		ctx.BadRequest(myerror.NOT_YOUR_MAINTENCE_ASSET, myerror.NOT_YOUR_MAINTENCE_ASSET_INFO)
+		return
+	}
+
+	err = service.AssetService.ModifyAssetMaintainerAndState([]uint{assetID}, 0)
 	if err != nil {
 		ctx.InternalError(err.Error())
 		return

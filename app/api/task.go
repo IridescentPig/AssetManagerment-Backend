@@ -406,7 +406,38 @@ func (task *taskApi) ApproveTask(ctx *utils.Context) {
 			return
 		}
 	} else if taskInfo.TaskType == 2 {
+		assetList, err := service.AssetService.GetUserAssetsByIDs(assetIDs, taskInfo.UserID)
+		if err != nil {
+			ctx.InternalError(err.Error())
+			return
+		}
+		if len(assetList) != len(assetIDs) {
+			ctx.BadRequest(myerror.ASSET_LIST_INVALID, myerror.ASSET_LIST_INVALID_INFO)
+			return
+		}
 
+		targetUser, err := service.UserService.GetUserByID(taskInfo.TargetID)
+		if err != nil {
+			ctx.InternalError(err.Error())
+			return
+		} else if targetUser == nil {
+			ctx.BadRequest(myerror.TARGET_USER_NOT_FOUND, myerror.TARGET_USER_NOT_FOUND_INFO)
+			return
+		}
+
+		if targetUser.EntityID != thisUser.EntityID {
+			ctx.BadRequest(myerror.NOT_IN_SAME_ENTITY, myerror.NOT_IN_SAME_ENTITY_INFO)
+			return
+		} else if targetUser.DepartmentID == 0 {
+			ctx.BadRequest(myerror.TARGET_NOT_IN_DEPARTMENT, myerror.TARGET_NOT_IN_DEPARTMENT_INFO)
+			return
+		}
+
+		err = service.AssetService.ModifyAssetMaintainerAndState(assetIDs, taskInfo.TargetID)
+		if err != nil {
+			ctx.InternalError(err.Error())
+			return
+		}
 	} else {
 		assetList, err := service.AssetService.GetUserAssetsByIDs(assetIDs, taskInfo.UserID)
 		if err != nil {

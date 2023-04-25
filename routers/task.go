@@ -30,6 +30,9 @@ func (task *taskRouter) routerUserTask(group *gin.RouterGroup) {
 	group.POST("/:user_id/assets/task", utils.Handler(api.TaskApi.CreateNewTask))
 	group.GET("/:user_id/assets/tasks", utils.Handler(api.TaskApi.GetUserTaskList))
 	group.GET("/:user_id/assets/tasks/:task_id", utils.Handler(api.TaskApi.GetUserTaskInfo))
+	group.DELETE("/:user_id/assets/tasks/:task_id", utils.Handler(api.TaskApi.CancelTasks))
+	group.GET("/:user_id/assets/maintain", utils.Handler(api.AssetApi.GetUserMaintainAssets))
+	group.POST("/:user_id/assets/:asset_id/maintain", utils.Handler(api.AssetApi.FinishMaintenance))
 }
 
 func (task *taskRouter) routerDepartmentTask(group *gin.RouterGroup) {
