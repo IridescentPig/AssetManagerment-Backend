@@ -182,13 +182,9 @@ func (asset *assetService) GetAssetByUser(user_id uint) (assets []*define.AssetI
 	if err != nil {
 		return
 	}
-	for _, this_asset := range assetList {
-		var assetInfo define.AssetInfo
-		err = copier.Copy(&assetInfo, this_asset)
-		if err != nil {
-			return
-		}
-		assets = append(assets, &assetInfo)
+	err = copier.Copy(&assets, assetList)
+	if err != nil {
+		return
 	}
 	return
 }

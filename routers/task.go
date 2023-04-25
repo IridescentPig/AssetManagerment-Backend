@@ -36,4 +36,6 @@ func (task *taskRouter) routerDepartmentTask(group *gin.RouterGroup) {
 	group.Use(utils.Handler(middleware.JWTMiddleware()))
 	group.GET("/:department_id/assets/tasks", utils.Handler(api.TaskApi.GetDepartmentTaskList))
 	group.GET("/:department_id/assets/tasks/:task_id", utils.Handler(api.TaskApi.GetDepartmentTaskInfo))
+	group.POST("/:department_id/assets/tasks/:task_id", utils.Handler(api.TaskApi.ApproveTask))
+	group.DELETE("/:department_id/assets/tasks/:task_id", utils.Handler(api.TaskApi.RejectTask))
 }

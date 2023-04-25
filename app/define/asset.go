@@ -20,6 +20,7 @@ type AssetInfo struct {
 	Number      int              `json:"count"`
 	Type        int              `json:"type"`
 	Children    []*AssetInfo     `json:"children"`
+	State       uint             `json:"state"`
 }
 
 type ModifyAssetInfoReq struct {

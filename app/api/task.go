@@ -6,6 +6,7 @@ import (
 	"asset-management/app/service"
 	"asset-management/myerror"
 	"asset-management/utils"
+	"log"
 
 	"github.com/gin-gonic/gin/binding"
 	"github.com/thoas/go-funk"
@@ -333,7 +334,7 @@ func (task *taskApi) GetUserTaskInfo(ctx *utils.Context) {
 }
 
 /*
-Handle func for POST /departments/:department_id/assets/task/:task_id
+Handle func for POST /departments/:department_id/assets/tasks/:task_id
 */
 func (task *taskApi) ApproveTask(ctx *utils.Context) {
 	departmentID, err := service.EntityService.GetParamID(ctx, "department_id")
@@ -390,12 +391,13 @@ func (task *taskApi) ApproveTask(ctx *utils.Context) {
 			return
 		}
 	} else if taskInfo.TaskType == 1 {
-		assetList, err := service.AssetService.GetUserAssetsByIDs(assetIDs, departmentID)
+		assetList, err := service.AssetService.GetUserAssetsByIDs(assetIDs, taskInfo.UserID)
 		if err != nil {
 			ctx.InternalError(err.Error())
 			return
 		}
 		if len(assetList) != len(assetIDs) {
+			log.Println(len(assetList))
 			ctx.BadRequest(myerror.ASSET_LIST_INVALID, myerror.ASSET_LIST_INVALID_INFO)
 			return
 		}
@@ -408,7 +410,7 @@ func (task *taskApi) ApproveTask(ctx *utils.Context) {
 	} else if taskInfo.TaskType == 2 {
 
 	} else {
-		assetList, err := service.AssetService.GetUserAssetsByIDs(assetIDs, departmentID)
+		assetList, err := service.AssetService.GetUserAssetsByIDs(assetIDs, taskInfo.UserID)
 		if err != nil {
 			ctx.InternalError(err.Error())
 			return
@@ -452,9 +454,9 @@ func (task *taskApi) ApproveTask(ctx *utils.Context) {
 }
 
 /*
-Handle func for DELETE /departments/:department_id/assets/task/:task_id
+Handle func for DELETE /departments/:department_id/assets/tasks/:task_id
 */
-func (task *taskApi) CancelTask(ctx *utils.Context) {
+func (task *taskApi) RejectTask(ctx *utils.Context) {
 	departmentID, err := service.EntityService.GetParamID(ctx, "department_id")
 	if err != nil {
 		return
@@ -490,4 +492,11 @@ func (task *taskApi) CancelTask(ctx *utils.Context) {
 	}
 
 	ctx.Success(nil)
+}
+
+/*
+Handle func for DELETE /users/:user_id/assets/tasks/:task_id
+*/
+func (task *taskApi) CancelTasks(ctx *utils.Context) {
+
 }
