@@ -170,3 +170,11 @@ func (entity *entityService) EntityHasUser(entityID uint) (bool, error) {
 	}
 	return len(userList) != 0, nil
 }
+
+func (entity *entityService) GetEntitySubDepartments(entityID uint) ([]*model.Department, error) {
+	departmentList, err := dao.DepartmentDao.GetDepartmentsSubByID(entityID, 0)
+	if err != nil {
+		return nil, err
+	}
+	return departmentList, err
+}

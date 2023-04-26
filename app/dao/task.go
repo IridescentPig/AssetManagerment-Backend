@@ -38,7 +38,7 @@ func (task *taskDao) Update(id uint, data map[string]interface{}) error {
 
 func (task *taskDao) GetTaskByID(id uint) (*model.Task, error) {
 	ret := &model.Task{}
-	result := db.Model(&model.Task{}).Preload("User").Preload("Target").Preload("AssetList").Where("id = ?", id).First(ret)
+	result := db.Model(&model.Task{}).Preload("User").Preload("Target").Preload("Department").Preload("AssetList").Where("id = ?", id).First(ret)
 	if result.Error == gorm.ErrRecordNotFound {
 		return nil, nil
 	}
@@ -96,7 +96,7 @@ func (task *taskDao) ModifyTaskUser(id uint, user model.User) error {
 		return err
 	}
 	thisTask.UserID = user.ID
-	thisTask.UserName = user.UserName
+	// thisTask.UserName = user.UserName
 	err = utils.DBError(db.Session(&gorm.Session{FullSaveAssociations: true}).Updates(&thisTask))
 	return err
 }
@@ -124,7 +124,7 @@ func (task *taskDao) ModifyTaskTarget(id uint, user model.User) error {
 		return err
 	}
 	thisTask.TargetID = user.ID
-	thisTask.TargetName = user.UserName
+	// thisTask.TargetName = user.UserName
 	err = utils.DBError(db.Session(&gorm.Session{FullSaveAssociations: true}).Updates(&thisTask))
 	return err
 }
@@ -155,4 +155,33 @@ func (task *taskDao) ModifyAssetList(id uint, list []*model.Asset) error {
 	thisTask.AssetList = list
 	err = utils.DBError(db.Session(&gorm.Session{FullSaveAssociations: true}).Updates(&thisTask))
 	return err
+}
+
+func (task *taskDao) GetTaskListByUserID(userID uint) (taskList []*model.Task, err error) {
+	result := db.Model(&model.Task{}).Preload("User").
+		Preload("Target").Preload("Department").
+		Preload("AssetList").Where("user_id = ?", userID).Find(&taskList)
+	if result.Error == gorm.ErrRecordNotFound {
+		return nil, nil
+	}
+	err = utils.DBError(result)
+	return
+}
+
+func (task *taskDao) GetTaskListByDepartmentID(departmentID uint) (taskList []*model.Task, err error) {
+	result := db.Model(&model.Task{}).Preload("User").
+		Preload("Target").Preload("Department").
+		Preload("AssetList").Where("department_id = ?", departmentID).Find(&taskList)
+	if result.Error == gorm.ErrRecordNotFound {
+		return nil, nil
+	}
+	err = utils.DBError(result)
+	return
+}
+
+func (task *taskDao) ModifyTaskState(taskID uint, state uint) error {
+	result := db.Model(&model.Task{}).Where("id = ?", taskID).Updates(map[string]interface{}{
+		"state": state,
+	})
+	return utils.DBError(result)
 }
