@@ -3,6 +3,8 @@ package dao
 import (
 	"asset-management/app/model"
 	"asset-management/utils"
+
+	"gorm.io/gorm"
 )
 
 type urlDao struct {
@@ -33,18 +35,27 @@ func (url *urlDao) Update(name string, entity_id uint, data map[string]interface
 	return utils.DBError(result)
 }
 
-// 这个应该暂时用不到
-/*func (url *urlDao) GetUrlByName(name string) (*model.Url, error) {
+func (url *urlDao) GetUrlByName(name string, entity_id uint) (*model.Url, error) {
 	ret := &model.Url{}
-	result := db.Model(&model.Url{}).Preload("Entity").Where("name = ?", name).First(ret)
+	result := db.Model(&model.Url{}).Preload("Entity").Where("name = ? and entity_id = ?", name, entity_id).First(ret)
 	if result.Error == gorm.ErrRecordNotFound {
 		return nil, nil
 	}
 	return ret, utils.DBError(result)
-}*/
+}
 
-func (url *urlDao) GetUrlsByEntity(entity_id uint) (urls []*model.Url, err error) {
-	err = utils.DBError(db.Model(&model.Url{}).Preload("Entity").
-		Where("entity_id = ?", entity_id).Find(&urls))
+func (url *urlDao) GetUrlsByEntity(entity_id uint, DepartmentSuper bool, EntitySuper bool, SystemSuper bool) (urls []*model.Url, err error) {
+	all_urls := db.Model(&model.Url{}).Preload("Entity").
+		Where("entity_id = ?", entity_id)
+	if !DepartmentSuper {
+		all_urls = all_urls.Not("department_super = true")
+	}
+	if !EntitySuper {
+		all_urls = all_urls.Not("entity_super = true")
+	}
+	if !SystemSuper {
+		all_urls = all_urls.Not("system_super = true")
+	}
+	err = utils.DBError(all_urls.Find(&urls))
 	return
 }
