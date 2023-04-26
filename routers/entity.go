@@ -22,6 +22,9 @@ func init() {
 
 func (entity *entityRouter) Init(group *gin.RouterGroup) {
 	group.Use(utils.Handler(middleware.JWTMiddleware()))
+	{
+		entity.UrlrouterCheckAtHandler(group)
+	}
 	entity.routerCheckAtHandler(group)
 	entity.routerNeedSystemSuper(group)
 }
@@ -55,4 +58,13 @@ func (entity *entityRouter) routerCheckAtHandler(group *gin.RouterGroup) {
 	group.DELETE("/:entity_id/department/:department_id/manager/:user_id", utils.Handler(api.DepartmentApi.DeleteDepartmentManager))
 	group.GET("/:entity_id/department/:department_id/manager", utils.Handler(api.DepartmentApi.GetDepartmentManager))
 	group.GET("/:entity_id/department/tree", utils.Handler(api.DepartmentApi.GetDepartmentTree))
+	group.GET("/:entity_id/department/:department_id/user/sub", utils.Handler(api.DepartmentApi.GetDepartmentSubUsers))
+}
+
+func (entity *entityRouter) UrlrouterCheckAtHandler(group *gin.RouterGroup) {
+	group.GET("/:entity_id/url", utils.Handler(api.UrlApi.GetUrlsByEntity))
+	group.POST("/:entity_id/url", utils.Handler(api.UrlApi.CreateUrl))
+	group.PATCH("/:entity_id/url", utils.Handler(api.UrlApi.ModifyUrl))
+	group.DELETE("/:entity_id/url", utils.Handler(api.UrlApi.DeleteUrl))
+	group.GET("/:entity_id/url/list", utils.Handler(api.UrlApi.GetUrlList))
 }

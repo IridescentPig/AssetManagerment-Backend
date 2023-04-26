@@ -347,6 +347,43 @@ func (department *departmentApi) GetAllUsersUnderDepartment(ctx *utils.Context) 
 }
 
 /*
+Handle func for GET /entity/:entity_id/department/:department_id/user/sub
+*/
+func (department *departmentApi) GetDepartmentSubUsers(ctx *utils.Context) {
+	entityID, departmentID, err := department.GetTwoIDs(ctx)
+	if err != nil {
+		return
+	}
+
+	isValid := department.CheckEntityDepartmentValid(ctx, entityID, departmentID)
+	if !isValid {
+		return
+	}
+
+	thisUser := UserApi.GetOperatorInfo(ctx)
+	if thisUser.EntityID != entityID {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	userList, err := service.DepartmentService.GetSubUsers(departmentID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+	userListRes := []define.DepartmentUserInfo{}
+	err = copier.Copy(&userListRes, userList)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+	userListResponse := define.DepartmentUserListResponse{
+		UserList: userListRes,
+	}
+	ctx.Success(userListResponse)
+}
+
+/*
 Handle func for POST /entity/{entity_id}/department/{department_id}/user
 */
 func (department *departmentApi) CreateUserInDepartment(ctx *utils.Context) {
@@ -561,12 +598,12 @@ func (department *departmentApi) GetDepartmentTree(ctx *utils.Context) {
 	if err != nil {
 		return
 	}
-	entitySuper := service.UserService.EntitySuper(ctx)
-	departmentSuper := service.UserService.DepartmentSuper(ctx)
-	if !entitySuper && !departmentSuper {
-		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
-		return
-	}
+	// entitySuper := service.UserService.EntitySuper(ctx)
+	// departmentSuper := service.UserService.DepartmentSuper(ctx)
+	// if !entitySuper && !departmentSuper {
+	// 	ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+	// 	return
+	// }
 	operatorInfo := UserApi.GetOperatorInfo(ctx)
 	if operatorInfo.EntityID != entityID {
 		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)

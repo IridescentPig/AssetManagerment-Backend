@@ -226,3 +226,8 @@ func (department *departmentService) GetSubDepartmentTreeNodes(parentID uint, en
 
 	return subTreeNodes, nil
 }
+
+func (department *departmentService) GetSubUsers(departmentID uint) (userList []*model.User, err error) {
+	userList, err = dao.DepartmentDao.GetDepartmentDirectUserByID(departmentID)
+	return
+}

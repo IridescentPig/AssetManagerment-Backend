@@ -35,4 +35,14 @@ const (
 	PRICE_OUT_OF_RANGE              = 31
 	ENTITY_NAME_CANNOT_BE_EMPTY     = 32
 	DEPARTMENT_NAME_CANNOT_BE_EMPTY = 33
+	TARGET_EMPTY                    = 34
+	ASSET_LIST_INVALID              = 35
+	TASK_NOT_FOUND                  = 36
+	TASK_NOT_IN_DEPARTMENT          = 37
+	TASK_NOT_BELONG_TO_USER         = 38
+	TARGET_NOT_IN_DEPARTMENT        = 39
+	ASSET_NOT_IN_MAINTENCE          = 40
+	NOT_YOUR_MAINTENCE_ASSET        = 41
+	TASK_NOT_PENDING                = 42
+	URL_NOT_FOUND                   = 43
 )
