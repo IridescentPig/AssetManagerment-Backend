@@ -62,5 +62,8 @@ func (entity *entityRouter) routerCheckAtHandler(group *gin.RouterGroup) {
 }
 
 func (entity *entityRouter) UrlrouterCheckAtHandler(group *gin.RouterGroup) {
-
+	group.GET("/:entity_id/url", utils.Handler(api.UrlApi.GetUrlsByEntity))
+	group.POST("/:entity_id/url", utils.Handler(api.UrlApi.CreateUrl))
+	group.PATCH("/:entity_id/url", utils.Handler(api.UrlApi.ModifyUrl))
+	group.DELETE("/:entity_id/url", utils.Handler(api.UrlApi.DeleteUrl))
 }
