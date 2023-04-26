@@ -110,13 +110,15 @@ func (url *urlApi) ModifyUrl(ctx *utils.Context) {
 		return
 	}
 
-	exists, err = service.UrlService.CheckIfUrlExists(req.Name, entityID)
-	if err != nil {
-		ctx.InternalError(err.Error())
-		return
-	} else if exists {
-		ctx.BadRequest(myerror.DUPLICATED_NAME, myerror.DUPLICATED_NAME_INFO)
-		return
+	if req.Name != req.OldName {
+		exists, err = service.UrlService.CheckIfUrlExists(req.Name, entityID)
+		if err != nil {
+			ctx.InternalError(err.Error())
+			return
+		} else if exists {
+			ctx.BadRequest(myerror.DUPLICATED_NAME, myerror.DUPLICATED_NAME_INFO)
+			return
+		}
 	}
 
 	err = service.UrlService.ModifyUrlInfo(req, entityID)
