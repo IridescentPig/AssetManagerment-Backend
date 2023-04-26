@@ -28,15 +28,19 @@ func (url *urlService) CreateUrl(req define.CreateOrModifyUrlReq, entity_id uint
 	return err
 }
 
-func (url *urlService) ModifyUrlInfo(req define.CreateOrModifyUrlReq) error {
-	err := dao.UrlDao.Update(req.Name, map[string]interface{}{
+func (url *urlService) ModifyUrlInfo(req define.CreateOrModifyUrlReq, entity_id uint) error {
+	err := dao.UrlDao.Update(req.Name, entity_id, map[string]interface{}{
 		"name": req.Name,
 		"url":  req.Url,
 	})
 	return err
 }
 
-func (url *urlService) DeleteUrl(name string) error {
-	err := dao.UrlDao.Delete([]string{name})
+func (url *urlService) DeleteUrl(name string, entity_id uint) error {
+	err := dao.UrlDao.Delete([]string{name}, entity_id)
 	return err
+}
+
+func (url *urlService) GetUrlsByEntity(entity_id uint) ([]*model.Url, error) {
+	return dao.UrlDao.GetUrlsByEntity(entity_id)
 }

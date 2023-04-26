@@ -24,6 +24,9 @@ func (entity *entityRouter) Init(group *gin.RouterGroup) {
 	group.Use(utils.Handler(middleware.JWTMiddleware()))
 	entity.routerCheckAtHandler(group)
 	entity.routerNeedSystemSuper(group)
+	{
+		entity.UrlrouterCheckAtHandler(group)
+	}
 }
 
 func (entity *entityRouter) routerNeedSystemSuper(group *gin.RouterGroup) {
@@ -56,4 +59,8 @@ func (entity *entityRouter) routerCheckAtHandler(group *gin.RouterGroup) {
 	group.GET("/:entity_id/department/:department_id/manager", utils.Handler(api.DepartmentApi.GetDepartmentManager))
 	group.GET("/:entity_id/department/tree", utils.Handler(api.DepartmentApi.GetDepartmentTree))
 	group.GET("/:entity_id/department/:department_id/user/sub", utils.Handler(api.DepartmentApi.GetDepartmentSubUsers))
+}
+
+func (entity *entityRouter) UrlrouterCheckAtHandler(group *gin.RouterGroup) {
+
 }

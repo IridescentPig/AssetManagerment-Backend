@@ -23,7 +23,14 @@ func connect() {
 		log.Fatal(err)
 	}
 
-	db.AutoMigrate(&model.Entity{}, &model.Department{}, &model.User{}, &model.Asset{}, &model.AssetClass{}, &model.Task{})
+	db.AutoMigrate(&model.Entity{},
+		&model.Department{},
+		&model.User{},
+		&model.Asset{},
+		&model.AssetClass{},
+		&model.Task{},
+		&model.Url{},
+	)
 
 	//tables := make([]string, 0)
 	//db.Raw("SELECT name FROM sqlite_master WHERE type='table' order by name").Scan(&tables)
@@ -54,7 +61,13 @@ func Initial() {
 }
 
 func ClearDatabase(db *gorm.DB) {
-	db.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&model.User{}).Delete(&model.Department{}).Delete(&model.Entity{}).Delete(&model.Asset{}).Delete(&model.AssetClass{})
+	db.Session(&gorm.Session{AllowGlobalUpdate: true}).
+		Delete(&model.User{}).
+		Delete(&model.Department{}).
+		Delete(&model.Entity{}).
+		Delete(&model.Asset{}).
+		Delete(&model.AssetClass{}).
+		Delete(&model.Url{})
 }
 
 /*type lockDb struct {
