@@ -22,11 +22,11 @@ func init() {
 
 func (entity *entityRouter) Init(group *gin.RouterGroup) {
 	group.Use(utils.Handler(middleware.JWTMiddleware()))
-	entity.routerCheckAtHandler(group)
-	entity.routerNeedSystemSuper(group)
 	{
 		entity.UrlrouterCheckAtHandler(group)
 	}
+	entity.routerCheckAtHandler(group)
+	entity.routerNeedSystemSuper(group)
 }
 
 func (entity *entityRouter) routerNeedSystemSuper(group *gin.RouterGroup) {
@@ -66,4 +66,5 @@ func (entity *entityRouter) UrlrouterCheckAtHandler(group *gin.RouterGroup) {
 	group.POST("/:entity_id/url", utils.Handler(api.UrlApi.CreateUrl))
 	group.PATCH("/:entity_id/url", utils.Handler(api.UrlApi.ModifyUrl))
 	group.DELETE("/:entity_id/url", utils.Handler(api.UrlApi.DeleteUrl))
+	group.GET("/:entity_id/url/list", utils.Handler(api.UrlApi.GetUrlList))
 }
