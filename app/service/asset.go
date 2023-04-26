@@ -152,29 +152,36 @@ func (asset *assetService) ExpireAssets(assetIDs []uint) error {
 	return err
 }
 
-func (asset *assetService) TransferAssets(assetIDs []uint, userID uint, departmentID uint) error {
-	subAssets, err := dao.AssetDao.GetSubAssetsByParents(assetIDs)
-	if err != nil {
+func (asset *assetService) TransferAssets(assetIDs []uint, userID uint, departmentID uint, oldDepartmentID uint) error {
+	if departmentID != oldDepartmentID {
+		subAssets, err := dao.AssetDao.GetSubAssetsByParents(assetIDs)
+		if err != nil {
+			return err
+		}
+		subAssetIDs := []uint{}
+
+		for _, asset := range subAssets {
+			subAssetIDs = append(subAssetIDs, asset.ID)
+		}
+
+		err = dao.AssetDao.AllUpdate(subAssetIDs, map[string]interface{}{
+			"parent_id": gorm.Expr("NULL"),
+		})
+		if err != nil {
+			return err
+		}
+		err = dao.AssetDao.AllUpdate(assetIDs, map[string]interface{}{
+			"user_id":       userID,
+			"parent_id":     gorm.Expr("NULL"),
+			"department_id": departmentID,
+		})
+		return err
+	} else {
+		err := dao.AssetDao.AllUpdate(assetIDs, map[string]interface{}{
+			"user_id": userID,
+		})
 		return err
 	}
-	subAssetIDs := []uint{}
-
-	for _, asset := range subAssets {
-		subAssetIDs = append(subAssetIDs, asset.ID)
-	}
-
-	err = dao.AssetDao.AllUpdate(subAssetIDs, map[string]interface{}{
-		"parent_id": gorm.Expr("NULL"),
-	})
-	if err != nil {
-		return err
-	}
-	err = dao.AssetDao.AllUpdate(assetIDs, map[string]interface{}{
-		"user_id":       userID,
-		"parent_id":     gorm.Expr("NULL"),
-		"department_id": departmentID,
-	})
-	return err
 }
 
 func (asset *assetService) GetAssetByUser(user_id uint) (assets []*define.AssetInfo, err error) {
