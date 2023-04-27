@@ -144,4 +144,26 @@ func TestUrl(t *testing.T) {
 	for _, asset := range assets {
 		log.Print(asset.Name)
 	}
+
+	UrlDao.Update("0", 1, map[string]interface{}{
+		"url": "ajsdlfkjsh",
+	})
+	UrlDao.Update("1", 1, map[string]interface{}{
+		"url": "ajsdlfkjsh",
+	})
+	UrlDao.Update("2", 1, map[string]interface{}{
+		"url": "ajsdlfkjsh",
+	})
+	UrlDao.Update("3", 1, map[string]interface{}{
+		"url": "ajsdlfkjsh",
+	})
+
+	UrlDao.GetUrlByName("0", 1)
+	UrlDao.GetUrlByName("1", 1)
+	UrlDao.GetUrlByName("2", 1)
+	UrlDao.GetUrlByName("0asdf", 1)
+
+	UrlDao.Delete([]string{"0", "1"}, 1)
+	UrlDao.Delete([]string{"2", "3"}, 1)
+	UrlDao.Delete([]string{"90", "100"}, 1)
 }
