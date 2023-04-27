@@ -75,10 +75,10 @@ func LogMiddleware() utils.HandlerFunc {
 					"status":        ctx.Writer.Status(),
 					"error_code":    resData.Error.Code,
 					"error_message": resData.Error.Message,
-					"user_id":       0,
+					"user_id":       uint(0),
 					"username":      "",
-					"entity_id":     0,
-					"department_id": 0,
+					"entity_id":     uint(0),
+					"department_id": uint(0),
 				}).Info("Login failed")
 			}
 		} else if ctx.Request.Method != "GET" {
