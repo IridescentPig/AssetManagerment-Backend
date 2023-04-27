@@ -264,10 +264,22 @@ func (asset *assetDao) ModifyAssetUser(AssetID uint, Username string) error {
 	return utils.DBError(db.Session(&gorm.Session{FullSaveAssociations: true}).Updates(&query_asset))
 }
 
-func (asset *assetDao) GetAssetsByUser(userID uint) (assets []*model.Asset, err error) {
+func (asset *assetDao) GetDirectAssetsByUser(userID uint) (assets []*model.Asset, err error) {
+	/*result := db.Model(&model.Asset{}).Preload("Parent").Preload("User").
+	Preload("Department").Preload("Class").Preload("Maintainer").
+	Where("user_id = ? and parent_id = 0", userID).Find(&assets)*/
+	//db = db.Debug()
+	sub_query := db.Model(&model.Asset{}).Preload("Parent").Preload("User").
+		Preload("Department").Preload("Class").Preload("Maintainer").
+		Where("user_id = ?", userID).Select("id")
+	var all_assets []uint
+	sub_query.Find(&all_assets)
+	//log.Print("all: ", len(all_assets), all_assets[0], all_assets[1])
+
 	result := db.Model(&model.Asset{}).Preload("Parent").Preload("User").
 		Preload("Department").Preload("Class").Preload("Maintainer").
-		Where("user_id = ?", userID).Find(&assets)
+		Where("user_id = ?", userID).Where("parent_id not in (?) or parent_id is null", all_assets).Find(&assets)
+	//log.Print("fliter: ", len(assets) /*assets[0].ParentID, assets[1].ParentID*/)
 	if result.Error == gorm.ErrRecordNotFound {
 		return nil, nil
 	}

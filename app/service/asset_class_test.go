@@ -53,4 +53,7 @@ func TestAssetClass(t *testing.T) {
 
 	AssetClassService.DeleteAssetClass(1)
 
+	AssetClassService.GetSubClass(1, 1)
+	AssetClassService.ClassHasSubClass(1, 1)
+
 }

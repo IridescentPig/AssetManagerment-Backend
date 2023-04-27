@@ -471,7 +471,7 @@ func (task *taskApi) ApproveTask(ctx *utils.Context) {
 			return
 		}
 
-		err = service.AssetService.TransferAssets(assetIDs, taskInfo.TargetID, taskInfo.Target.DepartmentID)
+		err = service.AssetService.TransferAssets(assetIDs, taskInfo.TargetID, taskInfo.Target.DepartmentID, departmentID)
 		if err != nil {
 			ctx.InternalError(err.Error())
 			return

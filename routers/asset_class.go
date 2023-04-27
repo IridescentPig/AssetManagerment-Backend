@@ -21,7 +21,7 @@ func init() {
 }
 
 func (assetClass *assetClassRouter) Init(group *gin.RouterGroup) {
-	group.Use(utils.Handler(middleware.JWTMiddleware()))
+	group.Use(utils.Handler(middleware.JWTMiddleware()), utils.Handler(middleware.LogMiddleware()))
 	assetClass.routerCheckAtHandler(group)
 }
 

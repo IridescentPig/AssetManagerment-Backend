@@ -19,7 +19,7 @@ type Asset struct {
 	Expire       bool            `gorm:"column:expire;default:false" json:"expire"`
 	ClassID      uint            `gorm:"default:null;column:class_id;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"class_id"`
 	Class        AssetClass      `gorm:"foreignKey:ClassID;references:ID;default:null" json:"class"`
-	Number       int             `gorm:"column:number" json:"number"`
+	Number       int             `gorm:"column:number" json:"count"`
 	Type         int             `gorm:"column:type" json:"type"`   // 1-条目型资产 2-数量型资产
 	State        uint            `gorm:"column:state" json:"state"` // 0idle;1in_use;2in_maintain;3retired;4deleted
 	MaintainerID uint            `gorm:"default:null;column:maintainer_id;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"maintainer_id"`
