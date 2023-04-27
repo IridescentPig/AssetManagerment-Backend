@@ -80,6 +80,8 @@ func TestAsset(t *testing.T) {
 	assets = []uint{2}
 	AssetService.ExpireAssets(assets)
 	AssetService.TransferAssets([]uint{1}, 1, 1, 1)
+	AssetService.TransferAssets([]uint{1, 2, 3}, 1, 1, 2)
+	AssetService.TransferAssets([]uint{1, 2, 3}, 1, 2, 1)
 
 	AssetService.GetAssetByUser(1)
 	AssetService.GetAssetByUser(2)

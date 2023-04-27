@@ -104,4 +104,18 @@ func TestUser(t *testing.T) {
 	assert.Equal(t, "admin", username, "service error")
 	assert.Equal(t, nil, err, "service error")
 
+	UserService.GetUserByID(1)
+	UserService.GetUserByID(9)
+	UserService.GetUserByName("admin")
+	UserService.GetUserByName("afdfsa")
+	UserService.ExistsUserByID(1)
+	UserService.ExistsUserByID(9)
+	UserService.GetAllUsers()
+	UserService.ModifyUserEntity(1, 1)
+	UserService.ModifyUserEntity(9, 9)
+	UserService.ModifyUserDepartment(1, 1)
+	UserService.ModifyUserDepartment(9, 9)
+	UserService.DeleteUser(1)
+	UserService.DeleteUser(9)
+
 }
