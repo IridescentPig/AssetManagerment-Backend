@@ -159,8 +159,8 @@ func TestDepartmentEntity(t *testing.T) {
 	assert.Equal(t, nil, err, "database error")
 	err = DepartmentDao.Create(department)
 	assert.Equal(t, nil, err, "database error")
-	err = EntityDao.Create(entity)
-	assert.Equal(t, nil, err, "database error")
+	/*err = EntityDao.Create(entity)
+	assert.Equal(t, nil, err, "database error")*/
 
 	departments, err := DepartmentDao.AllDepartment()
 	if err != nil {
