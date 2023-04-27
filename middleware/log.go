@@ -79,8 +79,7 @@ func LogMiddleware() utils.HandlerFunc {
 					"username":      "",
 					"entity_id":     0,
 					"department_id": 0,
-				})
-				customLog.Info("Login failed")
+				}).Info("Login failed")
 			}
 		} else if ctx.Request.Method != "GET" {
 			userInfo := getOperatorInfo(ctx)
