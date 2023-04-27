@@ -80,4 +80,19 @@ func TestUserAsset(t *testing.T) {
 	assert.Equal(t, nil, err, "database error")
 	log.Print(direct)
 
+	AssetDao.GetDepartmentAssetsByIDs([]uint{0}, 1)
+	AssetDao.GetDepartmentAssetsByIDs([]uint{1, 2, 3}, 1)
+	AssetDao.GetUserAssetsByIDs([]uint{0}, 1)
+	AssetDao.GetUserAssetsByIDs([]uint{1, 2, 3}, 1)
+	AssetDao.GetDepartmentAssetsByIDs([]uint{0}, 1)
+	AssetDao.GetDepartmentAssetsByIDs([]uint{1, 2, 3}, 1)
+	AssetDao.GetDepartmentIdleAssetsByIDs([]uint{0}, 1)
+	AssetDao.GetDepartmentIdleAssetsByIDs([]uint{1, 2, 3}, 1)
+	AssetDao.ModifyAssetsUserAndState([]uint{0}, 1, 2)
+	AssetDao.ModifyAssetsUserAndState([]uint{1, 2, 3}, 1, 3)
+	AssetDao.GetUserMaintainAssets(1)
+	AssetDao.GetUserMaintainAssets(9)
+	AssetDao.ModifyAssetMaintainerAndState([]uint{0}, 1)
+	AssetDao.ModifyAssetMaintainerAndState([]uint{1, 2, 3}, 2)
+
 }

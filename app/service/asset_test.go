@@ -81,4 +81,22 @@ func TestAsset(t *testing.T) {
 	AssetService.ExpireAssets(assets)
 	AssetService.TransferAssets([]uint{1}, 1, 1)
 
+	AssetService.GetAssetByUser(1)
+	AssetService.GetAssetByUser(2)
+	AssetService.GetAssetByUser(90)
+	AssetService.GetDepartmentAssetsByIDs([]uint{0}, 1)
+	AssetService.GetDepartmentAssetsByIDs([]uint{1, 2, 3}, 1)
+	AssetService.GetUserAssetsByIDs([]uint{0}, 1)
+	AssetService.GetUserAssetsByIDs([]uint{1, 2, 3}, 1)
+	AssetService.GetDepartmentIdleAssets([]uint{0}, 1)
+	AssetService.GetDepartmentIdleAssets([]uint{1, 2, 3}, 1)
+	AssetService.AcquireAssets([]uint{0}, 1)
+	AssetService.AcquireAssets([]uint{1, 2, 3}, 1)
+	AssetService.CancelAssets([]uint{0}, 1)
+	AssetService.CancelAssets([]uint{1, 2, 3}, 1)
+	AssetService.GetUserMaintainAssets(1)
+	AssetService.GetUserMaintainAssets(9)
+	AssetService.ModifyAssetMaintainerAndState([]uint{0}, 1)
+	AssetService.ModifyAssetMaintainerAndState([]uint{1, 2, 3}, 1)
+
 }
