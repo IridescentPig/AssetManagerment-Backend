@@ -43,4 +43,5 @@ const (
 	ASSET_NOT_IN_MAINTENCE_INFO          = "Asset not in maintence"
 	NOT_YOUR_MAINTENCE_ASSET_INFO        = "This asset is not int your maintence"
 	TASK_NOT_PENDING_INFO                = "Task is not pending"
+	URL_NOT_FOUND_INFO                   = "URL not found"
 )

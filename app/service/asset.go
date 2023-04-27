@@ -185,11 +185,17 @@ func (asset *assetService) TransferAssets(assetIDs []uint, userID uint, departme
 }
 
 func (asset *assetService) GetAssetByUser(user_id uint) (assets []*define.AssetInfo, err error) {
-	assetList, err := dao.AssetDao.GetAssetsByUser(user_id)
+	assetList, err := dao.AssetDao.GetDirectAssetsByUser(user_id)
 	if err != nil {
 		return
 	}
 	err = copier.Copy(&assets, assetList)
+	for _, child_asset := range assets {
+		child_asset.Children, err = asset.GetSubAsset(child_asset.AssetID, child_asset.Department.ID)
+		if err != nil {
+			return
+		}
+	}
 	if err != nil {
 		return
 	}
