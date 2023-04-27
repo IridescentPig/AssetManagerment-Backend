@@ -49,10 +49,10 @@ func Initial() {
 		if os.Getenv("DEBUG") == "" {
 			db, err = gorm.Open(mysql.Open("manager:BinaryAbstract@tcp(49.233.51.221:25000)/asset?parseTime=True&loc=Local"), nil)
 		} else {
-			db, err = gorm.Open(mysql.Open("manager:BinaryAbstract@tcp(AssetManagement-Database-dev.BinaryAbstract.secoder.local:80)/asset?parseTime=True&loc=Local"), nil)
+			db, err = gorm.Open(mysql.Open("manager:BinaryAbstract@tcp(AssetManagement-Database-dev.BinaryAbstract.secoder.local:80)/asset?parseTime=True&loc=Asia%2fShanghai"), nil)
 		}
 	} else {
-		db, err = gorm.Open(mysql.Open("manager:BinaryAbstract@tcp(AssetManagement-Database.BinaryAbstract.secoder.local:3306)/asset?parseTime=True&loc=Local"), nil)
+		db, err = gorm.Open(mysql.Open("manager:BinaryAbstract@tcp(AssetManagement-Database.BinaryAbstract.secoder.local:3306)/asset?parseTime=True&loc=Asia%2fShanghai"), nil)
 	}
 
 	if err != nil {
