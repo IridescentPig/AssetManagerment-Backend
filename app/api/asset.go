@@ -28,10 +28,29 @@ func init() {
 Handle func for GET /department/{department_id}/asset/list
 */
 func (asset *assetApi) GetAssetList(ctx *utils.Context) {
-	hasIdentity, departmentID, err := AssetClassApi.CheckAssetIdentity(ctx)
+	// hasIdentity, departmentID, err := AssetClassApi.CheckAssetIdentity(ctx)
+	// if err != nil {
+	// 	return
+	// } else if !hasIdentity {
+	// 	ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+	// 	return
+	// }
+	departmentID, err := service.EntityService.GetParamID(ctx, "department_id")
 	if err != nil {
 		return
-	} else if !hasIdentity {
+	}
+
+	existsDepartment, err := service.DepartmentService.ExistsDepartmentByID(departmentID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	} else if !existsDepartment {
+		ctx.NotFound(myerror.DEPARTMENT_NOT_FOUND, myerror.DEPARTMENT_NOT_FOUND_INFO)
+		return
+	}
+
+	thisUser := UserApi.GetOperatorInfo(ctx)
+	if thisUser.DepartmentID != departmentID {
 		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
 		return
 	}

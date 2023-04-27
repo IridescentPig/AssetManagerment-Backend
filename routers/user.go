@@ -21,8 +21,8 @@ func init() {
 }
 
 func (user *userRouter) Init(group *gin.RouterGroup) {
-	user.routerNotNeedLogin(group)
-	user.routerNeedLogin(group)
+	user.routerNotNeedLogin(group.Group(""))
+	user.routerNeedLogin(group.Group(""))
 }
 
 func (user *userRouter) routerNotNeedLogin(group *gin.RouterGroup) {
