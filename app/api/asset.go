@@ -292,7 +292,7 @@ func (asset *assetApi) TransferAssets(ctx *utils.Context) {
 		assetIDs = append(assetIDs, assetID.AssetID)
 	}
 
-	err = service.AssetService.TransferAssets(assetIDs, targetUser.ID, targetUser.DepartmentID)
+	err = service.AssetService.TransferAssets(assetIDs, targetUser.ID, targetUser.DepartmentID, departmentID)
 	if err != nil {
 		ctx.InternalError(err.Error())
 		return

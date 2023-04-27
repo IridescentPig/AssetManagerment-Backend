@@ -38,7 +38,7 @@ func (task *taskDao) Update(id uint, data map[string]interface{}) error {
 
 func (task *taskDao) GetTaskByID(id uint) (*model.Task, error) {
 	ret := &model.Task{}
-	result := db.Model(&model.Task{}).Preload("User").Preload("Target").Preload("Department").Preload("AssetList").Where("id = ?", id).First(ret)
+	result := db.Model(&model.Task{}).Preload("User").Preload("Target").Preload("Department").Preload("AssetList.Class").Where("id = ?", id).First(ret)
 	if result.Error == gorm.ErrRecordNotFound {
 		return nil, nil
 	}
@@ -160,7 +160,7 @@ func (task *taskDao) ModifyAssetList(id uint, list []*model.Asset) error {
 func (task *taskDao) GetTaskListByUserID(userID uint) (taskList []*model.Task, err error) {
 	result := db.Model(&model.Task{}).Preload("User").
 		Preload("Target").Preload("Department").
-		Preload("AssetList").Where("user_id = ?", userID).Find(&taskList)
+		Preload("AssetList.Class").Where("user_id = ?", userID).Find(&taskList)
 	if result.Error == gorm.ErrRecordNotFound {
 		return nil, nil
 	}
@@ -171,7 +171,7 @@ func (task *taskDao) GetTaskListByUserID(userID uint) (taskList []*model.Task, e
 func (task *taskDao) GetTaskListByDepartmentID(departmentID uint) (taskList []*model.Task, err error) {
 	result := db.Model(&model.Task{}).Preload("User").
 		Preload("Target").Preload("Department").
-		Preload("AssetList").Where("department_id = ?", departmentID).Find(&taskList)
+		Preload("AssetList.Class").Where("department_id = ? and state <= ?", departmentID, 2).Find(&taskList)
 	if result.Error == gorm.ErrRecordNotFound {
 		return nil, nil
 	}

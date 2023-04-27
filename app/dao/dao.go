@@ -30,6 +30,7 @@ func connect() {
 		&model.AssetClass{},
 		&model.Task{},
 		&model.Url{},
+		&model.Log{},
 	)
 
 	//tables := make([]string, 0)

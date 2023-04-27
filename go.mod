@@ -12,7 +12,10 @@ require (
 	gorm.io/gorm v1.25.0
 )
 
-require github.com/thoas/go-funk v0.9.3
+require (
+	github.com/sirupsen/logrus v1.9.0
+	github.com/thoas/go-funk v0.9.3
+)
 
 require (
 	github.com/bytedance/sonic v1.8.0 // indirect
