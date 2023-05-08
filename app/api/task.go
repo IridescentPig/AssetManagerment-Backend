@@ -24,7 +24,7 @@ func init() {
 	TaskApi = newTaskApi()
 }
 
-func getTaskInfoRes(taskList []*model.Task) define.TaskListResponse {
+func (task *taskApi) getTaskInfoRes(taskList []*model.Task) define.TaskListResponse {
 	taskInfoList := funk.Map(taskList, func(thisTask *model.Task) define.TaskBasicInfo {
 		taskInfo := define.TaskBasicInfo{
 			ID:              thisTask.ID,
@@ -44,7 +44,7 @@ func getTaskInfoRes(taskList []*model.Task) define.TaskListResponse {
 	return taskListRes
 }
 
-func userTaskPrevilige(ctx *utils.Context) (*model.Task, bool) {
+func (task *taskApi) userTaskPrevilige(ctx *utils.Context) (*model.Task, bool) {
 	userID, err := service.EntityService.GetParamID(ctx, "user_id")
 	if err != nil {
 		return nil, false
@@ -76,7 +76,7 @@ func userTaskPrevilige(ctx *utils.Context) (*model.Task, bool) {
 	return taskInfo, true
 }
 
-func departmentTaskPrevillige(ctx *utils.Context) (*model.Task, *define.UserBasicInfo, bool) {
+func (task *taskApi) departmentTaskPrevillige(ctx *utils.Context) (*model.Task, *define.UserBasicInfo, bool) {
 	departmentID, err := service.EntityService.GetParamID(ctx, "department_id")
 	if err != nil {
 		return nil, nil, false
@@ -263,7 +263,7 @@ func (task *taskApi) GetUserTaskList(ctx *utils.Context) {
 	// 	TaskList: taskInfoList,
 	// }
 
-	taskListRes := getTaskInfoRes(taskList)
+	taskListRes := task.getTaskInfoRes(taskList)
 
 	ctx.Success(taskListRes)
 }
@@ -299,7 +299,7 @@ func (task *taskApi) GetDepartmentTaskList(ctx *utils.Context) {
 		return
 	}
 
-	taskListRes := getTaskInfoRes(taskList)
+	taskListRes := task.getTaskInfoRes(taskList)
 
 	ctx.Success(taskListRes)
 }
@@ -336,7 +336,7 @@ func (task *taskApi) GetDepartmentTaskInfo(ctx *utils.Context) {
 	// 	return
 	// }
 
-	taskInfo, _, isOK := departmentTaskPrevillige(ctx)
+	taskInfo, _, isOK := task.departmentTaskPrevillige(ctx)
 	if !isOK {
 		return
 	}
@@ -390,7 +390,7 @@ func (task *taskApi) GetUserTaskInfo(ctx *utils.Context) {
 	// 	return
 	// }
 
-	taskInfo, isOK := userTaskPrevilige(ctx)
+	taskInfo, isOK := task.userTaskPrevilige(ctx)
 	if !isOK {
 		return
 	}
@@ -416,7 +416,7 @@ func (task *taskApi) GetUserTaskInfo(ctx *utils.Context) {
 Handle func for POST /departments/:department_id/assets/tasks/:task_id
 */
 func (task *taskApi) ApproveTask(ctx *utils.Context) {
-	taskInfo, thisUser, isOK := departmentTaskPrevillige(ctx)
+	taskInfo, thisUser, isOK := task.departmentTaskPrevillige(ctx)
 	if !isOK {
 		return
 	}
@@ -522,7 +522,7 @@ func (task *taskApi) ApproveTask(ctx *utils.Context) {
 Handle func for DELETE /departments/:department_id/assets/tasks/:task_id
 */
 func (task *taskApi) RejectTask(ctx *utils.Context) {
-	taskInfo, _, isOK := departmentTaskPrevillige(ctx)
+	taskInfo, _, isOK := task.departmentTaskPrevillige(ctx)
 	if !isOK {
 		return
 	}
@@ -545,7 +545,7 @@ func (task *taskApi) RejectTask(ctx *utils.Context) {
 Handle func for DELETE /users/:user_id/assets/tasks/:task_id
 */
 func (task *taskApi) CancelTasks(ctx *utils.Context) {
-	taskInfo, isOK := userTaskPrevilige(ctx)
+	taskInfo, isOK := task.userTaskPrevilige(ctx)
 	if !isOK {
 		return
 	}

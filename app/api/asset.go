@@ -2,6 +2,7 @@ package api
 
 import (
 	"asset-management/app/define"
+	"asset-management/app/model"
 	"asset-management/app/service"
 	"asset-management/myerror"
 	"asset-management/utils"
@@ -320,41 +321,78 @@ func (asset *assetApi) TransferAssets(ctx *utils.Context) {
 	ctx.Success(nil)
 }
 
-/*
-Handle func for GET /users/:user_id/assets/maintain
-*/
-func (asset *assetApi) GetUserMaintainAssets(ctx *utils.Context) {
+func (asset *assetApi) userAssetPrevillige(ctx *utils.Context) (*model.User, bool) {
 	userID, err := service.EntityService.GetParamID(ctx, "user_id")
 	if err != nil {
-		return
+		return nil, false
 	}
 
 	operatorUser := UserApi.GetOperatorInfo(ctx)
 	if operatorUser.UserID != userID {
 		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
-		return
+		return nil, false
 	}
 
 	thisUser, err := service.UserService.GetUserByID(userID)
 	if err != nil {
 		ctx.InternalError(err.Error())
-		return
+		return nil, false
 	} else if thisUser == nil {
 		ctx.NotFound(myerror.USER_NOT_FOUND, myerror.USER_NOT_FOUND_INFO)
-		return
+		return nil, false
 	}
 
 	if thisUser.EntityID == 0 {
 		ctx.BadRequest(myerror.USER_NOT_IN_ENTITY, myerror.USER_NOT_IN_ENTITY_INFO)
-		return
+		return nil, false
 	} else if thisUser.DepartmentID == 0 {
 		ctx.BadRequest(myerror.USER_NOT_IN_DEPARTMENT, myerror.USER_NOT_IN_DEPARTMENT_INFO)
+		return nil, false
+	}
+
+	return thisUser, true
+}
+
+/*
+Handle func for GET /users/:user_id/assets/maintain
+*/
+func (asset *assetApi) GetUserMaintainAssets(ctx *utils.Context) {
+	// userID, err := service.EntityService.GetParamID(ctx, "user_id")
+	// if err != nil {
+	// 	return
+	// }
+
+	// operatorUser := UserApi.GetOperatorInfo(ctx)
+	// if operatorUser.UserID != userID {
+	// 	ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+	// 	return
+	// }
+
+	// thisUser, err := service.UserService.GetUserByID(userID)
+	// if err != nil {
+	// 	ctx.InternalError(err.Error())
+	// 	return
+	// } else if thisUser == nil {
+	// 	ctx.NotFound(myerror.USER_NOT_FOUND, myerror.USER_NOT_FOUND_INFO)
+	// 	return
+	// }
+
+	// if thisUser.EntityID == 0 {
+	// 	ctx.BadRequest(myerror.USER_NOT_IN_ENTITY, myerror.USER_NOT_IN_ENTITY_INFO)
+	// 	return
+	// } else if thisUser.DepartmentID == 0 {
+	// 	ctx.BadRequest(myerror.USER_NOT_IN_DEPARTMENT, myerror.USER_NOT_IN_DEPARTMENT_INFO)
+	// 	return
+	// }
+
+	thisUser, isOK := asset.userAssetPrevillige(ctx)
+	if !isOK {
 		return
 	}
 
 	var assetListRes []*define.AssetInfo
 
-	assetList, err := service.AssetService.GetUserMaintainAssets(userID)
+	assetList, err := service.AssetService.GetUserMaintainAssets(thisUser.ID)
 	if err != nil {
 		ctx.InternalError(err.Error())
 		return
@@ -381,31 +419,8 @@ func (asset *assetApi) GetUserMaintainAssets(ctx *utils.Context) {
 Handle func for POST /users/:user_id/assets/:asset_id/maintain
 */
 func (asset *assetApi) FinishMaintenance(ctx *utils.Context) {
-	userID, err := service.EntityService.GetParamID(ctx, "user_id")
-	if err != nil {
-		return
-	}
-
-	operatorUser := UserApi.GetOperatorInfo(ctx)
-	if operatorUser.UserID != userID {
-		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
-		return
-	}
-
-	thisUser, err := service.UserService.GetUserByID(userID)
-	if err != nil {
-		ctx.InternalError(err.Error())
-		return
-	} else if thisUser == nil {
-		ctx.NotFound(myerror.USER_NOT_FOUND, myerror.USER_NOT_FOUND_INFO)
-		return
-	}
-
-	if thisUser.EntityID == 0 {
-		ctx.BadRequest(myerror.USER_NOT_IN_ENTITY, myerror.USER_NOT_IN_ENTITY_INFO)
-		return
-	} else if thisUser.DepartmentID == 0 {
-		ctx.BadRequest(myerror.USER_NOT_IN_DEPARTMENT, myerror.USER_NOT_IN_DEPARTMENT_INFO)
+	thisUser, isOK := asset.userAssetPrevillige(ctx)
+	if !isOK {
 		return
 	}
 
@@ -424,7 +439,7 @@ func (asset *assetApi) FinishMaintenance(ctx *utils.Context) {
 	} else if thisAsset.State != 2 {
 		ctx.BadRequest(myerror.ASSET_NOT_IN_MAINTENCE, myerror.ASSET_NOT_IN_MAINTENCE_INFO)
 		return
-	} else if thisAsset.MaintainerID != userID {
+	} else if thisAsset.MaintainerID != thisUser.ID {
 		ctx.BadRequest(myerror.NOT_YOUR_MAINTENCE_ASSET, myerror.NOT_YOUR_MAINTENCE_ASSET_INFO)
 		return
 	}
