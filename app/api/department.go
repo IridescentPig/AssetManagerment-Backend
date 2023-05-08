@@ -86,6 +86,35 @@ func (department *departmentApi) CheckDepartmentModifyIdentity(ctx *utils.Contex
 }
 
 /*
+本实体内的资产/系统管理员的权限
+*/
+func (department *departmentApi) CheckDepartmentSuperIdentity(ctx *utils.Context) (uint, uint, bool) {
+	entityID, departmentID, err := department.GetTwoIDs(ctx)
+	if err != nil {
+		return 0, 0, false
+	}
+
+	isValid := department.CheckEntityDepartmentValid(ctx, entityID, departmentID)
+	if !isValid {
+		return 0, 0, false
+	}
+
+	entitySuper := service.UserService.EntitySuper(ctx)
+	departmentSuper := service.UserService.DepartmentSuper(ctx)
+	if !entitySuper && !departmentSuper {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return 0, 0, false
+	}
+	identity := service.EntityService.CheckIsInEntity(ctx, entityID)
+	if !identity {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return 0, 0, false
+	}
+
+	return entityID, departmentID, true
+}
+
+/*
 Handle func for POST /entity/{entity_id}/department and /entity/{entity_id}/department/{department_id}/department
 */
 func (department *departmentApi) CreateDepartment(ctx *utils.Context) {
@@ -255,30 +284,8 @@ func (department *departmentApi) GetDepartmentByID(ctx *utils.Context) {
 Handle func for GET /entity/{entity_id}/department/{department_id}/department/list
 */
 func (department *departmentApi) GetSubDepartments(ctx *utils.Context) {
-	entityID, departmentID, err := department.GetTwoIDs(ctx)
-	if err != nil {
-		return
-	}
-
-	isValid := department.CheckEntityDepartmentValid(ctx, entityID, departmentID)
-	if !isValid {
-		return
-	}
-
-	entitySuper := service.UserService.EntitySuper(ctx)
-	departmentSuper := service.UserService.DepartmentSuper(ctx)
-	if !entitySuper && !departmentSuper {
-		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
-		return
-	}
-	// identity, err := service.DepartmentService.CheckDepartmentIdentity(ctx, entityID, departmentID)
-	identity := service.EntityService.CheckIsInEntity(ctx, entityID)
-	// if err != nil {
-	// 	ctx.InternalError(err.Error())
-	// 	return
-	// }
-	if !identity {
-		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+	_, departmentID, isOK := department.CheckDepartmentSuperIdentity(ctx)
+	if !isOK {
 		return
 	}
 
@@ -532,11 +539,6 @@ func (department *departmentApi) DeleteDepartmentManager(ctx *utils.Context) {
 Handle func for GET /entity/{entity_id}/department/{department_id}/manager
 */
 func (department *departmentApi) GetDepartmentManager(ctx *utils.Context) {
-	entityID, departmentID, err := department.GetTwoIDs(ctx)
-	if err != nil {
-		return
-	}
-
 	// abandon later
 	// entitySuper := service.UserService.EntitySuper(ctx)
 	// if !entitySuper {
@@ -549,27 +551,10 @@ func (department *departmentApi) GetDepartmentManager(ctx *utils.Context) {
 	// 	return
 	// }
 
-	isValid := department.CheckEntityDepartmentValid(ctx, entityID, departmentID)
-	if !isValid {
+	_, departmentID, isOK := department.CheckDepartmentSuperIdentity(ctx)
+	if !isOK {
 		return
 	}
-
-	entitySuper := service.UserService.EntitySuper(ctx)
-	departmentSuper := service.UserService.DepartmentSuper(ctx)
-	if !entitySuper && !departmentSuper {
-		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
-		return
-	}
-	identity := service.EntityService.CheckIsInEntity(ctx, entityID)
-	if !identity {
-		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
-		return
-	}
-
-	// hasIdentity := department.CheckDepartmentModifyIdentity(ctx, entityID)
-	// if !hasIdentity {
-	// 	return
-	// }
 
 	managerList, err := service.DepartmentService.GetDepartmentManagerList(departmentID)
 	if err != nil {

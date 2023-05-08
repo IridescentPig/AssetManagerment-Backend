@@ -297,32 +297,64 @@ func (user *userApi) DeleteUser(ctx *utils.Context) {
 }
 
 /*
-Handle func for GET /user/info/{user_id}
+修改密码权限：超级管理员或实体系统管理员或自己
 */
-func (user *userApi) GetUserInfoByID(ctx *utils.Context) {
+func (user *userApi) CheckChangePasswdIdentity(ctx *utils.Context) (*model.User, bool) {
 	userID, err := service.EntityService.GetParamID(ctx, "user_id")
 	if err != nil {
-		return
+		return nil, false
 	}
 
 	thisUser, err := service.UserService.GetUserByID(userID)
 	if err != nil {
 		ctx.InternalError(err.Error())
-		return
+		return nil, false
 	} else if thisUser == nil {
 		ctx.BadRequest(myerror.USER_NOT_FOUND, myerror.USER_NOT_FOUND_INFO)
-		return
+		return nil, false
 	}
 
 	isSelf := user.GetOperatorID(ctx) == userID
 	hasIdentity := user.CheckIdentity(ctx, thisUser.EntityID)
 	if !hasIdentity && !isSelf {
 		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return nil, false
+	}
+
+	return thisUser, true
+}
+
+/*
+Handle func for GET /user/info/{user_id}
+*/
+func (user *userApi) GetUserInfoByID(ctx *utils.Context) {
+	// userID, err := service.EntityService.GetParamID(ctx, "user_id")
+	// if err != nil {
+	// 	return
+	// }
+
+	// thisUser, err := service.UserService.GetUserByID(userID)
+	// if err != nil {
+	// 	ctx.InternalError(err.Error())
+	// 	return
+	// } else if thisUser == nil {
+	// 	ctx.BadRequest(myerror.USER_NOT_FOUND, myerror.USER_NOT_FOUND_INFO)
+	// 	return
+	// }
+
+	// isSelf := user.GetOperatorID(ctx) == userID
+	// hasIdentity := user.CheckIdentity(ctx, thisUser.EntityID)
+	// if !hasIdentity && !isSelf {
+	// 	ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+	// 	return
+	// }
+	thisUser, isOK := user.CheckChangePasswdIdentity(ctx)
+	if !isOK {
 		return
 	}
 
 	var userInfoRes define.UserInfo
-	err = copier.Copy(&userInfoRes, thisUser)
+	err := copier.Copy(&userInfoRes, thisUser)
 	if err != nil {
 		ctx.InternalError(err.Error())
 		return
@@ -368,29 +400,13 @@ func (user *userApi) GetAllUsers(ctx *utils.Context) {
 Handle func for POST /user/info/:user_id/password
 */
 func (user *userApi) ChangePassword(ctx *utils.Context) {
-	userID, err := service.EntityService.GetParamID(ctx, "user_id")
-	if err != nil {
-		return
-	}
-
-	thisUser, err := service.UserService.GetUserByID(userID)
-	if err != nil {
-		ctx.InternalError(err.Error())
-		return
-	} else if thisUser == nil {
-		ctx.BadRequest(myerror.USER_NOT_FOUND, myerror.USER_NOT_FOUND_INFO)
-		return
-	}
-
-	isSelf := user.GetOperatorID(ctx) == userID
-	hasIdentity := user.CheckIdentity(ctx, thisUser.EntityID)
-	if !hasIdentity && !isSelf {
-		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+	thisUser, isOK := user.CheckChangePasswdIdentity(ctx)
+	if !isOK {
 		return
 	}
 
 	var changePasswordReq define.ChangePasswordReq
-	err = ctx.MustBindWith(&changePasswordReq, binding.JSON)
+	err := ctx.MustBindWith(&changePasswordReq, binding.JSON)
 	if err != nil {
 		ctx.BadRequest(myerror.INVALID_BODY, myerror.INVALID_BODY_INFO)
 		return

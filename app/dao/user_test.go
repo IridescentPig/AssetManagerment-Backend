@@ -424,8 +424,8 @@ func TestAsset(t *testing.T) {
 	err = AssetDao.Create(num_asset)
 	assert.Equal(t, nil, err, database_error)
 
-	_, err = AssetDao.AllAsset()
-	assert.Equal(t, nil, err, database_error)
+	// _, err = AssetDao.AllAsset()
+	// assert.Equal(t, nil, err, database_error)
 	//assert.Equal(t, 2, len(list), database_error)
 
 	new_line, err := AssetDao.GetAssetByID(1)

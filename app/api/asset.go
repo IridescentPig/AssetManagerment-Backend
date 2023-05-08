@@ -25,6 +25,32 @@ func init() {
 	AssetApi = newAssetApi()
 }
 
+func (asset *assetApi) CheckAssetsValid(ctx *utils.Context, departmentID uint, assetList []define.ExpireAssetReq) ([]uint, bool) {
+	assetIDs := []uint{}
+	for _, assetID := range assetList {
+		exists, err := service.AssetService.ExistAsset(assetID.AssetID)
+		if err != nil {
+			ctx.InternalError(err.Error())
+			return nil, false
+		} else if !exists {
+			ctx.BadRequest(myerror.ASSET_NOT_FOUND, myerror.ASSET_NOT_FOUND_INFO)
+			return nil, false
+		}
+		isInDepartment, err := service.AssetService.CheckAssetInDepartment(assetID.AssetID, departmentID)
+		if err != nil {
+			ctx.InternalError(err.Error())
+			return nil, false
+		}
+		if !isInDepartment {
+			ctx.BadRequest(myerror.ASSET_NOT_IN_DEPARTMENT, myerror.ASSET_NOT_IN_DEPARTMENT_INFO)
+			return nil, false
+		}
+		assetIDs = append(assetIDs, assetID.AssetID)
+	}
+
+	return assetIDs, true
+}
+
 /*
 Handle func for GET /department/{department_id}/asset/list
 */
@@ -223,26 +249,31 @@ func (asset *assetApi) ExpireAsset(ctx *utils.Context) {
 		return
 	}
 
-	assetIDs := []uint{}
-	for _, assetID := range expireReq.ExpireList {
-		exists, err := service.AssetService.ExistAsset(assetID.AssetID)
-		if err != nil {
-			ctx.InternalError(err.Error())
-			return
-		} else if !exists {
-			ctx.BadRequest(myerror.ASSET_NOT_FOUND, myerror.ASSET_NOT_FOUND_INFO)
-			return
-		}
-		isInDepartment, err := service.AssetService.CheckAssetInDepartment(assetID.AssetID, departmentID)
-		if err != nil {
-			ctx.InternalError(err.Error())
-			return
-		}
-		if !isInDepartment {
-			ctx.BadRequest(myerror.ASSET_NOT_IN_DEPARTMENT, myerror.ASSET_NOT_IN_DEPARTMENT_INFO)
-			return
-		}
-		assetIDs = append(assetIDs, assetID.AssetID)
+	// assetIDs := []uint{}
+	// for _, assetID := range expireReq.ExpireList {
+	// 	exists, err := service.AssetService.ExistAsset(assetID.AssetID)
+	// 	if err != nil {
+	// 		ctx.InternalError(err.Error())
+	// 		return
+	// 	} else if !exists {
+	// 		ctx.BadRequest(myerror.ASSET_NOT_FOUND, myerror.ASSET_NOT_FOUND_INFO)
+	// 		return
+	// 	}
+	// 	isInDepartment, err := service.AssetService.CheckAssetInDepartment(assetID.AssetID, departmentID)
+	// 	if err != nil {
+	// 		ctx.InternalError(err.Error())
+	// 		return
+	// 	}
+	// 	if !isInDepartment {
+	// 		ctx.BadRequest(myerror.ASSET_NOT_IN_DEPARTMENT, myerror.ASSET_NOT_IN_DEPARTMENT_INFO)
+	// 		return
+	// 	}
+	// 	assetIDs = append(assetIDs, assetID.AssetID)
+	// }
+
+	assetIDs, isOK := asset.CheckAssetsValid(ctx, departmentID, expireReq.ExpireList)
+	if !isOK {
+		return
 	}
 
 	err = service.AssetService.ExpireAssets(assetIDs)
@@ -289,27 +320,9 @@ func (asset *assetApi) TransferAssets(ctx *utils.Context) {
 		return
 	}
 
-	assetIDs := []uint{}
-
-	for _, assetID := range transferReq.Assets {
-		exists, err := service.AssetService.ExistAsset(assetID.AssetID)
-		if err != nil {
-			ctx.InternalError(err.Error())
-			return
-		} else if !exists {
-			ctx.BadRequest(myerror.ASSET_NOT_FOUND, myerror.ASSET_NOT_FOUND_INFO)
-			return
-		}
-		isInDepartment, err := service.AssetService.CheckAssetInDepartment(assetID.AssetID, departmentID)
-		if err != nil {
-			ctx.InternalError(err.Error())
-			return
-		}
-		if !isInDepartment {
-			ctx.BadRequest(myerror.ASSET_NOT_IN_DEPARTMENT, myerror.ASSET_NOT_IN_DEPARTMENT_INFO)
-			return
-		}
-		assetIDs = append(assetIDs, assetID.AssetID)
+	assetIDs, isOK := asset.CheckAssetsValid(ctx, departmentID, transferReq.Assets)
+	if !isOK {
+		return
 	}
 
 	err = service.AssetService.TransferAssets(assetIDs, targetUser.ID, targetUser.DepartmentID, departmentID)
