@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 
 	"github.com/jinzhu/copier"
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
@@ -135,6 +136,7 @@ func (asset *assetService) CreateAsset(req *define.CreateAssetReq, departmentID 
 		DepartmentID: departmentID,
 		UserID:       userID,
 		ParentID:     parentID,
+		Property:     datatypes.JSON([]byte(`{}`)),
 	})
 	if err != nil {
 		return err

@@ -31,4 +31,7 @@ func (asset *assetRouter) routerCheckAtHandler(group *gin.RouterGroup) {
 	group.POST("/:department_id/asset", utils.Handler(api.AssetApi.CreateAssets))
 	group.PATCH("/:department_id/asset/expire", utils.Handler(api.AssetApi.ExpireAsset))
 	group.POST("/:department_id/asset/transfer", utils.Handler(api.AssetApi.TransferAssets))
+	group.POST("/:department_id/asset/:asset_id/property", utils.Handler(api.AssetApi.CreateAssetProperty))
+	group.PATCH("/:department_id/asset/:asset_id/property", utils.Handler(api.AssetApi.ModifyAssetProperty))
+	group.DELETE("/:department_id/asset/:asset_id/property", utils.Handler(api.AssetApi.DeleteAssetProperty))
 }

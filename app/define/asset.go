@@ -4,6 +4,7 @@ import (
 	"asset-management/app/model"
 
 	"github.com/shopspring/decimal"
+	"gorm.io/datatypes"
 )
 
 type AssetInfo struct {
@@ -22,6 +23,7 @@ type AssetInfo struct {
 	Type        int              `json:"type"`
 	Children    []*AssetInfo     `json:"children"`
 	State       uint             `json:"state"`
+	Property    datatypes.JSON   `json:"property"`
 }
 
 type ModifyAssetInfoReq struct {
