@@ -4,6 +4,7 @@ import (
 	"asset-management/app/dao"
 	"asset-management/app/define"
 	"asset-management/app/model"
+	"encoding/json"
 
 	"github.com/jinzhu/copier"
 	"gorm.io/gorm"
@@ -243,5 +244,39 @@ func (asset *assetService) GetUserMaintainAssets(userID uint) ([]*model.Asset, e
 
 func (asset *assetService) ModifyAssetMaintainerAndState(assetIDs []uint, maintainerID uint) error {
 	err := dao.AssetDao.ModifyAssetMaintainerAndState(assetIDs, maintainerID)
+	return err
+}
+
+func (asset *assetService) ExistsProperty(assetID uint, key string) (bool, error) {
+	return dao.AssetDao.CheckAssetPropertyExist(assetID, key)
+}
+
+func (asset *assetService) SetProperty(assetID uint, key string, value string) error {
+	return dao.AssetDao.SetAssetProperty(assetID, key, value)
+}
+
+func (asset *assetService) DeleteProperty(assetID uint, key string) error {
+	thisAsset, err := dao.AssetDao.GetAssetProperty(assetID)
+	if err != nil {
+		return err
+	}
+
+	var data map[string]interface{}
+	err = json.Unmarshal(thisAsset.Property, &data)
+	if err != nil {
+		return err
+	}
+
+	delete(data, key)
+
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	err = dao.AssetDao.Update(assetID, map[string]interface{}{
+		"property": jsonData,
+	})
+
 	return err
 }

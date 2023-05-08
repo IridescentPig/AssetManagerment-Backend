@@ -6,6 +6,7 @@ import (
 	"errors"
 
 	"github.com/shopspring/decimal"
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
@@ -404,4 +405,33 @@ func (asset *assetDao) ModifyAssetMaintainerAndState(assetIDs []uint, maintainer
 	}
 	err := utils.DBError(result)
 	return err
+}
+
+func (asset *assetDao) CheckAssetPropertyExist(assetID uint, key string) (bool, error) {
+	var thisAsset *model.Asset
+	result := db.Model(&model.Asset{}).Where("id = ?", assetID).
+		First(&thisAsset, datatypes.JSONQuery("property").HasKey(key))
+
+	if result.Error == gorm.ErrRecordNotFound {
+		return false, nil
+	} else if result.Error != nil {
+		return false, utils.DBError(result)
+	}
+
+	return true, nil
+}
+
+func (asset *assetDao) SetAssetProperty(assetID uint, key string, value string) error {
+	result := db.Model(&model.Asset{}).Where("id = ?", assetID).
+		UpdateColumn("property", datatypes.JSONSet("property").Set(key, value))
+
+	return utils.DBError(result)
+}
+
+func (asset *assetDao) GetAssetProperty(assetID uint) (*model.Asset, error) {
+	var thisAsset *model.Asset
+
+	result := db.Model(&model.Asset{}).Where("id = ?", assetID).First(&thisAsset)
+
+	return thisAsset, utils.DBError(result)
 }

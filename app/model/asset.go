@@ -2,6 +2,7 @@ package model
 
 import (
 	"github.com/shopspring/decimal"
+	"gorm.io/datatypes"
 )
 
 type Asset struct {
@@ -24,4 +25,5 @@ type Asset struct {
 	State        uint            `gorm:"column:state" json:"state"` // 0idle;1in_use;2in_maintain;3retired;4deleted
 	MaintainerID uint            `gorm:"default:null;column:maintainer_id;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"maintainer_id"`
 	Maintainer   User            `gorm:"foreignKey:MaintainerID;references:ID;default:null" json:"maintainer"`
+	Property     datatypes.JSON  `gorm:"column:property" json:"property"`
 }

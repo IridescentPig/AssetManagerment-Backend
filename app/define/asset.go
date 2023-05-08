@@ -68,3 +68,12 @@ type AssetTransferReq struct {
 	UserID uint             `json:"user_id"`
 	Assets []ExpireAssetReq `json:"assets"`
 }
+
+type AssetPropertyReq struct {
+	Key   string `json:"key" bind:"required"`
+	Value string `json:"value"`
+}
+
+type DeleteAssetPropertyReq struct {
+	Key string `json:"key" bind:"required"`
+}

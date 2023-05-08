@@ -45,4 +45,6 @@ const (
 	NOT_YOUR_MAINTENCE_ASSET        = 41
 	TASK_NOT_PENDING                = 42
 	URL_NOT_FOUND                   = 43
+	PROPERTY_HAS_EXIST              = 44
+	PROPERTY_NOT_EXIST              = 45
 )
