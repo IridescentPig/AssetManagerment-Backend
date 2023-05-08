@@ -52,25 +52,25 @@ func (asset *assetDao) Delete(id []uint) error {
 	return utils.DBError(result)
 }
 
-func (asset *assetDao) AllAsset() (list []model.Asset, err error) {
-	result := db.Model(&model.Asset{}).Find(&list)
-	for _, asset := range list {
-		user := &model.User{}
-		err = db.Model(&asset).Association("User").Find(&user)
-		if err != nil {
-			return
-		}
-		asset.UserID = user.ID
-		asset_class := &model.AssetClass{}
-		err = db.Model(&asset).Association("Class").Find(&asset_class)
-		if err != nil {
-			return
-		}
-		asset.ClassID = asset_class.ID
-	}
-	err = utils.DBError(result)
-	return
-}
+// func (asset *assetDao) AllAsset() (list []model.Asset, err error) {
+// 	result := db.Model(&model.Asset{}).Find(&list)
+// 	for _, asset := range list {
+// 		user := &model.User{}
+// 		err = db.Model(&asset).Association("User").Find(&user)
+// 		if err != nil {
+// 			return
+// 		}
+// 		asset.UserID = user.ID
+// 		asset_class := &model.AssetClass{}
+// 		err = db.Model(&asset).Association("Class").Find(&asset_class)
+// 		if err != nil {
+// 			return
+// 		}
+// 		asset.ClassID = asset_class.ID
+// 	}
+// 	err = utils.DBError(result)
+// 	return
+// }
 
 func (asset *assetDao) GetAssetByName(name string) (list []model.Asset, err error) {
 	result := db.Model(&model.Asset{}).Where("name = ?", name).Find(&list)
