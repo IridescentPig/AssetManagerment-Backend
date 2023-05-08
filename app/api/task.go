@@ -24,6 +24,58 @@ func init() {
 	TaskApi = newTaskApi()
 }
 
+func getTaskInfoRes(taskList []*model.Task) define.TaskListResponse {
+	taskInfoList := funk.Map(taskList, func(thisTask *model.Task) define.TaskBasicInfo {
+		taskInfo := define.TaskBasicInfo{
+			ID:              thisTask.ID,
+			TaskType:        thisTask.TaskType,
+			TaskDescription: thisTask.TaskDescription,
+			UserID:          thisTask.UserID,
+			UserName:        thisTask.User.UserName,
+			State:           thisTask.State,
+		}
+		return taskInfo
+	}).([]define.TaskBasicInfo)
+
+	taskListRes := define.TaskListResponse{
+		TaskList: taskInfoList,
+	}
+
+	return taskListRes
+}
+
+func userTaskPrevilige(ctx *utils.Context) (*model.Task, bool) {
+	userID, err := service.EntityService.GetParamID(ctx, "user_id")
+	if err != nil {
+		return nil, false
+	}
+	task_id, err := service.EntityService.GetParamID(ctx, "task_id")
+	if err != nil {
+		return nil, false
+	}
+	thisUser := UserApi.GetOperatorInfo(ctx)
+	if thisUser.UserID != userID {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return nil, false
+	}
+
+	taskInfo, err := service.TaskService.GetTaskInfoByID(task_id)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return nil, false
+	} else if taskInfo == nil {
+		ctx.NotFound(myerror.TASK_NOT_FOUND, myerror.TASK_NOT_FOUND_INFO)
+		return nil, false
+	}
+
+	if taskInfo.UserID != userID {
+		ctx.BadRequest(myerror.TASK_NOT_BELONG_TO_USER, myerror.TASK_NOT_BELONG_TO_USER_INFO)
+		return nil, false
+	}
+
+	return taskInfo, true
+}
+
 /*
 Handle func for /users/:user_id/assets/task
 */
@@ -163,21 +215,23 @@ func (task *taskApi) GetUserTaskList(ctx *utils.Context) {
 		return
 	}
 
-	taskInfoList := funk.Map(taskList, func(thisTask *model.Task) define.TaskBasicInfo {
-		taskInfo := define.TaskBasicInfo{
-			ID:              thisTask.ID,
-			TaskType:        thisTask.TaskType,
-			TaskDescription: thisTask.TaskDescription,
-			UserID:          thisTask.UserID,
-			UserName:        thisTask.User.UserName,
-			State:           thisTask.State,
-		}
-		return taskInfo
-	}).([]define.TaskBasicInfo)
+	// taskInfoList := funk.Map(taskList, func(thisTask *model.Task) define.TaskBasicInfo {
+	// 	taskInfo := define.TaskBasicInfo{
+	// 		ID:              thisTask.ID,
+	// 		TaskType:        thisTask.TaskType,
+	// 		TaskDescription: thisTask.TaskDescription,
+	// 		UserID:          thisTask.UserID,
+	// 		UserName:        thisTask.User.UserName,
+	// 		State:           thisTask.State,
+	// 	}
+	// 	return taskInfo
+	// }).([]define.TaskBasicInfo)
 
-	taskListRes := define.TaskListResponse{
-		TaskList: taskInfoList,
-	}
+	// taskListRes := define.TaskListResponse{
+	// 	TaskList: taskInfoList,
+	// }
+
+	taskListRes := getTaskInfoRes(taskList)
 
 	ctx.Success(taskListRes)
 }
@@ -193,8 +247,6 @@ func (task *taskApi) GetDepartmentTaskList(ctx *utils.Context) {
 
 	departmentSuper := service.UserService.DepartmentSuper(ctx)
 	thisUser := UserApi.GetOperatorInfo(ctx)
-	// log.Println(thisUser.DepartmentID)
-	// log.Println(thisUser.DepartmentID)
 	if !departmentSuper || thisUser.DepartmentID != departmentID {
 		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
 		return
@@ -215,21 +267,7 @@ func (task *taskApi) GetDepartmentTaskList(ctx *utils.Context) {
 		return
 	}
 
-	taskInfoList := funk.Map(taskList, func(thisTask *model.Task) define.TaskBasicInfo {
-		taskInfo := define.TaskBasicInfo{
-			ID:              thisTask.ID,
-			TaskType:        thisTask.TaskType,
-			TaskDescription: thisTask.TaskDescription,
-			UserID:          thisTask.UserID,
-			UserName:        thisTask.User.UserName,
-			State:           thisTask.State,
-		}
-		return taskInfo
-	}).([]define.TaskBasicInfo)
-
-	taskListRes := define.TaskListResponse{
-		TaskList: taskInfoList,
-	}
+	taskListRes := getTaskInfoRes(taskList)
 
 	ctx.Success(taskListRes)
 }
@@ -287,31 +325,36 @@ func (task *taskApi) GetDepartmentTaskInfo(ctx *utils.Context) {
 Handle func for GET /users/:user_id/assets/tasks/:task_id
 */
 func (task *taskApi) GetUserTaskInfo(ctx *utils.Context) {
-	userID, err := service.EntityService.GetParamID(ctx, "user_id")
-	if err != nil {
-		return
-	}
-	task_id, err := service.EntityService.GetParamID(ctx, "task_id")
-	if err != nil {
-		return
-	}
-	thisUser := UserApi.GetOperatorInfo(ctx)
-	if thisUser.UserID != userID {
-		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
-		return
-	}
+	// userID, err := service.EntityService.GetParamID(ctx, "user_id")
+	// if err != nil {
+	// 	return
+	// }
+	// task_id, err := service.EntityService.GetParamID(ctx, "task_id")
+	// if err != nil {
+	// 	return
+	// }
+	// thisUser := UserApi.GetOperatorInfo(ctx)
+	// if thisUser.UserID != userID {
+	// 	ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+	// 	return
+	// }
 
-	taskInfo, err := service.TaskService.GetTaskInfoByID(task_id)
-	if err != nil {
-		ctx.InternalError(err.Error())
-		return
-	} else if taskInfo == nil {
-		ctx.NotFound(myerror.TASK_NOT_FOUND, myerror.TASK_NOT_FOUND_INFO)
-		return
-	}
+	// taskInfo, err := service.TaskService.GetTaskInfoByID(task_id)
+	// if err != nil {
+	// 	ctx.InternalError(err.Error())
+	// 	return
+	// } else if taskInfo == nil {
+	// 	ctx.NotFound(myerror.TASK_NOT_FOUND, myerror.TASK_NOT_FOUND_INFO)
+	// 	return
+	// }
 
-	if taskInfo.UserID != userID {
-		ctx.BadRequest(myerror.TASK_NOT_BELONG_TO_USER, myerror.TASK_NOT_BELONG_TO_USER_INFO)
+	// if taskInfo.UserID != userID {
+	// 	ctx.BadRequest(myerror.TASK_NOT_BELONG_TO_USER, myerror.TASK_NOT_BELONG_TO_USER_INFO)
+	// 	return
+	// }
+
+	taskInfo, isOK := userTaskPrevilige(ctx)
+	if !isOK {
 		return
 	}
 
@@ -535,38 +578,17 @@ func (task *taskApi) RejectTask(ctx *utils.Context) {
 Handle func for DELETE /users/:user_id/assets/tasks/:task_id
 */
 func (task *taskApi) CancelTasks(ctx *utils.Context) {
-	userID, err := service.EntityService.GetParamID(ctx, "user_id")
-	if err != nil {
-		return
-	}
-	task_id, err := service.EntityService.GetParamID(ctx, "task_id")
-	if err != nil {
-		return
-	}
-	thisUser := UserApi.GetOperatorInfo(ctx)
-	if thisUser.UserID != userID {
-		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+	taskInfo, isOK := userTaskPrevilige(ctx)
+	if !isOK {
 		return
 	}
 
-	taskInfo, err := service.TaskService.GetTaskInfoByID(task_id)
-	if err != nil {
-		ctx.InternalError(err.Error())
-		return
-	} else if taskInfo == nil {
-		ctx.NotFound(myerror.TASK_NOT_FOUND, myerror.TASK_NOT_FOUND_INFO)
-		return
-	}
-
-	if taskInfo.UserID != userID {
-		ctx.BadRequest(myerror.TASK_NOT_BELONG_TO_USER, myerror.TASK_NOT_BELONG_TO_USER_INFO)
-		return
-	} else if taskInfo.State != 0 {
+	if taskInfo.State != 0 {
 		ctx.BadRequest(myerror.TASK_NOT_PENDING, myerror.TASK_NOT_PENDING_INFO)
 		return
 	}
 
-	err = service.TaskService.ModifyTaskState(taskInfo.ID, 3)
+	err := service.TaskService.ModifyTaskState(taskInfo.ID, 3)
 	if err != nil {
 		ctx.InternalError(err.Error())
 		return
