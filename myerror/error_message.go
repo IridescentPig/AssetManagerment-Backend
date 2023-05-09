@@ -44,4 +44,7 @@ const (
 	NOT_YOUR_MAINTENCE_ASSET_INFO        = "This asset is not int your maintence"
 	TASK_NOT_PENDING_INFO                = "Task is not pending"
 	URL_NOT_FOUND_INFO                   = "URL not found"
+	INVALID_FEISHU_CODE_INFO             = "Feishu Login Code is invalid or expired"
+	INVALID_FEISHU_TOKEN_INFO            = "Feishu Token is invalid or expired"
+	FEISHU_NOT_BIND_INFO                 = "This Feishu account hasn't binded with any existing account"
 )

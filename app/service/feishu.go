@@ -78,7 +78,7 @@ func (feishu *feishuService) FindUserByFeishuID(FeishuID string) (user *model.Us
 	return
 }
 
-func (feishu *feishuService) FeishuLoginAndGetInfo(code string) (FeishuID string, AccessToken string, RefreshToken string, err error) {
+/*func (feishu *feishuService) FeishuLoginAndGetInfo(code string) (FeishuID string, AccessToken string, RefreshToken string, err error) {
 	res, err := feishu.GetAccessToken(code)
 	if err != nil {
 		return
@@ -91,7 +91,7 @@ func (feishu *feishuService) FeishuLoginAndGetInfo(code string) (FeishuID string
 	}
 	FeishuID = info_res.Data.UserID
 	return
-}
+}*/
 
 func (feishu *feishuService) StoreToken(UserID uint, AccessToken string, RefreshToken string) error {
 	return dao.UserDao.UpdateFeishuToken(UserID, AccessToken, RefreshToken)
