@@ -265,7 +265,7 @@ func (user *userDao) ModifyUserDepartmentByID(id uint, departmentID uint) error 
 }
 
 // feishu
-func (user *userDao) BindFeishu(UserID uint, FeishuID uint) error {
+func (user *userDao) BindFeishu(UserID uint, FeishuID string) error {
 	thisUser, err := user.GetUserByID(UserID)
 	if err != nil {
 		return err
@@ -292,7 +292,7 @@ func (user *userDao) UpdateFeishuToken(UserID uint, FeishuToken string, RefreshT
 	return err
 }
 
-func (user *userDao) GetUserByFeishuID(FeishuID uint) (*model.User, error) {
+func (user *userDao) GetUserByFeishuID(FeishuID string) (*model.User, error) {
 	ret := &model.User{}
 	result := db.Model(&model.User{}).Preload("Department").Preload("Entity").Where("feishu_id = ?", FeishuID).First(ret)
 	if result.Error == gorm.ErrRecordNotFound {
