@@ -49,6 +49,7 @@ type CreateAssetReq struct {
 	Number      int               `json:"count"`
 	Type        int               `json:"type"`
 	ParentID    uint              `json:"parent_id"`
+	Expire      uint              `json:"expire" binding:"gte=0"`
 	Children    []*CreateAssetReq `json:"children"`
 }
 
