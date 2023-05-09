@@ -166,6 +166,10 @@ func (asset *assetService) UpdateNetWorth(assetID uint) error {
 			err = dao.AssetDao.AllUpdate(subIds, map[string]interface{}{
 				"parent_id": gorm.Expr("NULL"),
 			})
+
+			if err != nil {
+				return err
+			}
 		}
 	} else {
 		rate := float64(interval) / float64(expire)
