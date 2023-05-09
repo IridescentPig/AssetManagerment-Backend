@@ -6,10 +6,13 @@ import (
 	"asset-management/app/service"
 	"asset-management/myerror"
 	"asset-management/utils"
+	"sort"
+	"time"
 
 	"github.com/gin-gonic/gin/binding"
 	"github.com/jinzhu/copier"
 	"github.com/shopspring/decimal"
+	"github.com/thoas/go-funk"
 )
 
 type assetApi struct {
@@ -616,4 +619,55 @@ func (asset *assetApi) DeleteAssetProperty(ctx *utils.Context) {
 	}
 
 	ctx.Success(nil)
+}
+
+/*
+Handle func for GET /department/:department_id/asset/:asset_id/history
+*/
+func (asset *assetApi) GetAssetHistory(ctx *utils.Context) {
+	hasIdentity, departmentID, err := AssetClassApi.CheckAssetViewIdentity(ctx)
+	if err != nil {
+		return
+	} else if !hasIdentity {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	assetID, _, isOK := asset.CheckAssetExistsAndValid(ctx, departmentID)
+	if !isOK {
+		return
+	}
+
+	approvedTaskList, err := service.AssetService.GetAssetHistory(assetID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	assetHistory := funk.Map(approvedTaskList, func(task *model.Task) *define.AssetHistory {
+		history := define.AssetHistory{
+			Type:         task.TaskType,
+			ReviewTime:   task.ReviewAt,
+			UserID:       task.UserID,
+			Username:     task.User.UserName,
+			DepartmentID: task.DepartmentID,
+		}
+		if task.TaskType >= 2 {
+			history.TargetID = task.TargetID
+			history.TargetName = task.Target.UserName
+			history.TargetDepartmentID = task.Target.DepartmentID
+		}
+
+		return &history
+	}).([]*define.AssetHistory)
+
+	sort.Slice(assetHistory, func(i, j int) bool {
+		return time.Time(*assetHistory[i].ReviewTime).After(time.Time(*assetHistory[j].ReviewTime))
+	})
+
+	assetHistoryRes := define.AssetHistoryResponse{
+		History: assetHistory,
+	}
+
+	ctx.Success(assetHistoryRes)
 }

@@ -282,3 +282,20 @@ func (asset *assetService) DeleteProperty(assetID uint, key string) error {
 
 	return err
 }
+
+func (asset *assetService) GetAssetHistory(assetID uint) ([]*model.Task, error) {
+	taskList, err := dao.AssetDao.GetAssetTask(assetID)
+	if err != nil {
+		return nil, err
+	}
+
+	var approvedTaskList []*model.Task
+
+	for _, task := range taskList {
+		if task.State == 1 {
+			approvedTaskList = append(approvedTaskList, task)
+		}
+	}
+
+	return approvedTaskList, nil
+}

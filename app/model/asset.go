@@ -26,4 +26,5 @@ type Asset struct {
 	MaintainerID uint            `gorm:"default:null;column:maintainer_id;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"maintainer_id"`
 	Maintainer   User            `gorm:"foreignKey:MaintainerID;references:ID;default:null" json:"maintainer"`
 	Property     datatypes.JSON  `gorm:"column:property;" json:"property"`
+	TaskList     []*Task         `gorm:"many2many:task_assets;" json:"task_list"`
 }

@@ -72,10 +72,25 @@ type AssetTransferReq struct {
 }
 
 type AssetPropertyReq struct {
-	Key   string `json:"key" bind:"required"`
+	Key   string `json:"key" bind:"required,gt=0"`
 	Value string `json:"value"`
 }
 
 type DeleteAssetPropertyReq struct {
-	Key string `json:"key" bind:"required"`
+	Key string `json:"key" bind:"required,gt=0"`
+}
+
+type AssetHistory struct {
+	Type               uint             `json:"type"`
+	ReviewTime         *model.ModelTime `json:"time"`
+	UserID             uint             `json:"user_id"`
+	Username           string           `json:"username"`
+	DepartmentID       uint             `json:"department_id"`
+	TargetID           uint             `json:"target_user_id"`
+	TargetName         string           `json:"target_username"`
+	TargetDepartmentID uint             `json:"target_department_id"`
+}
+
+type AssetHistoryResponse struct {
+	History []*AssetHistory `json:"history"`
 }

@@ -435,3 +435,14 @@ func (asset *assetDao) GetAssetProperty(assetID uint) (*model.Asset, error) {
 
 	return thisAsset, utils.DBError(result)
 }
+
+func (asset *assetDao) GetAssetTask(assetID uint) ([]*model.Task, error) {
+	var taskList []*model.Task
+	var thisAsset *model.Asset
+
+	result := db.Model(&model.Asset{}).Preload("TaskList.User").Preload("TaskList.Target").First(&thisAsset)
+
+	taskList = thisAsset.TaskList
+
+	return taskList, utils.DBError(result)
+}
