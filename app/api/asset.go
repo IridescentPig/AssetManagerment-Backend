@@ -196,6 +196,10 @@ func (asset *assetApi) ModifyAssetInfo(ctx *utils.Context) {
 		return
 	}
 
+	if modifyAssetReq.Price != decimal.Zero || modifyAssetReq.Expire != 0 {
+		_ = service.AssetService.UpdateNetWorth(assetID)
+	}
+
 	ctx.Success(nil)
 }
 

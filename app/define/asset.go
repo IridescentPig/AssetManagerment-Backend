@@ -17,13 +17,15 @@ type AssetInfo struct {
 	Price       decimal.Decimal  `json:"price"`
 	Description string           `json:"description"`
 	Position    string           `json:"position"`
-	Expire      bool             `json:"expire"`
+	Expire      uint             `json:"expire"`
 	Class       model.AssetClass `json:"asset_class"`
 	Number      int              `json:"count"`
 	Type        int              `json:"type"`
 	Children    []*AssetInfo     `json:"children"`
 	State       uint             `json:"state"`
 	Property    datatypes.JSON   `json:"property"`
+	NetWorth    decimal.Decimal  `json:"net_worth"`
+	CreatedAt   *model.ModelTime `json:"created_at"`
 }
 
 type ModifyAssetInfoReq struct {
@@ -35,6 +37,7 @@ type ModifyAssetInfoReq struct {
 	ClassID     uint            `json:"class_id"`
 	Type        int             `json:"type"`
 	Number      int             `json:"count"`
+	Expire      uint            `json:"expire" binding:"gte=0"`
 }
 
 type CreateAssetReq struct {

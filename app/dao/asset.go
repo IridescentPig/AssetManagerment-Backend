@@ -53,6 +53,11 @@ func (asset *assetDao) Delete(id []uint) error {
 	return utils.DBError(result)
 }
 
+func (asset *assetDao) SaveAsset(thisAsset *model.Asset) error {
+	result := db.Save(thisAsset)
+	return utils.DBError(result)
+}
+
 // func (asset *assetDao) AllAsset() (list []model.Asset, err error) {
 // 	result := db.Model(&model.Asset{}).Find(&list)
 // 	for _, asset := range list {
@@ -72,6 +77,19 @@ func (asset *assetDao) Delete(id []uint) error {
 // 	err = utils.DBError(result)
 // 	return
 // }
+
+/*
+Note: This function doesn't preload any association function
+*/
+func (asset *assetDao) GetAllAssets() (assetList []*model.Asset, err error) {
+	result := db.Model(&model.Asset{}).Find(&assetList)
+
+	if result.Error == gorm.ErrRecordNotFound {
+		return nil, nil
+	}
+
+	return
+}
 
 func (asset *assetDao) GetAssetByName(name string) (list []model.Asset, err error) {
 	result := db.Model(&model.Asset{}).Where("name = ?", name).Find(&list)
@@ -199,9 +217,8 @@ func (asset *assetDao) ModifyAssetState(id uint, state uint) error {
 
 func (asset *assetDao) ExpireAsset(ids []uint) error {
 	return asset.AllUpdate(ids, map[string]interface{}{
-		"expire": true,
-		"state":  3,
-		"price":  decimal.NewFromFloat(0),
+		"state": 3,
+		"price": decimal.NewFromFloat(0),
 	})
 }
 

@@ -4,9 +4,13 @@ import (
 	"asset-management/app/dao"
 	"asset-management/app/define"
 	"asset-management/app/model"
+	"asset-management/utils"
 	"encoding/json"
+	"time"
 
 	"github.com/jinzhu/copier"
+	"github.com/shopspring/decimal"
+	"github.com/thoas/go-funk"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
@@ -121,6 +125,55 @@ func (asset *assetService) ModifyAssetInfo(id uint, req define.ModifyAssetInfoRe
 			})
 		}
 	}
+	return err
+}
+
+func (asset *assetService) UpdateNetWorth(assetID uint) error {
+	thisAsset, err := dao.AssetDao.GetAssetByID(assetID)
+	if err != nil {
+		return err
+	} else if thisAsset == nil {
+		return nil
+	}
+
+	if thisAsset.Expire == 0 || thisAsset.State >= 3 {
+		return nil
+	}
+
+	price := thisAsset.Price
+	expire := thisAsset.Expire
+	interval := utils.GetDiffDays(time.Time(*thisAsset.CreatedAt), time.Now())
+
+	if interval >= int(thisAsset.Expire) {
+		err = dao.AssetDao.Update(assetID, map[string]interface{}{
+			"net_worth": decimal.Zero,
+			"state":     3,
+		})
+		if err != nil {
+			return err
+		}
+
+		subAssets, err := dao.AssetDao.GetSubAsset(assetID)
+		if err != nil {
+			return err
+		}
+
+		if subAssets != nil {
+			subIds := funk.Map(subAssets, func(currentAsset *model.Asset) uint {
+				return currentAsset.ID
+			}).([]uint)
+
+			err = dao.AssetDao.AllUpdate(subIds, map[string]interface{}{
+				"parent_id": gorm.Expr("NULL"),
+			})
+		}
+	} else {
+		rate := float64(interval) / float64(expire)
+		err = dao.AssetDao.UpdateByStruct(assetID, model.Asset{
+			NetWorth: price.Mul(decimal.NewFromFloat(rate)),
+		})
+	}
+
 	return err
 }
 
