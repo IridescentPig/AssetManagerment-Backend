@@ -2,6 +2,7 @@ package model
 
 import (
 	"github.com/shopspring/decimal"
+	"gorm.io/datatypes"
 )
 
 type Asset struct {
@@ -16,7 +17,7 @@ type Asset struct {
 	Price        decimal.Decimal `gorm:"type:decimal(10,2);column:price" json:"price"`
 	Description  string          `gorm:"column:description" json:"description"`
 	Position     string          `gorm:"column:position" json:"position"`
-	Expire       bool            `gorm:"column:expire;default:false" json:"expire"`
+	Expire       uint            `gorm:"column:expire;default:0" json:"expire"`
 	ClassID      uint            `gorm:"default:null;column:class_id;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"class_id"`
 	Class        AssetClass      `gorm:"foreignKey:ClassID;references:ID;default:null" json:"class"`
 	Number       int             `gorm:"column:number" json:"count"`
@@ -24,4 +25,8 @@ type Asset struct {
 	State        uint            `gorm:"column:state" json:"state"` // 0idle;1in_use;2in_maintain;3retired;4deleted
 	MaintainerID uint            `gorm:"default:null;column:maintainer_id;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"maintainer_id"`
 	Maintainer   User            `gorm:"foreignKey:MaintainerID;references:ID;default:null" json:"maintainer"`
+	Property     datatypes.JSON  `gorm:"column:property;" json:"property"`
+	TaskList     []*Task         `gorm:"many2many:task_assets;" json:"task_list"`
+	CreatedAt    *ModelTime      `gorm:"column:created_at" json:"created_at"`
+	NetWorth     decimal.Decimal `gorm:"type:decimal(10,2);column:net_worth" json:"net_worth"`
 }
