@@ -49,7 +49,7 @@ func (feishu *feishuApi) FeishuLogin(ctx *utils.Context) {
 		return
 	}
 
-	feishu_id := info_res.Data.UserID
+	feishu_id := info_res.Data.OpenID
 
 	user, err := service.FeishuService.FindUserByFeishuID(feishu_id)
 	if err != nil {
@@ -98,7 +98,7 @@ func (feishu *feishuApi) FeishuBind(ctx *utils.Context) {
 	}
 
 	current_user_id := UserApi.GetOperatorID(ctx)
-	err = service.FeishuService.BindFeishu(current_user_id, info_res.Data.UserID)
+	err = service.FeishuService.BindFeishu(current_user_id, info_res.Data.OpenID)
 	if err != nil {
 		ctx.InternalError(err.Error())
 		return

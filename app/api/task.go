@@ -6,6 +6,7 @@ import (
 	"asset-management/app/service"
 	"asset-management/myerror"
 	"asset-management/utils"
+	"fmt"
 
 	"github.com/gin-gonic/gin/binding"
 	"github.com/thoas/go-funk"
@@ -130,6 +131,43 @@ func (task *taskApi) CreateNewTask(ctx *utils.Context) {
 		ctx.InternalError(err.Error())
 		return
 	}
+
+	//向飞书发信息
+	user, err := service.UserService.GetUserByID(thisUser.UserID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+	TaksTypeMap := map[uint]string{
+		0: "领用",
+		1: "退库",
+		2: "维保",
+		3: "转移",
+	}
+	if len(user.FeishuID) != 0 {
+		text := fmt.Sprintf("您发送“%s”的%s请求已发送成功", req.TaskDescription, TaksTypeMap[req.TaskType])
+		err = service.FeishuService.SendMessage(user.ID, text)
+		if err != nil {
+			ctx.InternalError(err.Error())
+			return
+		}
+	}
+	if req.TaskType == 2 || req.TaskType == 3 {
+		target, err := service.UserService.GetUserByID(req.TargetID)
+		if err != nil {
+			ctx.InternalError(err.Error())
+			return
+		}
+		if len(target.FeishuID) != 0 {
+			text := fmt.Sprintf("您收到一条来自%s的%s请求，描述为“%s”", user.UserName, TaksTypeMap[req.TaskType], req.TaskDescription)
+			err = service.FeishuService.SendMessage(user.ID, text)
+			if err != nil {
+				ctx.InternalError(err.Error())
+				return
+			}
+		}
+	}
+
 	ctx.Success(nil)
 }
 

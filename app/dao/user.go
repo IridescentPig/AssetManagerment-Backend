@@ -301,7 +301,7 @@ func (user *userDao) GetUserByFeishuID(FeishuID string) (*model.User, error) {
 	return ret, utils.DBError(result)
 }
 
-func (user *userDao) GetFeishuTokenByID(UserID uint) (token string, err error) {
+/*func (user *userDao) GetFeishuTokenByID(UserID uint) (token string, err error) {
 	thisUser, err := user.GetUserByID(UserID)
 	if err != nil {
 		return
@@ -313,3 +313,16 @@ func (user *userDao) GetFeishuTokenByID(UserID uint) (token string, err error) {
 	token = thisUser.FeishuToken
 	return
 }
+
+func (user *userDao) GetRefreshTokenByID(UserID uint) (token string, err error) {
+	thisUser, err := user.GetUserByID(UserID)
+	if err != nil {
+		return
+	}
+	if thisUser == nil {
+		err = errors.New("user doesn't exist")
+		return
+	}
+	token = thisUser.RefreshToken
+	return
+}*/

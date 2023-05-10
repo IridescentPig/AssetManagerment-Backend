@@ -5,10 +5,12 @@ import (
 	"asset-management/app/model"
 	"context"
 	"errors"
+	"fmt"
 
 	lark "github.com/larksuite/oapi-sdk-go/v3"
 	larkcore "github.com/larksuite/oapi-sdk-go/v3/core"
 	larkext "github.com/larksuite/oapi-sdk-go/v3/service/ext"
+	larkim "github.com/larksuite/oapi-sdk-go/v3/service/im/v1"
 )
 
 type feishuService struct{}
@@ -19,7 +21,7 @@ var appId = "cli_a4d26de640e4500c"
 
 var appSecret = "qTGl1gT9HReTRxZAxAwAjewGlxeyZTfr"
 
-var Client = lark.NewClient(appId, appSecret)
+var Client = lark.NewClient(appId, appSecret, lark.WithEnableTokenCache(true))
 
 func newFeishuService() *feishuService {
 	return &feishuService{}
@@ -99,4 +101,62 @@ func (feishu *feishuService) StoreToken(UserID uint, AccessToken string, Refresh
 
 func (feishu *feishuService) BindFeishu(UserID uint, FeishuID string) error {
 	return dao.UserDao.BindFeishu(UserID, FeishuID)
+}
+
+func (feishu *feishuService) GetTokenByUserID(UserID uint) (access_token string, refresh_token string, err error) {
+	user, err := dao.UserDao.GetUserByID(UserID)
+	if err != nil {
+		return
+	}
+	access_token = user.FeishuToken
+	refresh_token = user.RefreshToken
+	return
+}
+
+func (feishu *feishuService) TextTokenAndRefresh(UserID uint) (bool, error) {
+	access_token, refresh_token, err := feishu.GetTokenByUserID(UserID)
+	if err != nil {
+		return false, err
+	}
+	_, err = feishu.GetUserInfo(access_token)
+	if err == nil {
+		return true, nil
+	}
+	resp, err := feishu.RefreshToken(refresh_token)
+	if err != nil {
+		return false, err
+	}
+	err = feishu.StoreToken(UserID, resp.Data.AccessToken, resp.Data.RefreshToken)
+	if err != nil {
+		return false, err
+	}
+	return true, err
+}
+
+func (feishu *feishuService) SendMessage(UserId uint, text string) error {
+	user, err := dao.UserDao.GetUserByID(UserId)
+	if err != nil {
+		return err
+	}
+
+	text_content := fmt.Sprintf(`{"text":"%s"}`, text)
+
+	req := larkim.NewCreateMessageReqBuilder().
+		Body(larkim.NewCreateMessageReqBodyBuilder().
+			ReceiveId(user.FeishuID).
+			MsgType(`text`).
+			Content(text_content).
+			Build()).
+		Build()
+
+	resp, err := Client.Im.Message.Create(context.Background(), req)
+	if err != nil {
+		return err
+	}
+
+	if !resp.Success() {
+		return errors.New(resp.Msg)
+	}
+
+	return nil
 }
