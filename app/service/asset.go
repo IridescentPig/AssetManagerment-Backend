@@ -173,7 +173,7 @@ func (asset *assetService) UpdateNetWorth(assetID uint) error {
 			}
 		}
 	} else {
-		rate := float64(interval) / float64(expire)
+		rate := 1.0 - float64(interval)/float64(expire)
 		err = dao.AssetDao.UpdateByStruct(assetID, model.Asset{
 			NetWorth: price.Mul(decimal.NewFromFloat(rate)),
 		})
@@ -196,6 +196,7 @@ func (asset *assetService) CreateAsset(req *define.CreateAssetReq, departmentID 
 		ParentID:     parentID,
 		Property:     datatypes.JSON([]byte(`{}`)),
 		Expire:       req.Expire,
+		NetWorth:     req.Price,
 	})
 	if err != nil {
 		return err

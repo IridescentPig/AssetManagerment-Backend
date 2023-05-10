@@ -35,4 +35,7 @@ func (asset *assetRouter) routerCheckAtHandler(group *gin.RouterGroup) {
 	group.PATCH("/:department_id/asset/:asset_id/property", utils.Handler(api.AssetApi.ModifyAssetProperty))
 	group.DELETE("/:department_id/asset/:asset_id/property", utils.Handler(api.AssetApi.DeleteAssetProperty))
 	group.GET("/:department_id/asset/:asset_id/history", utils.Handler(api.AssetApi.GetAssetHistory))
+	group.POST("/:department_id/asset/search", utils.Handler(api.AssetApi.SearchAssets))
+	group.GET("/:department_id/asset/stat/total", utils.Handler(api.StatApi.GetDepartmentStatTotal))
+	group.GET("/:department_id/asset/stat/distribution", utils.Handler(api.StatApi.GetDepartmentStatDistribution))
 }

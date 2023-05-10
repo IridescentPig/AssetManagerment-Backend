@@ -33,7 +33,7 @@ func main() {
 	})
 	if gin.Mode() == gin.DebugMode {
 		if os.Getenv("DEBUG") == "" {
-			r.Run("0.0.0.0:8080")
+			r.Run("0.0.0.0:8081")
 		} else {
 			r.Run("0.0.0.0:80")
 		}

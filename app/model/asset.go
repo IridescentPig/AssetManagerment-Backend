@@ -1,11 +1,8 @@
 package model
 
 import (
-	"time"
-
 	"github.com/shopspring/decimal"
 	"gorm.io/datatypes"
-	"gorm.io/gorm"
 )
 
 type Asset struct {
@@ -32,57 +29,4 @@ type Asset struct {
 	TaskList     []*Task         `gorm:"many2many:task_assets;" json:"task_list"`
 	CreatedAt    *ModelTime      `gorm:"column:created_at" json:"created_at"`
 	NetWorth     decimal.Decimal `gorm:"type:decimal(10,2);column:net_worth" json:"net_worth"`
-}
-
-func (asset *Asset) BeforeSave(tx *gorm.DB) error {
-	if asset.ID == 0 {
-		return nil
-	}
-
-	var err error
-	err = nil
-	if asset.State < 3 && asset.Expire != 0 {
-		interval := getDiffDays(time.Time(*asset.CreatedAt), time.Now())
-		if interval >= int(asset.Expire) {
-			asset.NetWorth = decimal.Zero
-			asset.State = 3
-
-			skipHookDB := tx.Session(&gorm.Session{
-				SkipHooks: true,
-			})
-
-			var subAssets []*Asset
-			result := skipHookDB.Model(&Asset{}).Where("parent_id = ?", asset.ID).Find(subAssets)
-
-			if result.Error == gorm.ErrRecordNotFound {
-				err = nil
-			} else if result.Error != nil {
-				err = result.Error
-			} else {
-				err = nil
-			}
-			if err == nil {
-				for _, subAsset := range subAssets {
-					subAsset.ParentID = 0
-					err = skipHookDB.Save(subAsset).Error
-					if err != nil {
-						break
-					}
-				}
-			}
-		} else {
-			rate := float64(interval) / float64(asset.Expire)
-			asset.NetWorth = asset.Price.Mul(decimal.NewFromFloat(rate))
-		}
-	}
-
-	return err
-}
-
-func getDiffDays(t1, t2 time.Time) int {
-	timezone, _ := time.LoadLocation("Asia/Shanghai")
-	timeDay1 := time.Date(t1.Year(), t1.Month(), t1.Day(), 0, 0, 0, 0, timezone)
-	timeDay2 := time.Date(t2.Year(), t2.Month(), t2.Day(), 0, 0, 0, 0, timezone)
-
-	return int(timeDay2.Sub(timeDay1).Hours() / 24)
 }
