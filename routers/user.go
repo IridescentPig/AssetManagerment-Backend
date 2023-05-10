@@ -26,11 +26,10 @@ func (user *userRouter) Init(group *gin.RouterGroup) {
 }
 
 func (user *userRouter) routerNotNeedLogin(group *gin.RouterGroup) {
+	group.POST("/feishu/login", utils.Handler(api.FeishuApi.FeishuLogin))
 	group.Use(utils.Handler(middleware.LogMiddleware()))
 	group.POST("/register", utils.Handler(api.UserApi.UserRegister))
 	group.POST("/login", utils.Handler(api.UserApi.UserLogin))
-	group.POST("/feishu/login", utils.Handler(api.FeishuApi.FeishuLogin))
-	group.POST("/feishu/bind", utils.Handler(api.FeishuApi.FeishuBind))
 }
 
 func (user *userRouter) routerNeedLogin(group *gin.RouterGroup) {
@@ -48,4 +47,5 @@ func (user *userRouter) routerNeedLogin(group *gin.RouterGroup) {
 	group.DELETE("/info/:user_id/department", utils.Handler(api.UserApi.ChangeUserDepartment))
 	group.POST("/info/:user_id/entity", utils.Handler(api.UserApi.ChangeUserEntity))
 	group.POST("/info/:user_id/department", utils.Handler(api.UserApi.ChangeUserDepartment))
+	group.POST("/feishu/bind", utils.Handler(api.FeishuApi.FeishuBind))
 }
