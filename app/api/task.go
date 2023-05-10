@@ -241,6 +241,24 @@ func (task *taskApi) CreateNewTask(ctx *utils.Context) {
 		ctx.InternalError(err.Error())
 		return
 	}
+	this_task := model.Task{
+		TaskType:        req.TaskType,
+		TaskDescription: req.TaskDescription,
+		UserID:          thisUser.UserID,
+		DepartmentID:    thisUser.DepartmentID,
+		TargetID:        req.TargetID,
+		AssetList:       assetList,
+	}
+	approval_code, err := service.FeishuService.CreateApprovalDefination()
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+	err = service.FeishuService.PutApproval(this_task, user.FeishuID, approval_code)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
 	for _, manager := range managers {
 		if len(manager.FeishuID) != 0 {
 			text := fmt.Sprintf("%s发送了一条描述为“%s”的%s申请，请注意审批", user.UserName, req.TaskDescription, TaskTypeMap[req.TaskType])
@@ -573,6 +591,17 @@ func (task *taskApi) ApproveTask(ctx *utils.Context) {
 			return
 		}
 	}
+	taskInfo.State = 1
+	approval_code, err := service.FeishuService.CreateApprovalDefination()
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+	err = service.FeishuService.PutApproval(*taskInfo, user.FeishuID, approval_code)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
 	if taskInfo.TaskType == 2 || taskInfo.TaskType == 3 {
 		target, err := service.UserService.GetUserByID(taskInfo.TargetID)
 		if err != nil {
@@ -632,6 +661,17 @@ func (task *taskApi) RejectTask(ctx *utils.Context) {
 			return
 		}
 	}
+	taskInfo.State = 2
+	approval_code, err := service.FeishuService.CreateApprovalDefination()
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+	err = service.FeishuService.PutApproval(*taskInfo, user.FeishuID, approval_code)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
 
 	ctx.Success(nil)
 }
@@ -675,6 +715,17 @@ func (task *taskApi) CancelTasks(ctx *utils.Context) {
 			ctx.InternalError(err.Error())
 			return
 		}
+	}
+	taskInfo.State = 3
+	approval_code, err := service.FeishuService.CreateApprovalDefination()
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+	err = service.FeishuService.PutApproval(*taskInfo, user.FeishuID, approval_code)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
 	}
 
 	ctx.Success(nil)

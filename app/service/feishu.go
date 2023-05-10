@@ -355,3 +355,7 @@ func (feishu *feishuService) PutApproval(task model.Task, FeishuID string, appro
 	}
 	return err
 }
+
+/*func (feishu *feishuService) SendApprovalBot() error {
+	req := larkapproval.NewMessageBuilder()
+}*/
