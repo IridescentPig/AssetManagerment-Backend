@@ -125,6 +125,15 @@ func (feishu *feishuApi) FeishuBind(ctx *utils.Context) {
 	}
 
 	current_user_id := UserApi.GetOperatorID(ctx)
+	exist_user, err := service.FeishuService.FindUserByFeishuID(info_res.Data.UserID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+	if exist_user != nil && exist_user.ID != current_user_id {
+		ctx.BadRequest(myerror.FEISHU_DUPLICATE_BIND, myerror.FEISHU_DUPLICATE_BIND_INFO)
+		return
+	}
 	err = service.FeishuService.BindFeishu(current_user_id, info_res.Data.UserID)
 	if err != nil {
 		ctx.InternalError(err.Error())

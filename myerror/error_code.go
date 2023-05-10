@@ -48,4 +48,5 @@ const (
 	INVALID_FEISHU_CODE             = 44
 	INVALID_FEISHU_TOKEN            = 45
 	FEISHU_NOT_BIND                 = 46
+	FEISHU_DUPLICATE_BIND           = 47
 )

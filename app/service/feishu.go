@@ -25,18 +25,12 @@ var appSecret = "qTGl1gT9HReTRxZAxAwAjewGlxeyZTfr"
 
 var Client = lark.NewClient(appId, appSecret, lark.WithEnableTokenCache(true))
 
-var approval_code string
-
 func newFeishuService() *feishuService {
 	return &feishuService{}
 }
 
 func init() {
 	FeishuService = newFeishuService()
-	err := FeishuService.CreateApprovalDefination()
-	if err != nil {
-		fmt.Printf("code Defination error: %s", err)
-	}
 }
 
 func (feishu *feishuService) GetAccessToken(code string) (res *larkext.AuthenAccessTokenResp, err error) {
@@ -170,7 +164,7 @@ func (feishu *feishuService) SendMessage(UserId uint, text string) error {
 }
 
 // 审批相关
-func (feishu *feishuService) CreateApprovalDefination() error {
+func (feishu *feishuService) CreateApprovalDefination() (approval_code string, err error) {
 	req := larkapproval.NewCreateExternalApprovalReqBuilder().
 		DepartmentIdType(`open_department_id`).
 		UserIdType("user_id").
@@ -219,21 +213,21 @@ func (feishu *feishuService) CreateApprovalDefination() error {
 	// 如开启了SDK的Token管理功能，就无需在请求时调用larkcore.WithTenantAccessToken("-xxx")来手动设置租户Token了
 	resp, err := Client.Approval.ExternalApproval.Create(context.Background(), req)
 
-	approval_code = *resp.Data.ApprovalCode
-
 	// 处理错误
 	if err != nil {
-		return err
+		return
 	}
+
+	approval_code = *resp.Data.ApprovalCode
 
 	// 服务端错误处理
 	if !resp.Success() {
-		return errors.New(resp.Msg)
+		err = errors.New(resp.Msg)
 	}
-	return err
+	return
 }
 
-func (feishu *feishuService) PutApproval(task model.Task, FeishuID string) error {
+func (feishu *feishuService) PutApproval(task model.Task, FeishuID string, approval_code string) error {
 	StateMap := map[uint]string{
 		0: `PENDING`,
 		1: `APPROVED`,
@@ -251,28 +245,33 @@ func (feishu *feishuService) PutApproval(task model.Task, FeishuID string) error
 			TaskList = append(TaskList, larkapproval.NewExternalInstanceTaskNodeBuilder().
 				TaskId((string)(index)).
 				UserId(manager.FeishuID).
-				Title(`同意`).
+				Title(task.TaskDescription).
 				Links(larkapproval.NewExternalInstanceLinkBuilder().
-					PcLink(`http://`).
-					MobileLink(`http://`).
+					PcLink(`http://assetmanagement-frontend-binaryabstract.app.secoder.net/#/asset/list`).
+					MobileLink(`http://assetmanagement-frontend-binaryabstract.app.secoder.net/#/asset/list`).
 					Build()).
-				Status(`PENDING`).
+				Status(StateMap[task.State]).
 				Extra(``).
-				CreateTime(`1638468921000`).
+				CreateTime((string)(time.Now().UnixMilli())). //改时间戳
 				EndTime(`0`).
-				UpdateTime(`1638468921000`).
-				ActionContext(`123456`).
+				UpdateTime((string)(time.Now().UnixMilli())).
 				ActionConfigs([]*larkapproval.ActionConfig{
 					larkapproval.NewActionConfigBuilder().
 						ActionType(`APPROVE`).
-						ActionName(`@i18n@1`).
-						IsNeedReason(true).
-						IsReasonRequired(true).
-						IsNeedAttachment(true).
+						Build(),
+					larkapproval.NewActionConfigBuilder().
+						ActionType(`REJECT`).
 						Build(),
 				}).
 				Build())
 		}
+	}
+
+	TaskTypeMap := map[uint]string{
+		0: "领用",
+		1: "退库",
+		2: "维保",
+		3: "转移",
 	}
 
 	req := larkapproval.NewCreateExternalInstanceReqBuilder().
@@ -290,69 +289,49 @@ func (feishu *feishuService) PutApproval(task model.Task, FeishuID string) error
 					Name(`@i18n@1`).
 					Value(`@i18n@2`).
 					Build(),
+				larkapproval.NewExternalInstanceFormBuilder().
+					Name(`@i18n@3`).
+					Value(`@i18n@4`).
+					Build(),
+				larkapproval.NewExternalInstanceFormBuilder().
+					Name(`@i18n@5`).
+					Value(`@i18n@6`).
+					Build(),
 			}).
 			UserId(FeishuID).
-			StartTime((string)(time.Now().UnixNano() / 1e6)).
+			StartTime((string)(time.Now().UnixMilli())). //改时间戳
 			EndTime(`0`).
-			UpdateTime((string)(time.Now().UnixNano() / 1e6)).
+			UpdateTime((string)(time.Now().UnixMilli())).
 			UpdateMode(`REPLACE`).
-			TaskList([]*larkapproval.ExternalInstanceTaskNode{
-				larkapproval.NewExternalInstanceTaskNodeBuilder().
-					TaskId((string)(task.ID)).
-					UserId(`16fb9ff3`).
-					Title(`同意`).
-					Links(larkapproval.NewExternalInstanceLinkBuilder().
-						PcLink(`http://`).
-						MobileLink(`http://`).
-						Build()).
-					Status(`PENDING`).
-					Extra(``).
-					CreateTime(`1638468921000`).
-					EndTime(`0`).
-					UpdateTime(`1638468921000`).
-					ActionContext(`123456`).
-					ActionConfigs([]*larkapproval.ActionConfig{
-						larkapproval.NewActionConfigBuilder().
-							ActionType(`APPROVE`).
-							ActionName(`@i18n@1`).
-							IsNeedReason(true).
-							IsReasonRequired(true).
-							IsNeedAttachment(true).
-							Build(),
-					}).
-					Build(),
-			}).
-			CcList([]*larkapproval.CcNode{
-				larkapproval.NewCcNodeBuilder().
-					CcId(`1231243`).
-					UserId(`16fb9ff3`).
-					OpenId(``).
-					Links(larkapproval.NewExternalInstanceLinkBuilder().
-						PcLink(`http://`).
-						MobileLink(`http://`).
-						Build()).
-					ReadStatus(`READ`).
-					Extra(``).
-					Title(`XXX`).
-					CreateTime(`1657093395000`).
-					UpdateTime(`1657093395000`).
-					Build(),
-			}).
+			TaskList(TaskList).
+			CcList([]*larkapproval.CcNode{}).
 			I18nResources([]*larkapproval.I18nResource{
 				larkapproval.NewI18nResourceBuilder().
 					Locale(`zh-CN`).
 					Texts([]*larkapproval.I18nResourceText{
 						larkapproval.NewI18nResourceTextBuilder().
 							Key(`@i18n@1`).
-							Value(`测试`).
+							Value(`任务类型`).
 							Build(),
 						larkapproval.NewI18nResourceTextBuilder().
 							Key(`@i18n@2`).
-							Value(`天`).
+							Value(TaskTypeMap[task.TaskType]).
 							Build(),
 						larkapproval.NewI18nResourceTextBuilder().
 							Key(`@i18n@3`).
-							Value(`2022-07-06`).
+							Value(`发起者`).
+							Build(),
+						larkapproval.NewI18nResourceTextBuilder().
+							Key(`@i18n@4`).
+							Value(task.User.UserName).
+							Build(),
+						larkapproval.NewI18nResourceTextBuilder().
+							Key(`@i18n@5`).
+							Value(`任务描述`).
+							Build(),
+						larkapproval.NewI18nResourceTextBuilder().
+							Key(`@i18n@6`).
+							Value(task.TaskDescription).
 							Build(),
 					}).
 					IsDefault(true).
