@@ -2,6 +2,7 @@ package api
 
 import (
 	"asset-management/app/define"
+	"asset-management/app/model"
 	"asset-management/app/service"
 	"asset-management/myerror"
 	"asset-management/utils"
@@ -24,14 +25,59 @@ func init() {
 	AssetApi = newAssetApi()
 }
 
+func (asset *assetApi) CheckAssetsValid(ctx *utils.Context, departmentID uint, assetList []define.ExpireAssetReq) ([]uint, bool) {
+	assetIDs := []uint{}
+	for _, assetID := range assetList {
+		exists, err := service.AssetService.ExistAsset(assetID.AssetID)
+		if err != nil {
+			ctx.InternalError(err.Error())
+			return nil, false
+		} else if !exists {
+			ctx.BadRequest(myerror.ASSET_NOT_FOUND, myerror.ASSET_NOT_FOUND_INFO)
+			return nil, false
+		}
+		isInDepartment, err := service.AssetService.CheckAssetInDepartment(assetID.AssetID, departmentID)
+		if err != nil {
+			ctx.InternalError(err.Error())
+			return nil, false
+		}
+		if !isInDepartment {
+			ctx.BadRequest(myerror.ASSET_NOT_IN_DEPARTMENT, myerror.ASSET_NOT_IN_DEPARTMENT_INFO)
+			return nil, false
+		}
+		assetIDs = append(assetIDs, assetID.AssetID)
+	}
+
+	return assetIDs, true
+}
+
 /*
 Handle func for GET /department/{department_id}/asset/list
 */
 func (asset *assetApi) GetAssetList(ctx *utils.Context) {
-	hasIdentity, departmentID, err := AssetClassApi.CheckAssetIdentity(ctx)
+	// hasIdentity, departmentID, err := AssetClassApi.CheckAssetIdentity(ctx)
+	// if err != nil {
+	// 	return
+	// } else if !hasIdentity {
+	// 	ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+	// 	return
+	// }
+	departmentID, err := service.EntityService.GetParamID(ctx, "department_id")
 	if err != nil {
 		return
-	} else if !hasIdentity {
+	}
+
+	existsDepartment, err := service.DepartmentService.ExistsDepartmentByID(departmentID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	} else if !existsDepartment {
+		ctx.NotFound(myerror.DEPARTMENT_NOT_FOUND, myerror.DEPARTMENT_NOT_FOUND_INFO)
+		return
+	}
+
+	thisUser := UserApi.GetOperatorInfo(ctx)
+	if thisUser.DepartmentID != departmentID {
 		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
 		return
 	}
@@ -203,26 +249,31 @@ func (asset *assetApi) ExpireAsset(ctx *utils.Context) {
 		return
 	}
 
-	assetIDs := []uint{}
-	for _, assetID := range expireReq.ExpireList {
-		exists, err := service.AssetService.ExistAsset(assetID.AssetID)
-		if err != nil {
-			ctx.InternalError(err.Error())
-			return
-		} else if !exists {
-			ctx.BadRequest(myerror.ASSET_NOT_FOUND, myerror.ASSET_NOT_FOUND_INFO)
-			return
-		}
-		isInDepartment, err := service.AssetService.CheckAssetInDepartment(assetID.AssetID, departmentID)
-		if err != nil {
-			ctx.InternalError(err.Error())
-			return
-		}
-		if !isInDepartment {
-			ctx.BadRequest(myerror.ASSET_NOT_IN_DEPARTMENT, myerror.ASSET_NOT_IN_DEPARTMENT_INFO)
-			return
-		}
-		assetIDs = append(assetIDs, assetID.AssetID)
+	// assetIDs := []uint{}
+	// for _, assetID := range expireReq.ExpireList {
+	// 	exists, err := service.AssetService.ExistAsset(assetID.AssetID)
+	// 	if err != nil {
+	// 		ctx.InternalError(err.Error())
+	// 		return
+	// 	} else if !exists {
+	// 		ctx.BadRequest(myerror.ASSET_NOT_FOUND, myerror.ASSET_NOT_FOUND_INFO)
+	// 		return
+	// 	}
+	// 	isInDepartment, err := service.AssetService.CheckAssetInDepartment(assetID.AssetID, departmentID)
+	// 	if err != nil {
+	// 		ctx.InternalError(err.Error())
+	// 		return
+	// 	}
+	// 	if !isInDepartment {
+	// 		ctx.BadRequest(myerror.ASSET_NOT_IN_DEPARTMENT, myerror.ASSET_NOT_IN_DEPARTMENT_INFO)
+	// 		return
+	// 	}
+	// 	assetIDs = append(assetIDs, assetID.AssetID)
+	// }
+
+	assetIDs, isOK := asset.CheckAssetsValid(ctx, departmentID, expireReq.ExpireList)
+	if !isOK {
+		return
 	}
 
 	err = service.AssetService.ExpireAssets(assetIDs)
@@ -269,27 +320,9 @@ func (asset *assetApi) TransferAssets(ctx *utils.Context) {
 		return
 	}
 
-	assetIDs := []uint{}
-
-	for _, assetID := range transferReq.Assets {
-		exists, err := service.AssetService.ExistAsset(assetID.AssetID)
-		if err != nil {
-			ctx.InternalError(err.Error())
-			return
-		} else if !exists {
-			ctx.BadRequest(myerror.ASSET_NOT_FOUND, myerror.ASSET_NOT_FOUND_INFO)
-			return
-		}
-		isInDepartment, err := service.AssetService.CheckAssetInDepartment(assetID.AssetID, departmentID)
-		if err != nil {
-			ctx.InternalError(err.Error())
-			return
-		}
-		if !isInDepartment {
-			ctx.BadRequest(myerror.ASSET_NOT_IN_DEPARTMENT, myerror.ASSET_NOT_IN_DEPARTMENT_INFO)
-			return
-		}
-		assetIDs = append(assetIDs, assetID.AssetID)
+	assetIDs, isOK := asset.CheckAssetsValid(ctx, departmentID, transferReq.Assets)
+	if !isOK {
+		return
 	}
 
 	err = service.AssetService.TransferAssets(assetIDs, targetUser.ID, targetUser.DepartmentID, departmentID)
@@ -301,41 +334,78 @@ func (asset *assetApi) TransferAssets(ctx *utils.Context) {
 	ctx.Success(nil)
 }
 
-/*
-Handle func for GET /users/:user_id/assets/maintain
-*/
-func (asset *assetApi) GetUserMaintainAssets(ctx *utils.Context) {
+func (asset *assetApi) userAssetPrevillige(ctx *utils.Context) (*model.User, bool) {
 	userID, err := service.EntityService.GetParamID(ctx, "user_id")
 	if err != nil {
-		return
+		return nil, false
 	}
 
 	operatorUser := UserApi.GetOperatorInfo(ctx)
 	if operatorUser.UserID != userID {
 		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
-		return
+		return nil, false
 	}
 
 	thisUser, err := service.UserService.GetUserByID(userID)
 	if err != nil {
 		ctx.InternalError(err.Error())
-		return
+		return nil, false
 	} else if thisUser == nil {
 		ctx.NotFound(myerror.USER_NOT_FOUND, myerror.USER_NOT_FOUND_INFO)
-		return
+		return nil, false
 	}
 
 	if thisUser.EntityID == 0 {
 		ctx.BadRequest(myerror.USER_NOT_IN_ENTITY, myerror.USER_NOT_IN_ENTITY_INFO)
-		return
+		return nil, false
 	} else if thisUser.DepartmentID == 0 {
 		ctx.BadRequest(myerror.USER_NOT_IN_DEPARTMENT, myerror.USER_NOT_IN_DEPARTMENT_INFO)
+		return nil, false
+	}
+
+	return thisUser, true
+}
+
+/*
+Handle func for GET /users/:user_id/assets/maintain
+*/
+func (asset *assetApi) GetUserMaintainAssets(ctx *utils.Context) {
+	// userID, err := service.EntityService.GetParamID(ctx, "user_id")
+	// if err != nil {
+	// 	return
+	// }
+
+	// operatorUser := UserApi.GetOperatorInfo(ctx)
+	// if operatorUser.UserID != userID {
+	// 	ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+	// 	return
+	// }
+
+	// thisUser, err := service.UserService.GetUserByID(userID)
+	// if err != nil {
+	// 	ctx.InternalError(err.Error())
+	// 	return
+	// } else if thisUser == nil {
+	// 	ctx.NotFound(myerror.USER_NOT_FOUND, myerror.USER_NOT_FOUND_INFO)
+	// 	return
+	// }
+
+	// if thisUser.EntityID == 0 {
+	// 	ctx.BadRequest(myerror.USER_NOT_IN_ENTITY, myerror.USER_NOT_IN_ENTITY_INFO)
+	// 	return
+	// } else if thisUser.DepartmentID == 0 {
+	// 	ctx.BadRequest(myerror.USER_NOT_IN_DEPARTMENT, myerror.USER_NOT_IN_DEPARTMENT_INFO)
+	// 	return
+	// }
+
+	thisUser, isOK := asset.userAssetPrevillige(ctx)
+	if !isOK {
 		return
 	}
 
 	var assetListRes []*define.AssetInfo
 
-	assetList, err := service.AssetService.GetUserMaintainAssets(userID)
+	assetList, err := service.AssetService.GetUserMaintainAssets(thisUser.ID)
 	if err != nil {
 		ctx.InternalError(err.Error())
 		return
@@ -362,31 +432,8 @@ func (asset *assetApi) GetUserMaintainAssets(ctx *utils.Context) {
 Handle func for POST /users/:user_id/assets/:asset_id/maintain
 */
 func (asset *assetApi) FinishMaintenance(ctx *utils.Context) {
-	userID, err := service.EntityService.GetParamID(ctx, "user_id")
-	if err != nil {
-		return
-	}
-
-	operatorUser := UserApi.GetOperatorInfo(ctx)
-	if operatorUser.UserID != userID {
-		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
-		return
-	}
-
-	thisUser, err := service.UserService.GetUserByID(userID)
-	if err != nil {
-		ctx.InternalError(err.Error())
-		return
-	} else if thisUser == nil {
-		ctx.NotFound(myerror.USER_NOT_FOUND, myerror.USER_NOT_FOUND_INFO)
-		return
-	}
-
-	if thisUser.EntityID == 0 {
-		ctx.BadRequest(myerror.USER_NOT_IN_ENTITY, myerror.USER_NOT_IN_ENTITY_INFO)
-		return
-	} else if thisUser.DepartmentID == 0 {
-		ctx.BadRequest(myerror.USER_NOT_IN_DEPARTMENT, myerror.USER_NOT_IN_DEPARTMENT_INFO)
+	thisUser, isOK := asset.userAssetPrevillige(ctx)
+	if !isOK {
 		return
 	}
 
@@ -405,7 +452,7 @@ func (asset *assetApi) FinishMaintenance(ctx *utils.Context) {
 	} else if thisAsset.State != 2 {
 		ctx.BadRequest(myerror.ASSET_NOT_IN_MAINTENCE, myerror.ASSET_NOT_IN_MAINTENCE_INFO)
 		return
-	} else if thisAsset.MaintainerID != userID {
+	} else if thisAsset.MaintainerID != thisUser.ID {
 		ctx.BadRequest(myerror.NOT_YOUR_MAINTENCE_ASSET, myerror.NOT_YOUR_MAINTENCE_ASSET_INFO)
 		return
 	}
