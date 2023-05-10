@@ -187,7 +187,7 @@ func (feishu *feishuService) CreateApprovalDefination() error {
 				SupportBatchRead(false).
 				EnableMarkReaded(false).
 				EnableQuickOperate(true).
-				ActionCallbackUrl(`http://feishu.cn/approval/openapi/operate`).
+				ActionCallbackUrl(`http://feishu.cn/approval/openapi/operate`). //记得改
 				ActionCallbackToken(`sdjkljkx9lsadf110`).
 				Build()).
 			Viewers([]*larkapproval.ApprovalCreateViewers{
@@ -241,14 +241,39 @@ func (feishu *feishuService) PutApproval(task model.Task, FeishuID string) error
 		3: `CANCELED`,
 	}
 
-	/*managers, err := dao.DepartmentDao.GetDepartmentManager(task.DepartmentID)
+	managers, err := dao.DepartmentDao.GetDepartmentManager(task.DepartmentID)
 	if err != nil {
 		return err
 	}
 	var TaskList []*larkapproval.ExternalInstanceTaskNode
-	for _, manager := range(managers){
-
-	}*/
+	for index, manager := range managers {
+		if len(manager.FeishuID) != 0 {
+			TaskList = append(TaskList, larkapproval.NewExternalInstanceTaskNodeBuilder().
+				TaskId((string)(index)).
+				UserId(manager.FeishuID).
+				Title(`同意`).
+				Links(larkapproval.NewExternalInstanceLinkBuilder().
+					PcLink(`http://`).
+					MobileLink(`http://`).
+					Build()).
+				Status(`PENDING`).
+				Extra(``).
+				CreateTime(`1638468921000`).
+				EndTime(`0`).
+				UpdateTime(`1638468921000`).
+				ActionContext(`123456`).
+				ActionConfigs([]*larkapproval.ActionConfig{
+					larkapproval.NewActionConfigBuilder().
+						ActionType(`APPROVE`).
+						ActionName(`@i18n@1`).
+						IsNeedReason(true).
+						IsReasonRequired(true).
+						IsNeedAttachment(true).
+						Build(),
+				}).
+				Build())
+		}
+	}
 
 	req := larkapproval.NewCreateExternalInstanceReqBuilder().
 		ExternalInstance(larkapproval.NewExternalInstanceBuilder().
