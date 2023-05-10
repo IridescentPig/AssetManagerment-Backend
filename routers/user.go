@@ -30,6 +30,7 @@ func (user *userRouter) routerNotNeedLogin(group *gin.RouterGroup) {
 	group.POST("/register", utils.Handler(api.UserApi.UserRegister))
 	group.POST("/login", utils.Handler(api.UserApi.UserLogin))
 	group.POST("/feishu/login", utils.Handler(api.FeishuApi.FeishuLogin))
+	group.POST("/feishu/bind", utils.Handler(api.FeishuApi.FeishuBind))
 }
 
 func (user *userRouter) routerNeedLogin(group *gin.RouterGroup) {
