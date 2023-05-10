@@ -358,3 +358,15 @@ func (asset *assetService) GetAssetHistory(assetID uint) ([]*model.Task, error) 
 
 	return approvedTaskList, nil
 }
+
+func (asset *assetService) SearchDepartmentAssets(departmentID uint, req *define.SearchAssetReq) ([]*model.Asset, error) {
+	if req.Name != "" {
+		req.Name = "%" + req.Name + "%"
+	}
+
+	if req.Description != "" {
+		req.Description = "%" + req.Description + "%"
+	}
+
+	return dao.AssetDao.SearchDepartmentAsset(departmentID, req)
+}

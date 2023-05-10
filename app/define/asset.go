@@ -98,3 +98,11 @@ type AssetHistory struct {
 type AssetHistoryResponse struct {
 	History []*AssetHistory `json:"history"`
 }
+
+type SearchAssetReq struct {
+	Name        string `json:"name"`
+	UserID      uint   `json:"user_id"`
+	Description string `json:"description" binding:"gte=0,lte=20"`
+	Key         string `json:"key"`
+	Value       string `json:"value"`
+}

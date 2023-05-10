@@ -675,3 +675,42 @@ func (asset *assetApi) GetAssetHistory(ctx *utils.Context) {
 
 	ctx.Success(assetHistoryRes)
 }
+
+/*
+Handle func for POST /department/:department_id/asset/search
+*/
+func (asset *assetApi) SearchAssets(ctx *utils.Context) {
+	hasIdentity, departmentID, err := AssetClassApi.CheckAssetIdentity(ctx)
+	if err != nil {
+		return
+	} else if !hasIdentity {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	var req define.SearchAssetReq
+	err = ctx.MustBindWith(&req, binding.JSON)
+	if err != nil {
+		ctx.BadRequest(myerror.INVALID_BODY, myerror.INVALID_BODY_INFO)
+		return
+	}
+
+	assetList, err := service.AssetService.SearchDepartmentAssets(departmentID, &req)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	var assetInfoList []*define.AssetInfo
+	err = copier.Copy(&assetInfoList, assetList)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	assetListResp := define.AssetListResponse{
+		AssetList: assetInfoList,
+	}
+
+	ctx.Success(assetListResp)
+}

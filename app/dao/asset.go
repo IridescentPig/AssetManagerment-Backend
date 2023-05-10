@@ -1,6 +1,7 @@
 package dao
 
 import (
+	"asset-management/app/define"
 	"asset-management/app/model"
 	"asset-management/utils"
 	"errors"
@@ -462,4 +463,45 @@ func (asset *assetDao) GetAssetTask(assetID uint) ([]*model.Task, error) {
 	taskList = thisAsset.TaskList
 
 	return taskList, utils.DBError(result)
+}
+
+func (asset *assetDao) SearchDepartmentAsset(departmentID uint, req *define.SearchAssetReq) (assetList []*model.Asset, err error) {
+	result := db.Model(&model.Asset{}).Where("department_id = ?", departmentID)
+
+	if req.Name != "" {
+		result = result.Where("name LIKE ?", req.Name)
+	}
+
+	if req.Description != "" {
+		result = result.Where("description LIKE ?", req.Description)
+	}
+
+	if req.UserID != 0 {
+		result = result.Where("user_id = ?", req.UserID)
+	}
+
+	if req.Key != "" {
+		if req.Value == "" {
+			result = result.Preload("Parent").Preload("User").
+				Preload("Department").Preload("Class").Preload("Maintainer").
+				Find(&assetList, datatypes.JSONQuery("property").HasKey(req.Key))
+		} else {
+			result = result.Preload("Parent").Preload("User").
+				Preload("Department").Preload("Class").Preload("Maintainer").
+				Find(&assetList, datatypes.JSONQuery("property").Equals(req.Value, req.Key))
+		}
+	} else {
+		result = result.Preload("Parent").Preload("User").
+			Preload("Department").Preload("Class").Preload("Maintainer").
+			Find(&assetList)
+	}
+
+	if result.Error != nil {
+		assetList = nil
+		err = utils.DBError(result)
+	} else {
+		err = nil
+	}
+
+	return
 }
