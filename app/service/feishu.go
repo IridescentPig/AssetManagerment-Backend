@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 	"time"
 
 	lark "github.com/larksuite/oapi-sdk-go/v3"
@@ -143,7 +144,7 @@ func (feishu *feishuService) SendMessage(UserId uint, text string) error {
 
 	text_content := fmt.Sprintf(`{"text":"%s"}`, text)
 
-	req := larkim.NewCreateMessageReqBuilder().
+	req := larkim.NewCreateMessageReqBuilder().ReceiveIdType("user_id").
 		Body(larkim.NewCreateMessageReqBodyBuilder().
 			ReceiveId(user.FeishuID).
 			MsgType(`text`).
@@ -153,10 +154,13 @@ func (feishu *feishuService) SendMessage(UserId uint, text string) error {
 
 	resp, err := Client.Im.Message.Create(context.Background(), req)
 	if err != nil {
+		// log.Println(err.Error())
 		return err
 	}
 
 	if !resp.Success() {
+		// log.Println(resp.Code)
+		// log.Println(resp.Err.Details)
 		return errors.New(resp.Msg)
 	}
 
@@ -252,9 +256,9 @@ func (feishu *feishuService) PutApproval(task model.Task, FeishuID string, appro
 					Build()).
 				Status(StateMap[task.State]).
 				Extra(``).
-				CreateTime((string)(time.Now().UnixMilli())). //改时间戳
+				CreateTime(strconv.FormatInt(time.Now().UnixMilli(), 10)). //改时间戳
 				EndTime(`0`).
-				UpdateTime((string)(time.Now().UnixMilli())).
+				UpdateTime(strconv.FormatInt(time.Now().UnixMilli(), 10)).
 				ActionConfigs([]*larkapproval.ActionConfig{
 					larkapproval.NewActionConfigBuilder().
 						ActionType(`APPROVE`).
@@ -299,9 +303,9 @@ func (feishu *feishuService) PutApproval(task model.Task, FeishuID string, appro
 					Build(),
 			}).
 			UserId(FeishuID).
-			StartTime((string)(time.Now().UnixMilli())). //改时间戳
+			StartTime(strconv.FormatInt(time.Now().UnixMilli(), 10)). //改时间戳
 			EndTime(`0`).
-			UpdateTime((string)(time.Now().UnixMilli())).
+			UpdateTime(strconv.FormatInt(time.Now().UnixMilli(), 10)).
 			UpdateMode(`REPLACE`).
 			TaskList(TaskList).
 			CcList([]*larkapproval.CcNode{}).

@@ -232,12 +232,14 @@ func (task *taskApi) CreateNewTask(ctx *utils.Context) {
 		text := fmt.Sprintf("您发送的描述为“%s”的%s请求已发送成功，等待管理员审批", req.TaskDescription, TaskTypeMap[req.TaskType])
 		err = service.FeishuService.SendMessage(user.ID, text)
 		if err != nil {
+			// log.Println("1")
 			ctx.InternalError(err.Error())
 			return
 		}
 	}
 	managers, err := service.DepartmentService.GetDepartmentManagerList(user.DepartmentID)
 	if err != nil {
+		// log.Println("2")
 		ctx.InternalError(err.Error())
 		return
 	}
@@ -251,11 +253,13 @@ func (task *taskApi) CreateNewTask(ctx *utils.Context) {
 	}
 	approval_code, err := service.FeishuService.CreateApprovalDefination()
 	if err != nil {
+		// log.Println("3")
 		ctx.InternalError(err.Error())
 		return
 	}
 	err = service.FeishuService.PutApproval(this_task, user.FeishuID, approval_code)
 	if err != nil {
+		// log.Println("4")
 		ctx.InternalError(err.Error())
 		return
 	}
@@ -264,6 +268,7 @@ func (task *taskApi) CreateNewTask(ctx *utils.Context) {
 			text := fmt.Sprintf("%s发送了一条描述为“%s”的%s申请，请注意审批", user.UserName, req.TaskDescription, TaskTypeMap[req.TaskType])
 			err = service.FeishuService.SendMessage(manager.ID, text)
 			if err != nil {
+				// log.Println("5")
 				ctx.InternalError(err.Error())
 				return
 			}
