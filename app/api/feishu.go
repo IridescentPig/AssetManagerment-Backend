@@ -7,6 +7,7 @@ import (
 	"asset-management/utils"
 
 	"github.com/gin-gonic/gin/binding"
+	"github.com/jinzhu/copier"
 )
 
 type feishuApi struct {
@@ -67,7 +68,33 @@ func (feishu *feishuApi) FeishuLogin(ctx *utils.Context) {
 		return
 	}
 
-	ctx.Success(nil)
+	userBasicInfo := define.UserBasicInfo{
+		UserID:          user.ID,
+		UserName:        user.UserName,
+		EntitySuper:     user.EntitySuper,
+		DepartmentSuper: user.DepartmentSuper,
+		SystemSuper:     user.SystemSuper,
+		EntityID:        user.EntityID,
+		DepartmentID:    user.DepartmentID,
+	}
+	token, err := utils.CreateToken(userBasicInfo)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	var userInfo define.UserInfo
+	err = copier.Copy(&userInfo, user)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	data := define.UserLoginResponse{
+		Token: token,
+		User:  userInfo,
+	}
+	ctx.Success(data)
 }
 
 /*
