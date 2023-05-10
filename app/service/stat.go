@@ -2,6 +2,7 @@ package service
 
 import (
 	"asset-management/app/dao"
+	"asset-management/app/define"
 	"asset-management/app/model"
 )
 
@@ -20,4 +21,8 @@ func init() {
 
 func (stat *statService) GetDepartmentStat(departmentID uint) ([]*model.Stat, error) {
 	return dao.StatDao.GetDepartmentStat(departmentID)
+}
+
+func (stat *statService) GetDepartmentAssetDistribution(departmentID uint) ([]*define.AssetDistribution, error) {
+	return dao.StatDao.GetDepartmentAssetDistribution(departmentID)
 }

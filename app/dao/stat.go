@@ -1,6 +1,7 @@
 package dao
 
 import (
+	"asset-management/app/define"
 	"asset-management/app/model"
 	"asset-management/utils"
 )
@@ -39,5 +40,12 @@ func (stat *statDao) GetDepartmentStat(departmentID uint) (stats []*model.Stat, 
 	result := db.Model(&model.Stat{}).Where("department_id = ?", departmentID).Find(&stats)
 
 	err = utils.DBError(result)
-	return stats, err
+	return
+}
+
+func (stat *statDao) GetDepartmentAssetDistribution(departmentID uint) (distribution []*define.AssetDistribution, err error) {
+	result := db.Model(&model.Asset{}).Select("state, COUNT(*) as count, SUM(net_worth) as total").Group("state").Scan(&distribution)
+
+	err = utils.DBError(result)
+	return
 }

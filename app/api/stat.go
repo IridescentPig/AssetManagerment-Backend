@@ -24,7 +24,7 @@ func init() {
 Handle func for GET /department/:department_id/asset/stat/total
 */
 func (stat *statApi) GetDepartmentStatTotal(ctx *utils.Context) {
-	hasIdentity, departmentID, err := AssetClassApi.CheckAssetViewIdentity(ctx)
+	hasIdentity, departmentID, err := AssetClassApi.CheckAssetIdentity(ctx)
 	if err != nil {
 		return
 	} else if !hasIdentity {
@@ -43,4 +43,29 @@ func (stat *statApi) GetDepartmentStatTotal(ctx *utils.Context) {
 	}
 
 	ctx.Success(statRes)
+}
+
+/*
+Handle func for GET /department/:department_id/asset/stat/distribution
+*/
+func (stat *statApi) GetDepartmentStatDistribution(ctx *utils.Context) {
+	hasIdentity, departmentID, err := AssetClassApi.CheckAssetIdentity(ctx)
+	if err != nil {
+		return
+	} else if !hasIdentity {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	distribution, err := service.StatService.GetDepartmentAssetDistribution(departmentID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	distributionRes := define.AssetDistributionResponse{
+		Distribution: distribution,
+	}
+
+	ctx.Success(distributionRes)
 }
