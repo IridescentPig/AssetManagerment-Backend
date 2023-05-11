@@ -46,4 +46,5 @@ const (
 	URL_NOT_FOUND_INFO                   = "URL not found"
 	PROPERTY_HAS_EXIST_INFO              = "Property has existed"
 	PROPERTY_NOT_EXIST_INFO              = "Property does not exist"
+	OSS_REQUEST_FAILED_INFO              = "Get access to oss failed, please try again"
 )

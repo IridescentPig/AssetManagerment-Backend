@@ -47,4 +47,5 @@ const (
 	URL_NOT_FOUND                   = 43
 	PROPERTY_HAS_EXIST              = 44
 	PROPERTY_NOT_EXIST              = 45
+	OSS_REQUEST_FAILED              = 46
 )
