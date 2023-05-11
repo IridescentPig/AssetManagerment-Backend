@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/jinzhu/copier"
 	"github.com/shopspring/decimal"
 	"github.com/thoas/go-funk"
 	"gorm.io/datatypes"
@@ -27,7 +26,36 @@ func init() {
 	AssetService = newAssetService()
 }
 
-func (asset *assetService) GetSubAsset(parentID uint, departmentID uint) ([]*define.AssetInfo, error) {
+func (asset *assetService) TransformAssetBasicInfo(assetList []*model.Asset) []*define.AssetBasicInfo {
+	subAssetTreeNodeList := funk.Map(assetList, func(thisAsset *model.Asset) *define.AssetBasicInfo {
+		return &define.AssetBasicInfo{
+			AssetID:   thisAsset.ID,
+			AssetName: thisAsset.Name,
+			ParentID:  thisAsset.ParentID,
+			User: define.AssetUserBasicInfo{
+				UserID:   thisAsset.UserID,
+				Username: thisAsset.User.UserName,
+			},
+			Price:    thisAsset.Price,
+			Position: thisAsset.Position,
+			Expire:   thisAsset.Expire,
+			Class: define.AssetClassBasicInfo{
+				ClassID:   thisAsset.ClassID,
+				ClassName: thisAsset.Class.Name,
+			},
+			Number:       thisAsset.Number,
+			Type:         thisAsset.Type,
+			State:        thisAsset.State,
+			Property:     thisAsset.Property,
+			NetWorth:     thisAsset.NetWorth,
+			DepartmentID: thisAsset.DepartmentID,
+		}
+	}).([]*define.AssetBasicInfo)
+
+	return subAssetTreeNodeList
+}
+
+func (asset *assetService) GetSubAsset(parentID uint, departmentID uint) ([]*define.AssetBasicInfo, error) {
 	var subAssetList []*model.Asset
 	var err error
 
@@ -41,8 +69,11 @@ func (asset *assetService) GetSubAsset(parentID uint, departmentID uint) ([]*def
 		return nil, err
 	}
 
-	subAssetTreeNodeList := []*define.AssetInfo{}
-	err = copier.Copy(&subAssetTreeNodeList, subAssetList)
+	// subAssetTreeNodeList := []*define.AssetInfo{}
+	// err = copier.Copy(&subAssetTreeNodeList, subAssetList)
+
+	subAssetTreeNodeList := asset.TransformAssetBasicInfo(subAssetList)
+
 	if err != nil {
 		return nil, err
 	}
@@ -247,14 +278,15 @@ func (asset *assetService) TransferAssets(assetIDs []uint, userID uint, departme
 	}
 }
 
-func (asset *assetService) GetAssetByUser(user_id uint) (assets []*define.AssetInfo, err error) {
-	assetList, err := dao.AssetDao.GetDirectAssetsByUser(user_id)
+func (asset *assetService) GetAssetByUser(userID uint) (assets []*define.AssetBasicInfo, err error) {
+	assetList, err := dao.AssetDao.GetDirectAssetsByUser(userID)
 	if err != nil {
 		return
 	}
-	err = copier.Copy(&assets, assetList)
-	for _, child_asset := range assets {
-		child_asset.Children, err = asset.GetSubAsset(child_asset.AssetID, child_asset.Department.ID)
+
+	assets = asset.TransformAssetBasicInfo(assetList)
+	for _, childAsset := range assets {
+		childAsset.Children, err = asset.GetSubAsset(childAsset.AssetID, childAsset.DepartmentID)
 		if err != nil {
 			return
 		}

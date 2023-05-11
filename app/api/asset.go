@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin/binding"
-	"github.com/jinzhu/copier"
 	"github.com/shopspring/decimal"
 	"github.com/thoas/go-funk"
 )
@@ -436,7 +435,7 @@ func (asset *assetApi) GetUserMaintainAssets(ctx *utils.Context) {
 		return
 	}
 
-	var assetListRes []*define.AssetInfo
+	// var assetListRes []*define.AssetInfo
 
 	assetList, err := service.AssetService.GetUserMaintainAssets(thisUser.ID)
 	if err != nil {
@@ -444,11 +443,13 @@ func (asset *assetApi) GetUserMaintainAssets(ctx *utils.Context) {
 		return
 	}
 
-	err = copier.Copy(&assetListRes, assetList)
-	if err != nil {
-		ctx.InternalError(err.Error())
-		return
-	}
+	// err = copier.Copy(&assetListRes, assetList)
+	// if err != nil {
+	// 	ctx.InternalError(err.Error())
+	// 	return
+	// }
+
+	assetListRes := service.AssetService.TransformAssetBasicInfo(assetList)
 
 	for _, thisAsset := range assetListRes {
 		thisAsset.Children = nil
@@ -701,16 +702,72 @@ func (asset *assetApi) SearchAssets(ctx *utils.Context) {
 		return
 	}
 
-	var assetInfoList []*define.AssetInfo
-	err = copier.Copy(&assetInfoList, assetList)
-	if err != nil {
-		ctx.InternalError(err.Error())
-		return
-	}
+	// var assetInfoList []*define.AssetInfo
+	// err = copier.Copy(&assetInfoList, assetList)
+	// if err != nil {
+	// 	ctx.InternalError(err.Error())
+	// 	return
+	// }
+	assetBasicInfoList := service.AssetService.TransformAssetBasicInfo(assetList)
 
 	assetListResp := define.AssetListResponse{
-		AssetList: assetInfoList,
+		AssetList: assetBasicInfoList,
 	}
 
 	ctx.Success(assetListResp)
+}
+
+/*
+Handle func for GET /department/:department_id/asset/:asset_id
+*/
+func (asset *assetApi) GetAssetInfo(ctx *utils.Context) {
+	hasIdentity, departmentID, err := AssetClassApi.CheckAssetIdentity(ctx)
+	if err != nil {
+		return
+	} else if !hasIdentity {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	_, thisAsset, isOK := asset.CheckAssetExistsAndValid(ctx, departmentID)
+	if !isOK {
+		return
+	}
+
+	assetInfo := define.AssetInfo{
+		AssetID:   thisAsset.ID,
+		AssetName: thisAsset.Name,
+		ParentID:  thisAsset.ParentID,
+		User: define.AssetUserBasicInfo{
+			UserID:   thisAsset.UserID,
+			Username: thisAsset.User.UserName,
+		},
+		Department: define.AssetDepartmentBasicInfo{
+			DepartmentID:   thisAsset.DepartmentID,
+			DepartmentName: thisAsset.Department.Name,
+		},
+		Price:       thisAsset.Price,
+		Description: thisAsset.Description,
+		Position:    thisAsset.Position,
+		Expire:      thisAsset.Expire,
+		Class: define.AssetClassBasicInfo{
+			ClassID:   thisAsset.ClassID,
+			ClassName: thisAsset.Class.Name,
+		},
+		Number:    thisAsset.Number,
+		Type:      thisAsset.Type,
+		State:     thisAsset.State,
+		Property:  thisAsset.Property,
+		NetWorth:  thisAsset.NetWorth,
+		CreatedAt: thisAsset.CreatedAt,
+	}
+
+	if thisAsset.MaintainerID != 0 {
+		assetInfo.Maintainer = define.AssetUserBasicInfo{
+			UserID:   thisAsset.MaintainerID,
+			Username: thisAsset.Maintainer.UserName,
+		}
+	}
+
+	ctx.Success(assetInfo)
 }
