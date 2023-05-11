@@ -262,9 +262,11 @@ func (feishu *feishuService) PutApproval(task model.Task, FeishuID string, appro
 				ActionConfigs([]*larkapproval.ActionConfig{
 					larkapproval.NewActionConfigBuilder().
 						ActionType(`APPROVE`).
+						ActionName(`@i18n@7`).
 						Build(),
 					larkapproval.NewActionConfigBuilder().
 						ActionType(`REJECT`).
+						ActionName(`@i18n@8`).
 						Build(),
 				}).
 				Build())
@@ -336,6 +338,14 @@ func (feishu *feishuService) PutApproval(task model.Task, FeishuID string, appro
 						larkapproval.NewI18nResourceTextBuilder().
 							Key(`@i18n@6`).
 							Value(task.TaskDescription).
+							Build(),
+						larkapproval.NewI18nResourceTextBuilder().
+							Key(`@i18n@7`).
+							Value(`同意`).
+							Build(),
+						larkapproval.NewI18nResourceTextBuilder().
+							Key(`@i18n@8`).
+							Value(`拒绝`).
 							Build(),
 					}).
 					IsDefault(true).
