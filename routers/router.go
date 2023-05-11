@@ -29,6 +29,7 @@ func (router *router) Init(r *gin.Engine) *gin.Engine {
 	AssetRouter.Init(r.Group("/department"))
 	TaskRouter.Init(r.Group(""))
 	LogRouter.Init(r.Group("/entity"))
+	OssRouter.Init(r.Group(""))
 	return r
 }
 

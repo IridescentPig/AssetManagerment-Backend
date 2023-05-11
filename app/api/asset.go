@@ -760,6 +760,7 @@ func (asset *assetApi) GetAssetInfo(ctx *utils.Context) {
 		Property:  thisAsset.Property,
 		NetWorth:  thisAsset.NetWorth,
 		CreatedAt: thisAsset.CreatedAt,
+		ImgList:   thisAsset.ImgList,
 	}
 
 	if thisAsset.MaintainerID != 0 {

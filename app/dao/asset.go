@@ -458,7 +458,7 @@ func (asset *assetDao) GetAssetTask(assetID uint) ([]*model.Task, error) {
 	var taskList []*model.Task
 	var thisAsset *model.Asset
 
-	result := db.Model(&model.Asset{}).Preload("TaskList.User").Preload("TaskList.Target").First(&thisAsset)
+	result := db.Model(&model.Asset{}).Preload("TaskList.User").Preload("TaskList.Target").Where("id = ?", assetID).First(&thisAsset)
 
 	taskList = thisAsset.TaskList
 
@@ -478,6 +478,10 @@ func (asset *assetDao) SearchDepartmentAsset(departmentID uint, req *define.Sear
 
 	if req.UserID != 0 {
 		result = result.Where("user_id = ?", req.UserID)
+	}
+
+	if req.State < 5 {
+		result = result.Where("state = ?", req.State)
 	}
 
 	if req.Key != "" {

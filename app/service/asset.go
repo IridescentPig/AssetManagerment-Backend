@@ -142,6 +142,7 @@ func (asset *assetService) ModifyAssetInfo(id uint, req define.ModifyAssetInfoRe
 		Type:        req.Type,
 		Number:      req.Number,
 		Expire:      req.Expire,
+		ImgList:     req.ImgList,
 	})
 	if err != nil {
 		return err
@@ -228,6 +229,7 @@ func (asset *assetService) CreateAsset(req *define.CreateAssetReq, departmentID 
 		Property:     datatypes.JSON([]byte(`{}`)),
 		Expire:       req.Expire,
 		NetWorth:     req.Price,
+		ImgList:      req.ImgList,
 	})
 	if err != nil {
 		return err

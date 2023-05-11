@@ -29,6 +29,7 @@ const (
 	durationSeconds   = 900
 	myAccessKeyId     = "LTAI5tCpT5SSksUNe355TY8V"
 	myAccessKeySecret = "WgkwIjagXCfiu0ykLmrZu1bcXQswV5"
+	endpoint          = "sts.cn-qingdao.aliyuncs.com"
 )
 
 /**
@@ -46,7 +47,7 @@ func (oss *ossApi) createClient(accessKeyId *string, accessKeySecret *string) (_
 		AccessKeySecret: accessKeySecret,
 	}
 	// 访问的域名
-	config.Endpoint = tea.String("sts.cn-qingdao.aliyuncs.com")
+	config.Endpoint = tea.String(endpoint)
 	_result = &sts20150401.Client{}
 	_result, _err = sts20150401.NewClient(config)
 	return _result, _err

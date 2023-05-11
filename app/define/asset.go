@@ -8,24 +8,25 @@ import (
 )
 
 type AssetInfo struct {
-	AssetID     uint                     `json:"asset_id" copier:"ID"`
-	AssetName   string                   `json:"asset_name" copier:"Name"`
-	ParentID    uint                     `json:"parent_id"`
-	User        AssetUserBasicInfo       `json:"user"`
-	Department  AssetDepartmentBasicInfo `json:"department"`
-	Maintainer  AssetUserBasicInfo       `json:"maintainer"`
-	Price       decimal.Decimal          `json:"price"`
-	Description string                   `json:"description"`
-	Position    string                   `json:"position"`
-	Expire      uint                     `json:"expire"`
-	Class       AssetClassBasicInfo      `json:"asset_class"`
-	Number      int                      `json:"count"`
-	Type        int                      `json:"type"`
-	Children    []*AssetInfo             `json:"-"`
-	State       uint                     `json:"state"`
-	Property    datatypes.JSON           `json:"property"`
-	NetWorth    decimal.Decimal          `json:"net_worth"`
-	CreatedAt   *model.ModelTime         `json:"created_at"`
+	AssetID     uint                        `json:"asset_id" copier:"ID"`
+	AssetName   string                      `json:"asset_name" copier:"Name"`
+	ParentID    uint                        `json:"parent_id"`
+	User        AssetUserBasicInfo          `json:"user"`
+	Department  AssetDepartmentBasicInfo    `json:"department"`
+	Maintainer  AssetUserBasicInfo          `json:"maintainer"`
+	Price       decimal.Decimal             `json:"price"`
+	Description string                      `json:"description"`
+	Position    string                      `json:"position"`
+	Expire      uint                        `json:"expire"`
+	Class       AssetClassBasicInfo         `json:"asset_class"`
+	Number      int                         `json:"count"`
+	Type        int                         `json:"type"`
+	Children    []*AssetInfo                `json:"-"`
+	State       uint                        `json:"state"`
+	Property    datatypes.JSON              `json:"property"`
+	NetWorth    decimal.Decimal             `json:"net_worth"`
+	CreatedAt   *model.ModelTime            `json:"created_at"`
+	ImgList     datatypes.JSONSlice[string] `json:"img_list"`
 }
 
 type AssetUserBasicInfo struct {
@@ -62,28 +63,30 @@ type AssetBasicInfo struct {
 }
 
 type ModifyAssetInfoReq struct {
-	AssetName   string          `json:"asset_name"`
-	ParentID    *uint           `json:"parent_id"`
-	Price       decimal.Decimal `json:"price"`
-	Description string          `json:"description"`
-	Position    string          `json:"position"`
-	ClassID     uint            `json:"class_id"`
-	Type        int             `json:"type"`
-	Number      int             `json:"count"`
-	Expire      uint            `json:"expire" binding:"gte=0"`
+	AssetName   string                      `json:"asset_name"`
+	ParentID    *uint                       `json:"parent_id"`
+	Price       decimal.Decimal             `json:"price"`
+	Description string                      `json:"description"`
+	Position    string                      `json:"position"`
+	ClassID     uint                        `json:"class_id"`
+	Type        int                         `json:"type"`
+	Number      int                         `json:"count"`
+	Expire      uint                        `json:"expire" binding:"gte=0"`
+	ImgList     datatypes.JSONSlice[string] `json:"img_list" binging:"dive,uri"`
 }
 
 type CreateAssetReq struct {
-	AssetName   string            `json:"asset_name"`
-	Price       decimal.Decimal   `json:"price"`
-	Description string            `json:"description"`
-	Position    string            `json:"position"`
-	ClassID     uint              `json:"class_id"`
-	Number      int               `json:"count"`
-	Type        int               `json:"type"`
-	ParentID    uint              `json:"parent_id"`
-	Expire      uint              `json:"expire" binding:"gte=0"`
-	Children    []*CreateAssetReq `json:"children"`
+	AssetName   string                      `json:"asset_name"`
+	Price       decimal.Decimal             `json:"price"`
+	Description string                      `json:"description"`
+	Position    string                      `json:"position"`
+	ClassID     uint                        `json:"class_id"`
+	Number      int                         `json:"count"`
+	Type        int                         `json:"type"`
+	ParentID    uint                        `json:"parent_id"`
+	Expire      uint                        `json:"expire" binding:"gte=0"`
+	Children    []*CreateAssetReq           `json:"children"`
+	ImgList     datatypes.JSONSlice[string] `json:"img_list" binging:"dive,uri"`
 }
 
 type CreateAssetListReq struct {
@@ -133,11 +136,12 @@ type AssetHistoryResponse struct {
 }
 
 type SearchAssetReq struct {
-	Name        string `json:"name"`
+	Name        string `json:"name" binding:"gte=0,lte=20"`
 	UserID      uint   `json:"user_id"`
-	Description string `json:"description" binding:"gte=0,lte=20"`
+	Description string `json:"description" binding:"gte=0,lte=30"`
 	Key         string `json:"key" binding:"ascii"`
 	Value       string `json:"value" binding:"ascii"`
+	State       uint   `json:"state" binding:"gte=0,lte=5"`
 }
 
 type AssetInfoResponse struct {
