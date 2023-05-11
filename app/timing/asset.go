@@ -26,7 +26,7 @@ func Init() *cron.Cron {
 	// })
 
 	_, err := c.AddJob(
-		"58 23 * * *",
+		"0 3 * * *",
 		cron.NewChain(cron.Recover(cron.DefaultLogger)).Then(&AssetDepreciate{}),
 	)
 
@@ -35,7 +35,7 @@ func Init() *cron.Cron {
 	}
 
 	_, err = c.AddJob(
-		"2 0 * * *",
+		"0 4 * * *",
 		cron.NewChain(cron.Recover(cron.DefaultLogger)).Then(&AssetStat{}),
 	)
 
