@@ -13,4 +13,7 @@ type User struct {
 	SystemSuper     bool        `gorm:"column:system_super;default:false" json:"system_super"`
 	IsEmployee      bool        `gorm:"column:is_employee;default:true" json:"is_employee"`
 	Ban             bool        `gorm:"column:ban;default:false" json:"-"`
+	FeishuID        string      `gorm:"column:feishu_id;default:null" json:"-"`
+	FeishuToken     string      `gorm:"column:feishu_token;default:null" json:"-"`
+	RefreshToken    string      `gorm:"column:refresh_token;default:null" json:"-"`
 }

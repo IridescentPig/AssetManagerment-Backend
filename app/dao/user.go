@@ -263,3 +263,66 @@ func (user *userDao) ModifyUserDepartmentByID(id uint, departmentID uint) error 
 	err = utils.DBError(db.Session(&gorm.Session{FullSaveAssociations: true}).Updates(&thisUser))
 	return err
 }
+
+// feishu
+func (user *userDao) BindFeishu(UserID uint, FeishuID string) error {
+	thisUser, err := user.GetUserByID(UserID)
+	if err != nil {
+		return err
+	}
+	if thisUser == nil {
+		return errors.New("user doesn't exist")
+	}
+	thisUser.FeishuID = FeishuID
+	err = utils.DBError(db.Session(&gorm.Session{FullSaveAssociations: true}).Updates(&thisUser))
+	return err
+}
+
+func (user *userDao) UpdateFeishuToken(UserID uint, FeishuToken string, RefreshToken string) error {
+	thisUser, err := user.GetUserByID(UserID)
+	if err != nil {
+		return err
+	}
+	if thisUser == nil {
+		return errors.New("user doesn't exist")
+	}
+	thisUser.FeishuToken = FeishuToken
+	thisUser.RefreshToken = RefreshToken
+	err = utils.DBError(db.Session(&gorm.Session{FullSaveAssociations: true}).Updates(&thisUser))
+	return err
+}
+
+func (user *userDao) GetUserByFeishuID(FeishuID string) (*model.User, error) {
+	ret := &model.User{}
+	result := db.Model(&model.User{}).Preload("Department").Preload("Entity").Where("feishu_id = ?", FeishuID).First(ret)
+	if result.Error == gorm.ErrRecordNotFound {
+		return nil, nil
+	}
+	return ret, utils.DBError(result)
+}
+
+/*func (user *userDao) GetFeishuTokenByID(UserID uint) (token string, err error) {
+	thisUser, err := user.GetUserByID(UserID)
+	if err != nil {
+		return
+	}
+	if thisUser == nil {
+		err = errors.New("user doesn't exist")
+		return
+	}
+	token = thisUser.FeishuToken
+	return
+}
+
+func (user *userDao) GetRefreshTokenByID(UserID uint) (token string, err error) {
+	thisUser, err := user.GetUserByID(UserID)
+	if err != nil {
+		return
+	}
+	if thisUser == nil {
+		err = errors.New("user doesn't exist")
+		return
+	}
+	token = thisUser.RefreshToken
+	return
+}*/
