@@ -4,8 +4,13 @@ import (
 	"asset-management/app/dao"
 	"asset-management/app/define"
 	"asset-management/app/model"
+	"asset-management/utils"
+	"encoding/json"
+	"time"
 
-	"github.com/jinzhu/copier"
+	"github.com/shopspring/decimal"
+	"github.com/thoas/go-funk"
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
@@ -21,7 +26,36 @@ func init() {
 	AssetService = newAssetService()
 }
 
-func (asset *assetService) GetSubAsset(parentID uint, departmentID uint) ([]*define.AssetInfo, error) {
+func (asset *assetService) TransformAssetBasicInfo(assetList []*model.Asset) []*define.AssetBasicInfo {
+	subAssetTreeNodeList := funk.Map(assetList, func(thisAsset *model.Asset) *define.AssetBasicInfo {
+		return &define.AssetBasicInfo{
+			AssetID:   thisAsset.ID,
+			AssetName: thisAsset.Name,
+			ParentID:  thisAsset.ParentID,
+			User: define.AssetUserBasicInfo{
+				UserID:   thisAsset.UserID,
+				Username: thisAsset.User.UserName,
+			},
+			Price:    thisAsset.Price,
+			Position: thisAsset.Position,
+			Expire:   thisAsset.Expire,
+			Class: define.AssetClassBasicInfo{
+				ClassID:   thisAsset.ClassID,
+				ClassName: thisAsset.Class.Name,
+			},
+			Number:       thisAsset.Number,
+			Type:         thisAsset.Type,
+			State:        thisAsset.State,
+			Property:     thisAsset.Property,
+			NetWorth:     thisAsset.NetWorth,
+			DepartmentID: thisAsset.DepartmentID,
+		}
+	}).([]*define.AssetBasicInfo)
+
+	return subAssetTreeNodeList
+}
+
+func (asset *assetService) GetSubAsset(parentID uint, departmentID uint) ([]*define.AssetBasicInfo, error) {
 	var subAssetList []*model.Asset
 	var err error
 
@@ -35,8 +69,11 @@ func (asset *assetService) GetSubAsset(parentID uint, departmentID uint) ([]*def
 		return nil, err
 	}
 
-	subAssetTreeNodeList := []*define.AssetInfo{}
-	err = copier.Copy(&subAssetTreeNodeList, subAssetList)
+	// subAssetTreeNodeList := []*define.AssetInfo{}
+	// err = copier.Copy(&subAssetTreeNodeList, subAssetList)
+
+	subAssetTreeNodeList := asset.TransformAssetBasicInfo(subAssetList)
+
 	if err != nil {
 		return nil, err
 	}
@@ -104,6 +141,8 @@ func (asset *assetService) ModifyAssetInfo(id uint, req define.ModifyAssetInfoRe
 		ClassID:     req.ClassID,
 		Type:        req.Type,
 		Number:      req.Number,
+		Expire:      req.Expire,
+		ImgList:     req.ImgList,
 	})
 	if err != nil {
 		return err
@@ -122,6 +161,59 @@ func (asset *assetService) ModifyAssetInfo(id uint, req define.ModifyAssetInfoRe
 	return err
 }
 
+func (asset *assetService) UpdateNetWorth(assetID uint) error {
+	thisAsset, err := dao.AssetDao.GetAssetByID(assetID)
+	if err != nil {
+		return err
+	} else if thisAsset == nil {
+		return nil
+	}
+
+	if thisAsset.Expire == 0 || thisAsset.State >= 3 {
+		return nil
+	}
+
+	price := thisAsset.Price
+	expire := thisAsset.Expire
+	interval := utils.GetDiffDays(time.Time(*thisAsset.CreatedAt), time.Now())
+
+	if interval >= int(thisAsset.Expire) {
+		err = dao.AssetDao.Update(assetID, map[string]interface{}{
+			"net_worth": decimal.Zero,
+			"state":     3,
+		})
+		if err != nil {
+			return err
+		}
+
+		subAssets, err := dao.AssetDao.GetSubAsset(assetID)
+		if err != nil {
+			return err
+		}
+
+		if subAssets != nil {
+			subIds := funk.Map(subAssets, func(currentAsset *model.Asset) uint {
+				return currentAsset.ID
+			}).([]uint)
+
+			err = dao.AssetDao.AllUpdate(subIds, map[string]interface{}{
+				"parent_id": gorm.Expr("NULL"),
+			})
+
+			if err != nil {
+				return err
+			}
+		}
+	} else {
+		rate := 1.0 - float64(interval)/float64(expire)
+		err = dao.AssetDao.UpdateByStruct(assetID, model.Asset{
+			NetWorth: price.Mul(decimal.NewFromFloat(rate)),
+		})
+	}
+
+	return err
+}
+
 func (asset *assetService) CreateAsset(req *define.CreateAssetReq, departmentID uint, parentID uint, userID uint) error {
 	thisID, err := dao.AssetDao.CreateAndGetID(model.Asset{
 		Name:         req.AssetName,
@@ -134,6 +226,10 @@ func (asset *assetService) CreateAsset(req *define.CreateAssetReq, departmentID 
 		DepartmentID: departmentID,
 		UserID:       userID,
 		ParentID:     parentID,
+		Property:     datatypes.JSON([]byte(`{}`)),
+		Expire:       req.Expire,
+		NetWorth:     req.Price,
+		ImgList:      req.ImgList,
 	})
 	if err != nil {
 		return err
@@ -184,14 +280,15 @@ func (asset *assetService) TransferAssets(assetIDs []uint, userID uint, departme
 	}
 }
 
-func (asset *assetService) GetAssetByUser(user_id uint) (assets []*define.AssetInfo, err error) {
-	assetList, err := dao.AssetDao.GetDirectAssetsByUser(user_id)
+func (asset *assetService) GetAssetByUser(userID uint) (assets []*define.AssetBasicInfo, err error) {
+	assetList, err := dao.AssetDao.GetDirectAssetsByUser(userID)
 	if err != nil {
 		return
 	}
-	err = copier.Copy(&assets, assetList)
-	for _, child_asset := range assets {
-		child_asset.Children, err = asset.GetSubAsset(child_asset.AssetID, child_asset.Department.ID)
+
+	assets = asset.TransformAssetBasicInfo(assetList)
+	for _, childAsset := range assets {
+		childAsset.Children, err = asset.GetSubAsset(childAsset.AssetID, childAsset.DepartmentID)
 		if err != nil {
 			return
 		}
@@ -244,4 +341,67 @@ func (asset *assetService) GetUserMaintainAssets(userID uint) ([]*model.Asset, e
 func (asset *assetService) ModifyAssetMaintainerAndState(assetIDs []uint, maintainerID uint) error {
 	err := dao.AssetDao.ModifyAssetMaintainerAndState(assetIDs, maintainerID)
 	return err
+}
+
+func (asset *assetService) ExistsProperty(assetID uint, key string) (bool, error) {
+	return dao.AssetDao.CheckAssetPropertyExist(assetID, key)
+}
+
+func (asset *assetService) SetProperty(assetID uint, key string, value string) error {
+	return dao.AssetDao.SetAssetProperty(assetID, key, value)
+}
+
+func (asset *assetService) DeleteProperty(assetID uint, key string) error {
+	thisAsset, err := dao.AssetDao.GetAssetProperty(assetID)
+	if err != nil {
+		return err
+	}
+
+	var data map[string]interface{}
+	err = json.Unmarshal(thisAsset.Property, &data)
+	if err != nil {
+		return err
+	}
+
+	delete(data, key)
+
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	err = dao.AssetDao.Update(assetID, map[string]interface{}{
+		"property": jsonData,
+	})
+
+	return err
+}
+
+func (asset *assetService) GetAssetHistory(assetID uint) ([]*model.Task, error) {
+	taskList, err := dao.AssetDao.GetAssetTask(assetID)
+	if err != nil {
+		return nil, err
+	}
+
+	var approvedTaskList []*model.Task
+
+	for _, task := range taskList {
+		if task.State == 1 {
+			approvedTaskList = append(approvedTaskList, task)
+		}
+	}
+
+	return approvedTaskList, nil
+}
+
+func (asset *assetService) SearchDepartmentAssets(departmentID uint, req *define.SearchAssetReq) ([]*model.Asset, error) {
+	if req.Name != "" {
+		req.Name = "%" + req.Name + "%"
+	}
+
+	if req.Description != "" {
+		req.Description = "%" + req.Description + "%"
+	}
+
+	return dao.AssetDao.SearchDepartmentAsset(departmentID, req)
 }

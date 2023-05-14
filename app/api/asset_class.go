@@ -23,6 +23,8 @@ func init() {
 	AssetClassApi = newAssetClassApi()
 }
 
+/*
+ */
 func (assetClass *assetClassApi) CheckAssetIdentity(ctx *utils.Context) (bool, uint, error) {
 	departmentID, err := service.EntityService.GetParamID(ctx, "department_id")
 	if err != nil {
@@ -39,6 +41,23 @@ func (assetClass *assetClassApi) CheckAssetIdentity(ctx *utils.Context) (bool, u
 	isDepartmentSuper := service.UserService.DepartmentSuper(ctx)
 	if !isDepartmentSuper {
 		return false, departmentID, nil
+	}
+	isInDepartment := service.DepartmentService.CheckIsInDepartment(ctx, departmentID)
+	return isInDepartment, departmentID, nil
+}
+
+func (assetClass *assetClassApi) CheckAssetViewIdentity(ctx *utils.Context) (bool, uint, error) {
+	departmentID, err := service.EntityService.GetParamID(ctx, "department_id")
+	if err != nil {
+		return false, departmentID, err
+	}
+	existsDepartment, err := service.DepartmentService.ExistsDepartmentByID(departmentID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return false, departmentID, err
+	} else if !existsDepartment {
+		ctx.NotFound(myerror.DEPARTMENT_NOT_FOUND, myerror.DEPARTMENT_NOT_FOUND_INFO)
+		return false, departmentID, errors.New("")
 	}
 	isInDepartment := service.DepartmentService.CheckIsInDepartment(ctx, departmentID)
 	return isInDepartment, departmentID, nil

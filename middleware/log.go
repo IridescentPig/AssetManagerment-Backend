@@ -6,6 +6,7 @@ import (
 	"asset-management/utils"
 	"bytes"
 	"encoding/json"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -81,7 +82,7 @@ func LogMiddleware() utils.HandlerFunc {
 					"department_id": uint(0),
 				}).Info("Login failed")
 			}
-		} else if ctx.Request.Method != "GET" {
+		} else if ctx.Request.Method != "GET" && !strings.HasSuffix(ctx.Request.URL.Path, "/asset/search") {
 			userInfo := getOperatorInfo(ctx)
 			blw := &CustomResponseWriter{body: bytes.NewBufferString(""), ResponseWriter: ctx.Writer}
 			ctx.Writer = blw
