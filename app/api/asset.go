@@ -6,10 +6,12 @@ import (
 	"asset-management/app/service"
 	"asset-management/myerror"
 	"asset-management/utils"
+	"sort"
+	"time"
 
 	"github.com/gin-gonic/gin/binding"
-	"github.com/jinzhu/copier"
 	"github.com/shopspring/decimal"
+	"github.com/thoas/go-funk"
 )
 
 type assetApi struct {
@@ -23,6 +25,27 @@ func newAssetApi() *assetApi {
 
 func init() {
 	AssetApi = newAssetApi()
+}
+
+func (asset *assetApi) CheckAssetExistsAndValid(ctx *utils.Context, departmentID uint) (uint, *model.Asset, bool) {
+	assetID, err := service.EntityService.GetParamID(ctx, "asset_id")
+	if err != nil {
+		return 0, nil, false
+	}
+
+	thisAsset, err := service.AssetService.GetAssetByID(assetID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return 0, nil, false
+	} else if thisAsset == nil {
+		ctx.BadRequest(myerror.ASSET_NOT_FOUND, myerror.ASSET_NOT_FOUND_INFO)
+		return 0, nil, false
+	} else if thisAsset.DepartmentID != departmentID {
+		ctx.BadRequest(myerror.ASSET_NOT_IN_DEPARTMENT, myerror.ASSET_CLASS_NOT_FOUND_INFO)
+		return 0, nil, false
+	}
+
+	return assetID, thisAsset, true
 }
 
 func (asset *assetApi) CheckAssetsValid(ctx *utils.Context, departmentID uint, assetList []define.ExpireAssetReq) ([]uint, bool) {
@@ -107,20 +130,25 @@ func (asset *assetApi) ModifyAssetInfo(ctx *utils.Context) {
 		return
 	}
 
-	assetID, err := service.EntityService.GetParamID(ctx, "asset_id")
-	if err != nil {
-		return
-	}
+	// assetID, err := service.EntityService.GetParamID(ctx, "asset_id")
+	// if err != nil {
+	// 	return
+	// }
 
-	thisAsset, err := service.AssetService.GetAssetByID(assetID)
-	if err != nil {
-		ctx.InternalError(err.Error())
-		return
-	} else if thisAsset == nil {
-		ctx.BadRequest(myerror.ASSET_NOT_FOUND, myerror.ASSET_NOT_FOUND_INFO)
-		return
-	} else if thisAsset.DepartmentID != departmentID {
-		ctx.BadRequest(myerror.ASSET_NOT_IN_DEPARTMENT, myerror.ASSET_CLASS_NOT_FOUND_INFO)
+	// thisAsset, err := service.AssetService.GetAssetByID(assetID)
+	// if err != nil {
+	// 	ctx.InternalError(err.Error())
+	// 	return
+	// } else if thisAsset == nil {
+	// 	ctx.BadRequest(myerror.ASSET_NOT_FOUND, myerror.ASSET_NOT_FOUND_INFO)
+	// 	return
+	// } else if thisAsset.DepartmentID != departmentID {
+	// 	ctx.BadRequest(myerror.ASSET_NOT_IN_DEPARTMENT, myerror.ASSET_CLASS_NOT_FOUND_INFO)
+	// 	return
+	// }
+
+	assetID, thisAsset, isOK := asset.CheckAssetExistsAndValid(ctx, departmentID)
+	if !isOK {
 		return
 	}
 
@@ -165,6 +193,10 @@ func (asset *assetApi) ModifyAssetInfo(ctx *utils.Context) {
 	if err != nil {
 		ctx.InternalError(err.Error())
 		return
+	}
+
+	if modifyAssetReq.Price != decimal.Zero || modifyAssetReq.Expire != 0 {
+		_ = service.AssetService.UpdateNetWorth(assetID)
 	}
 
 	ctx.Success(nil)
@@ -403,7 +435,7 @@ func (asset *assetApi) GetUserMaintainAssets(ctx *utils.Context) {
 		return
 	}
 
-	var assetListRes []*define.AssetInfo
+	// var assetListRes []*define.AssetInfo
 
 	assetList, err := service.AssetService.GetUserMaintainAssets(thisUser.ID)
 	if err != nil {
@@ -411,11 +443,13 @@ func (asset *assetApi) GetUserMaintainAssets(ctx *utils.Context) {
 		return
 	}
 
-	err = copier.Copy(&assetListRes, assetList)
-	if err != nil {
-		ctx.InternalError(err.Error())
-		return
-	}
+	// err = copier.Copy(&assetListRes, assetList)
+	// if err != nil {
+	// 	ctx.InternalError(err.Error())
+	// 	return
+	// }
+
+	assetListRes := service.AssetService.TransformAssetBasicInfo(assetList)
 
 	for _, thisAsset := range assetListRes {
 		thisAsset.Children = nil
@@ -464,4 +498,277 @@ func (asset *assetApi) FinishMaintenance(ctx *utils.Context) {
 	}
 
 	ctx.Success(nil)
+}
+
+/*
+Handle func for POST /department/{department_id}/asset/{asset_id}/property
+*/
+func (asset *assetApi) CreateAssetProperty(ctx *utils.Context) {
+	hasIdentity, departmentID, err := AssetClassApi.CheckAssetIdentity(ctx)
+	if err != nil {
+		return
+	} else if !hasIdentity {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	assetID, _, isOK := asset.CheckAssetExistsAndValid(ctx, departmentID)
+	if !isOK {
+		return
+	}
+
+	var createPropertyReq define.AssetPropertyReq
+	err = ctx.MustBindWith(&createPropertyReq, binding.JSON)
+	if err != nil {
+		ctx.BadRequest(myerror.INVALID_BODY, myerror.INVALID_BODY_INFO)
+		return
+	}
+
+	isExist, err := service.AssetService.ExistsProperty(assetID, createPropertyReq.Key)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	} else if isExist {
+		ctx.BadRequest(myerror.PROPERTY_HAS_EXIST, myerror.PROPERTY_HAS_EXIST_INFO)
+		return
+	}
+
+	err = service.AssetService.SetProperty(assetID, createPropertyReq.Key, createPropertyReq.Value)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	ctx.Success(nil)
+}
+
+/*
+Handle func for PATCH /department/{department_id}/asset/{asset_id}/property
+*/
+func (asset *assetApi) ModifyAssetProperty(ctx *utils.Context) {
+	hasIdentity, departmentID, err := AssetClassApi.CheckAssetIdentity(ctx)
+	if err != nil {
+		return
+	} else if !hasIdentity {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	assetID, _, isOK := asset.CheckAssetExistsAndValid(ctx, departmentID)
+	if !isOK {
+		return
+	}
+
+	var modifyPropertyReq define.AssetPropertyReq
+	err = ctx.MustBindWith(&modifyPropertyReq, binding.JSON)
+	if err != nil {
+		ctx.BadRequest(myerror.INVALID_BODY, myerror.INVALID_BODY_INFO)
+		return
+	}
+
+	isExist, err := service.AssetService.ExistsProperty(assetID, modifyPropertyReq.Key)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	} else if !isExist {
+		ctx.BadRequest(myerror.PROPERTY_NOT_EXIST, myerror.PROPERTY_NOT_EXIST_INFO)
+		return
+	}
+
+	err = service.AssetService.SetProperty(assetID, modifyPropertyReq.Key, modifyPropertyReq.Value)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	ctx.Success(nil)
+}
+
+/*
+Handle func for DELETE /department/{department_id}/asset/{asset_id}/property
+*/
+func (asset *assetApi) DeleteAssetProperty(ctx *utils.Context) {
+	hasIdentity, departmentID, err := AssetClassApi.CheckAssetIdentity(ctx)
+	if err != nil {
+		return
+	} else if !hasIdentity {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	assetID, _, isOK := asset.CheckAssetExistsAndValid(ctx, departmentID)
+	if !isOK {
+		return
+	}
+
+	var deletePropertyReq define.DeleteAssetPropertyReq
+	err = ctx.MustBindWith(&deletePropertyReq, binding.JSON)
+	if err != nil {
+		ctx.BadRequest(myerror.INVALID_BODY, myerror.INVALID_BODY_INFO)
+		return
+	}
+
+	isExist, err := service.AssetService.ExistsProperty(assetID, deletePropertyReq.Key)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	} else if !isExist {
+		ctx.BadRequest(myerror.PROPERTY_NOT_EXIST, myerror.PROPERTY_NOT_EXIST_INFO)
+		return
+	}
+
+	err = service.AssetService.DeleteProperty(assetID, deletePropertyReq.Key)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	ctx.Success(nil)
+}
+
+/*
+Handle func for GET /department/:department_id/asset/:asset_id/history
+*/
+func (asset *assetApi) GetAssetHistory(ctx *utils.Context) {
+	hasIdentity, departmentID, err := AssetClassApi.CheckAssetViewIdentity(ctx)
+	if err != nil {
+		return
+	} else if !hasIdentity {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	assetID, _, isOK := asset.CheckAssetExistsAndValid(ctx, departmentID)
+	if !isOK {
+		return
+	}
+
+	approvedTaskList, err := service.AssetService.GetAssetHistory(assetID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	assetHistory := funk.Map(approvedTaskList, func(task *model.Task) *define.AssetHistory {
+		history := define.AssetHistory{
+			Type:         task.TaskType,
+			ReviewTime:   task.ReviewAt,
+			UserID:       task.UserID,
+			Username:     task.User.UserName,
+			DepartmentID: task.DepartmentID,
+		}
+		if task.TaskType >= 2 {
+			history.TargetID = task.TargetID
+			history.TargetName = task.Target.UserName
+			history.TargetDepartmentID = task.Target.DepartmentID
+		}
+
+		return &history
+	}).([]*define.AssetHistory)
+
+	sort.Slice(assetHistory, func(i, j int) bool {
+		return time.Time(*assetHistory[i].ReviewTime).After(time.Time(*assetHistory[j].ReviewTime))
+	})
+
+	assetHistoryRes := define.AssetHistoryResponse{
+		History: assetHistory,
+	}
+
+	ctx.Success(assetHistoryRes)
+}
+
+/*
+Handle func for POST /department/:department_id/asset/search
+*/
+func (asset *assetApi) SearchAssets(ctx *utils.Context) {
+	hasIdentity, departmentID, err := AssetClassApi.CheckAssetIdentity(ctx)
+	if err != nil {
+		return
+	} else if !hasIdentity {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	var req define.SearchAssetReq
+	err = ctx.MustBindWith(&req, binding.JSON)
+	if err != nil {
+		ctx.BadRequest(myerror.INVALID_BODY, myerror.INVALID_BODY_INFO)
+		return
+	}
+
+	assetList, err := service.AssetService.SearchDepartmentAssets(departmentID, &req)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	// var assetInfoList []*define.AssetInfo
+	// err = copier.Copy(&assetInfoList, assetList)
+	// if err != nil {
+	// 	ctx.InternalError(err.Error())
+	// 	return
+	// }
+	assetBasicInfoList := service.AssetService.TransformAssetBasicInfo(assetList)
+
+	assetListResp := define.AssetListResponse{
+		AssetList: assetBasicInfoList,
+	}
+
+	ctx.Success(assetListResp)
+}
+
+/*
+Handle func for GET /department/:department_id/asset/:asset_id
+*/
+func (asset *assetApi) GetAssetInfo(ctx *utils.Context) {
+	hasIdentity, departmentID, err := AssetClassApi.CheckAssetIdentity(ctx)
+	if err != nil {
+		return
+	} else if !hasIdentity {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	_, thisAsset, isOK := asset.CheckAssetExistsAndValid(ctx, departmentID)
+	if !isOK {
+		return
+	}
+
+	assetInfo := define.AssetInfo{
+		AssetID:   thisAsset.ID,
+		AssetName: thisAsset.Name,
+		ParentID:  thisAsset.ParentID,
+		User: define.AssetUserBasicInfo{
+			UserID:   thisAsset.UserID,
+			Username: thisAsset.User.UserName,
+		},
+		Department: define.AssetDepartmentBasicInfo{
+			DepartmentID:   thisAsset.DepartmentID,
+			DepartmentName: thisAsset.Department.Name,
+		},
+		Price:       thisAsset.Price,
+		Description: thisAsset.Description,
+		Position:    thisAsset.Position,
+		Expire:      thisAsset.Expire,
+		Class: define.AssetClassBasicInfo{
+			ClassID:   thisAsset.ClassID,
+			ClassName: thisAsset.Class.Name,
+		},
+		Number:    thisAsset.Number,
+		Type:      thisAsset.Type,
+		State:     thisAsset.State,
+		Property:  thisAsset.Property,
+		NetWorth:  thisAsset.NetWorth,
+		CreatedAt: thisAsset.CreatedAt,
+		ImgList:   thisAsset.ImgList,
+	}
+
+	if thisAsset.MaintainerID != 0 {
+		assetInfo.Maintainer = define.AssetUserBasicInfo{
+			UserID:   thisAsset.MaintainerID,
+			Username: thisAsset.Maintainer.UserName,
+		}
+	}
+
+	ctx.Success(assetInfo)
 }

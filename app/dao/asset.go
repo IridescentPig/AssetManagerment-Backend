@@ -1,11 +1,13 @@
 package dao
 
 import (
+	"asset-management/app/define"
 	"asset-management/app/model"
 	"asset-management/utils"
 	"errors"
 
 	"github.com/shopspring/decimal"
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
@@ -52,6 +54,11 @@ func (asset *assetDao) Delete(id []uint) error {
 	return utils.DBError(result)
 }
 
+func (asset *assetDao) SaveAsset(thisAsset *model.Asset) error {
+	result := db.Save(thisAsset)
+	return utils.DBError(result)
+}
+
 // func (asset *assetDao) AllAsset() (list []model.Asset, err error) {
 // 	result := db.Model(&model.Asset{}).Find(&list)
 // 	for _, asset := range list {
@@ -71,6 +78,19 @@ func (asset *assetDao) Delete(id []uint) error {
 // 	err = utils.DBError(result)
 // 	return
 // }
+
+/*
+Note: This function doesn't preload any association function
+*/
+func (asset *assetDao) GetAllAssets() (assetList []*model.Asset, err error) {
+	result := db.Model(&model.Asset{}).Find(&assetList)
+
+	if result.Error == gorm.ErrRecordNotFound {
+		return nil, nil
+	}
+
+	return
+}
 
 func (asset *assetDao) GetAssetByName(name string) (list []model.Asset, err error) {
 	result := db.Model(&model.Asset{}).Where("name = ?", name).Find(&list)
@@ -198,9 +218,8 @@ func (asset *assetDao) ModifyAssetState(id uint, state uint) error {
 
 func (asset *assetDao) ExpireAsset(ids []uint) error {
 	return asset.AllUpdate(ids, map[string]interface{}{
-		"expire": true,
-		"state":  3,
-		"price":  decimal.NewFromFloat(0),
+		"state": 3,
+		"price": decimal.NewFromFloat(0),
 	})
 }
 
@@ -404,4 +423,89 @@ func (asset *assetDao) ModifyAssetMaintainerAndState(assetIDs []uint, maintainer
 	}
 	err := utils.DBError(result)
 	return err
+}
+
+func (asset *assetDao) CheckAssetPropertyExist(assetID uint, key string) (bool, error) {
+	var thisAsset *model.Asset
+	result := db.Model(&model.Asset{}).Where("id = ?", assetID).
+		First(&thisAsset, datatypes.JSONQuery("property").HasKey(key))
+
+	if result.Error == gorm.ErrRecordNotFound {
+		return false, nil
+	} else if result.Error != nil {
+		return false, utils.DBError(result)
+	}
+
+	return true, nil
+}
+
+func (asset *assetDao) SetAssetProperty(assetID uint, key string, value string) error {
+	result := db.Model(&model.Asset{}).Where("id = ?", assetID).
+		UpdateColumn("property", datatypes.JSONSet("property").Set(key, value))
+
+	return utils.DBError(result)
+}
+
+func (asset *assetDao) GetAssetProperty(assetID uint) (*model.Asset, error) {
+	var thisAsset *model.Asset
+
+	result := db.Model(&model.Asset{}).Where("id = ?", assetID).First(&thisAsset)
+
+	return thisAsset, utils.DBError(result)
+}
+
+func (asset *assetDao) GetAssetTask(assetID uint) ([]*model.Task, error) {
+	var taskList []*model.Task
+	var thisAsset *model.Asset
+
+	result := db.Model(&model.Asset{}).Preload("TaskList.User").Preload("TaskList.Target").Where("id = ?", assetID).First(&thisAsset)
+
+	taskList = thisAsset.TaskList
+
+	return taskList, utils.DBError(result)
+}
+
+func (asset *assetDao) SearchDepartmentAsset(departmentID uint, req *define.SearchAssetReq) (assetList []*model.Asset, err error) {
+	result := db.Model(&model.Asset{}).Where("department_id = ?", departmentID)
+
+	if req.Name != "" {
+		result = result.Where("name LIKE ?", req.Name)
+	}
+
+	if req.Description != "" {
+		result = result.Where("description LIKE ?", req.Description)
+	}
+
+	if req.UserID != 0 {
+		result = result.Where("user_id = ?", req.UserID)
+	}
+
+	if req.State < 5 {
+		result = result.Where("state = ?", req.State)
+	}
+
+	if req.Key != "" {
+		if req.Value == "" {
+			result = result.Preload("Parent").Preload("User").
+				Preload("Department").Preload("Class").Preload("Maintainer").
+				Find(&assetList, datatypes.JSONQuery("property").HasKey(req.Key))
+		} else {
+			result = result.Preload("Parent").Preload("User").
+				Preload("Department").Preload("Class").Preload("Maintainer").
+				Find(&assetList, datatypes.JSONQuery("property").Equals(req.Value, req.Key))
+		}
+	} else {
+		result = result.Preload("Parent").Preload("User").
+			Preload("Department").Preload("Class").Preload("Maintainer").
+			Find(&assetList)
+	}
+
+	if result.Error != nil {
+		assetList = nil
+		err = utils.DBError(result)
+	} else {
+		err = nil
+	}
+
+	return
 }
