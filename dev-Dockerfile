@@ -16,4 +16,4 @@ RUN GOOS=linux GOARCH=amd64 go build .
 
 EXPOSE 80
 
-CMD ["./asset"]
+CMD ["./asset-management"]
