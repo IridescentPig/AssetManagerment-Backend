@@ -22,4 +22,11 @@ func (task *GetPendingAsyncTask) Run() {
 		return
 	}
 
+	if asyncTask.Type == 0 {
+
+	} else if asyncTask.Type == 1 {
+
+	} else {
+
+	}
 }

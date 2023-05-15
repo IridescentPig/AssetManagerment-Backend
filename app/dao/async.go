@@ -29,3 +29,21 @@ func (asy *asyncDao) GetPendingTask() (task *model.AsyncTask, err error) {
 	err = utils.DBError(result)
 	return
 }
+
+func (asy *asyncDao) GetAsyncTaskListByUserID(userID uint) (taskList []*model.AsyncTask, err error) {
+	result := db.Model(&model.AsyncTask{}).Where("user_id = ?", userID).Find(&taskList)
+	err = utils.DBError(result)
+	return
+}
+
+func (asy *asyncDao) CreateAsyncTask(newTask model.AsyncTask) (err error) {
+	result := db.Model(&model.AsyncTask{}).Preload("User").Create(&newTask)
+	err = utils.DBError(result)
+	return
+}
+
+func (asy *asyncDao) ModifyAsyncTaskInfo(taskID uint, data map[string]interface{}) (err error) {
+	result := db.Model(&model.AsyncTask{}).Updates(data)
+	err = utils.DBError(result)
+	return
+}
