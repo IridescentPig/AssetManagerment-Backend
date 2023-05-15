@@ -7,6 +7,8 @@ stages:
 
 build:
   stage: build
+  tags:
+    - asset
   script:
     - export BUILD_IMAGE_NAME=$CI_REGISTRY_IMAGE
     - export BUILD_IMAGE_TAG=$CI_COMMIT_REF_SLUG
@@ -18,6 +20,8 @@ build:
 
 build_dev:
   stage: build
+  tags:
+    - asset
   script:
     - export BUILD_IMAGE_NAME=$CI_REGISTRY_IMAGE
     - export BUILD_IMAGE_TAG=$CI_COMMIT_REF_SLUG
@@ -31,6 +35,8 @@ build_dev:
 unit-test:
   image: golang:1.20
   stage: test
+  tags:
+    - asset
 
   before_script:
     - go env -w GOPROXY=https://goproxy.cn,direct
@@ -46,6 +52,8 @@ unit-test:
 
 deploy:
   stage: deploy
+  tags:
+    - asset
   script:
     - deployer dyno replace $CI_PROJECT_NAME $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG gitlab-ci-token $REGISTRY_PWD
   only:
@@ -53,6 +61,8 @@ deploy:
 
 deploy_dev:
   stage: deploy
+  tags:
+    - asset
   script:
     - deployer dyno replace AssetManagement-Backend-dev $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG gitlab-ci-token $REGISTRY_PWD
   only:
