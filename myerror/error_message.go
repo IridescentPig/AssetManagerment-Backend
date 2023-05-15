@@ -51,4 +51,6 @@ const (
 	PROPERTY_HAS_EXIST_INFO              = "Property has existed"
 	PROPERTY_NOT_EXIST_INFO              = "Property does not exist"
 	OSS_REQUEST_FAILED_INFO              = "Get access to oss failed, please try again"
+	CANCEL_TASK_CANNOT_BE_RESTART_INFO   = "Cancel task cannot be restart"
+	RUNNING_TASK_CANNOT_BE_RESTART_INFO  = "Running task cannot be restart"
 )

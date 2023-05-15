@@ -47,3 +47,14 @@ func (asy *asyncDao) ModifyAsyncTaskInfo(taskID uint, data map[string]interface{
 	err = utils.DBError(result)
 	return
 }
+
+func (asy *asyncDao) GetAsyncTaskByID(taskID uint) (task *model.AsyncTask, err error) {
+	result := db.Model(&model.AsyncTask{}).Where("id = ?", taskID).First(&task)
+	if result.Error == gorm.ErrRecordNotFound {
+		err = nil
+	} else {
+		err = utils.DBError(result)
+	}
+
+	return
+}
