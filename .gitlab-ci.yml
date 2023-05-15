@@ -7,8 +7,6 @@ stages:
 
 build:
   stage: build
-  tags:
-    - asset
   script:
     - export BUILD_IMAGE_NAME=$CI_REGISTRY_IMAGE
     - export BUILD_IMAGE_TAG=$CI_COMMIT_REF_SLUG
@@ -20,8 +18,6 @@ build:
 
 build_dev:
   stage: build
-  tags:
-    - asset
   script:
     - export BUILD_IMAGE_NAME=$CI_REGISTRY_IMAGE
     - export BUILD_IMAGE_TAG=$CI_COMMIT_REF_SLUG
