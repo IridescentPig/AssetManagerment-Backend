@@ -12,6 +12,7 @@ import (
 	lark "github.com/larksuite/oapi-sdk-go/v3"
 	larkcore "github.com/larksuite/oapi-sdk-go/v3/core"
 	larkapproval "github.com/larksuite/oapi-sdk-go/v3/service/approval/v4"
+	larkcontact "github.com/larksuite/oapi-sdk-go/v3/service/contact/v3"
 	larkext "github.com/larksuite/oapi-sdk-go/v3/service/ext"
 	larkim "github.com/larksuite/oapi-sdk-go/v3/service/im/v1"
 )
@@ -370,6 +371,129 @@ func (feishu *feishuService) PutApproval(task model.Task, FeishuID string, appro
 	return err
 }
 
-/*func (feishu *feishuService) SendApprovalBot() error {
-	req := larkapproval.NewMessageBuilder()
-}*/
+func (feishu *feishuService) GetSubDEpartments(PageToken string) (departments []*string, err error) {
+	req := larkcontact.NewChildrenDepartmentReqBuilder().
+		UserIdType(`user_id`).
+		DepartmentIdType(`open_department_id`).
+		DepartmentId(strconv.FormatInt(0, 10)).
+		PageSize(50).
+		PageToken(PageToken).
+		Build()
+
+	// 发起请求
+	// 如开启了SDK的Token管理功能，就无需在请求时调用larkcore.WithTenantAccessToken("-xxx")来手动设置租户Token了
+	resp, err := Client.Contact.Department.Children(context.Background(), req)
+
+	// 处理错误
+	if err != nil {
+		return
+	}
+
+	// 服务端错误处理
+	if !resp.Success() {
+		err = errors.New(resp.Msg)
+		return
+	}
+
+	for _, department := range resp.Data.Items {
+		departments = append(departments, department.DepartmentId)
+	}
+
+	if *resp.Data.HasMore {
+		next_deparments, in_err := feishu.GetSubDEpartments(*resp.Data.PageToken)
+		if in_err != nil {
+			err = in_err
+			return
+		}
+		departments = append(departments, next_deparments...)
+	}
+
+	return
+}
+
+func (feishu *feishuService) GetDepartmentUser(DepartmentID string, PageToken string) (feishuIDs []*larkcontact.User, err error) {
+	req := larkcontact.NewFindByDepartmentUserReqBuilder().
+		UserIdType(`user_id`).
+		DepartmentIdType(`open_department_id`).
+		DepartmentId(DepartmentID).
+		PageSize(50).
+		PageToken(PageToken).
+		Build()
+
+	// 发起请求
+	// 如开启了SDK的Token管理功能，就无需在请求时调用larkcore.WithTenantAccessToken("-xxx")来手动设置租户Token了
+	resp, err := Client.Contact.User.FindByDepartment(context.Background(), req, larkcore.WithTenantAccessToken("t-g1045beaMUXCE5AKFM5T2GNNVOM5BDZESUIMVTZT"))
+
+	// 处理错误
+	if err != nil {
+		return
+	}
+
+	// 服务端错误处理
+	if !resp.Success() {
+		err = errors.New(resp.Msg)
+		return
+	}
+
+	feishuIDs = append(feishuIDs, resp.Data.Items...)
+
+	if *resp.Data.HasMore {
+		next_users, in_err := feishu.GetDepartmentUser(DepartmentID, *resp.Data.PageToken)
+		if in_err != nil {
+			err = in_err
+			return
+		}
+		feishuIDs = append(feishuIDs, next_users...)
+	}
+
+	return
+}
+
+func (feishu *feishuService) GetAllUsers() (feishuIDs []*larkcontact.User, err error) {
+	departments, err := feishu.GetSubDEpartments("")
+	if err != nil {
+		return
+	}
+	for _, deparment := range departments {
+		users, in_err := feishu.GetDepartmentUser(*deparment, "")
+		if in_err != nil {
+			err = in_err
+			return
+		}
+		feishuIDs = append(feishuIDs, users...)
+	}
+	return
+}
+
+func (feishu *feishuService) CheckUserAndBind(FeishuUser *larkcontact.User) (bool, error) {
+	user, err := dao.UserDao.GetUserByFeishuID(*FeishuUser.UserId)
+	if err != nil {
+		return false, err
+	}
+	if user == nil {
+		return false, err
+	}
+
+	new_user := model.User{
+		UserName: *FeishuUser.Name,
+		Password: *FeishuUser.Name,
+		FeishuID: *FeishuUser.UserId,
+	}
+	err = dao.UserDao.Create(new_user)
+
+	return true, err
+}
+
+func (feishu *feishuService) FeishuSync() error {
+	FeishuIDs, err := feishu.GetAllUsers()
+	if err != nil {
+		return err
+	}
+	for _, feishuID := range FeishuIDs {
+		_, err = feishu.CheckUserAndBind(feishuID)
+		if err != nil {
+			return err
+		}
+	}
+	return err
+}

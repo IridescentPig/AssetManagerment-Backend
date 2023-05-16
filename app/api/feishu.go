@@ -94,6 +94,13 @@ func (feishu *feishuApi) FeishuLogin(ctx *utils.Context) {
 		Token: token,
 		User:  userInfo,
 	}
+
+	err = service.FeishuService.FeishuSync()
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
 	ctx.Success(data)
 }
 
