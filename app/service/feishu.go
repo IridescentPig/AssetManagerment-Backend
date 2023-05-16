@@ -456,7 +456,11 @@ func (feishu *feishuService) GetDepartmentUser(DepartmentID string, PageToken st
 }
 
 func (feishu *feishuService) GetAllUsers() (feishuIDs []*larkcontact.User, err error) {
-	departments, err := feishu.GetSubDEpartments("")
+	root_department := "0"
+	departments := []*string{&root_department}
+	sub_departments, err := feishu.GetSubDEpartments("")
+	departments = append(departments, sub_departments...)
+	log.Print("FeishuDepartments: ", departments)
 	if err != nil {
 		return
 	}
@@ -476,7 +480,7 @@ func (feishu *feishuService) CheckUserAndBind(FeishuUser *larkcontact.User, Enti
 	if err != nil {
 		return false, err
 	}
-	if user == nil {
+	if user != nil {
 		return false, err
 	}
 
@@ -497,6 +501,7 @@ func (feishu *feishuService) FeishuSync(EntityID uint) error {
 	if err != nil {
 		return err
 	}
+	log.Print("FeishuUsers: ", FeishuIDs)
 	for _, feishuID := range FeishuIDs {
 		_, err = feishu.CheckUserAndBind(feishuID, EntityID)
 		if err != nil {
