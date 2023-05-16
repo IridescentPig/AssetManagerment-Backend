@@ -233,6 +233,7 @@ func (feishu *feishuService) CreateApprovalDefination() (approval_code string, e
 }
 
 func (feishu *feishuService) PutApproval(task model.Task, FeishuID string, approval_code string) error {
+	//log.Print("test approval:", strconv.FormatInt(int64(task.ID), 10))
 	StateMap := map[uint]string{
 		0: `PENDING`,
 		1: `APPROVED`,
@@ -248,7 +249,7 @@ func (feishu *feishuService) PutApproval(task model.Task, FeishuID string, appro
 	for index, manager := range managers {
 		if len(manager.FeishuID) != 0 {
 			TaskList = append(TaskList, larkapproval.NewExternalInstanceTaskNodeBuilder().
-				TaskId(strconv.FormatInt(int64(index), 10)).
+				TaskId(strconv.FormatInt(int64(task.ID), 10)+"&"+strconv.FormatInt(int64(index), 10)).
 				UserId(manager.FeishuID).
 				Title(task.TaskDescription).
 				Links(larkapproval.NewExternalInstanceLinkBuilder().
