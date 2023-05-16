@@ -667,6 +667,11 @@ func (asset *assetApi) GetAssetHistory(ctx *utils.Context) {
 	}).([]*define.AssetHistory)
 
 	sort.Slice(assetHistory, func(i, j int) bool {
+		if assetHistory[i].ReviewTime == nil {
+			return false
+		} else if assetHistory[j].ReviewTime == nil {
+			return true
+		}
 		return time.Time(*assetHistory[i].ReviewTime).After(time.Time(*assetHistory[j].ReviewTime))
 	})
 

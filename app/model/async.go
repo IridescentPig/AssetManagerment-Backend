@@ -9,6 +9,7 @@ type AsyncTask struct {
 	Department   Department `gorm:"foreignKey:DepartmentID;references:ID;default:null" json:"department"`
 	EntityID     uint       `gorm:"default:null;column:entity_id;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"entity_id"`
 	Entity       Entity     `gorm:"foreignKey:EntityID;references:ID;default:null" json:"-"`
+	ObjectKey    string     `gorm:"column:object_key" json:"object_key"`
 	DownloadLink string     `gorm:"column:download_link" json:"download_link"`
 	State        uint       `gorm:"column:state" json:"state"` // 0-Pending 1-Running 2-Success 3-Fail 4-cancel
 	Message      string     `gorm:"column:message" json:"message"`

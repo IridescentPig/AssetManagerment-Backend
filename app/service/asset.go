@@ -145,6 +145,7 @@ func (asset *assetService) ModifyAssetInfo(id uint, req define.ModifyAssetInfoRe
 		Number:      req.Number,
 		Expire:      req.Expire,
 		ImgList:     req.ImgList,
+		Threshold:   req.Threshold,
 	})
 	if err != nil {
 		return err

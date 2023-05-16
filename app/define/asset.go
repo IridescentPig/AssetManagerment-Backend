@@ -77,6 +77,7 @@ type ModifyAssetInfoReq struct {
 	Number      int                         `json:"count"`
 	Expire      uint                        `json:"expire" binding:"gte=0"`
 	ImgList     datatypes.JSONSlice[string] `json:"img_list" binging:"dive,uri"`
+	Threshold   uint                        `json:"threshold"`
 }
 
 type CreateAssetReq struct {

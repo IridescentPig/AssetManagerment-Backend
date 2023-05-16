@@ -3,8 +3,9 @@ package define
 import "asset-management/app/model"
 
 type CreateAsyncTaskReq struct {
+	// DownloadLink string           `json:"download_link" binding:"uri"`
 	Type         uint             `json:"type" binding:"oneof=0 1"`
-	DownloadLink string           `json:"download_link" binding:"uri"`
+	ObjectKey    string           `json:"object_key"`
 	DepartmentID uint             `json:"department_id"`
 	EntityID     uint             `json:"entity_id"`
 	FromTime     *model.ModelTime `json:"from_time"`
