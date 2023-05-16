@@ -116,7 +116,7 @@ func (user *userApi) UserLogin(ctx *utils.Context) {
 		User:  userInfo,
 	}
 
-	err = service.FeishuService.FeishuSync()
+	err = service.FeishuService.FeishuSync(userInfo.EntityID)
 	if err != nil {
 		ctx.InternalError(err.Error())
 		return

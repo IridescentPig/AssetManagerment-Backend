@@ -465,7 +465,7 @@ func (feishu *feishuService) GetAllUsers() (feishuIDs []*larkcontact.User, err e
 	return
 }
 
-func (feishu *feishuService) CheckUserAndBind(FeishuUser *larkcontact.User) (bool, error) {
+func (feishu *feishuService) CheckUserAndBind(FeishuUser *larkcontact.User, EntityID uint) (bool, error) {
 	user, err := dao.UserDao.GetUserByFeishuID(*FeishuUser.UserId)
 	if err != nil {
 		return false, err
@@ -477,6 +477,7 @@ func (feishu *feishuService) CheckUserAndBind(FeishuUser *larkcontact.User) (boo
 	new_user := model.User{
 		UserName: *FeishuUser.Name,
 		Password: *FeishuUser.Name,
+		EntityID: EntityID,
 		FeishuID: *FeishuUser.UserId,
 	}
 	err = dao.UserDao.Create(new_user)
@@ -484,13 +485,13 @@ func (feishu *feishuService) CheckUserAndBind(FeishuUser *larkcontact.User) (boo
 	return true, err
 }
 
-func (feishu *feishuService) FeishuSync() error {
+func (feishu *feishuService) FeishuSync(EntityID uint) error {
 	FeishuIDs, err := feishu.GetAllUsers()
 	if err != nil {
 		return err
 	}
 	for _, feishuID := range FeishuIDs {
-		_, err = feishu.CheckUserAndBind(feishuID)
+		_, err = feishu.CheckUserAndBind(feishuID, EntityID)
 		if err != nil {
 			return err
 		}
