@@ -5,6 +5,8 @@ import (
 	"asset-management/app/service"
 	"asset-management/myerror"
 	"asset-management/utils"
+
+	"github.com/thoas/go-funk"
 )
 
 type statApi struct {
@@ -88,7 +90,12 @@ func (stat *statApi) GetSubDepartmentsAssetDistribution(ctx *utils.Context) {
 		return
 	}
 
-	subStats, err := service.StatService.GetAssetDepartmentDistribution(subIDs)
+	subStats := funk.Map(subIDs, func(id uint) *define.DepartmentAssetDistribution {
+		return &define.DepartmentAssetDistribution{
+			DepartmentID: id,
+		}
+	}).([]*define.DepartmentAssetDistribution)
+	err = service.StatService.GetAssetDepartmentDistribution(subIDs, subStats)
 	if err != nil {
 		ctx.InternalError(err.Error())
 		return

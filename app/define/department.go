@@ -95,3 +95,14 @@ type DepartmentTemplateReq struct {
 type DepartmentTemplateResponse struct {
 	Template datatypes.JSONSlice[string] `json:"template"`
 }
+
+type DepartmentThresholdReq struct {
+	Threshold uint `json:"threshold"`
+}
+
+type DepartmentWarnInfo struct {
+	Count          int64             `json:"count"`
+	CountThreshold uint              `json:"count_threshold"`
+	CountWarn      bool              `json:"count_warn"`
+	WarnAssetList  []*AssetBasicInfo `json:"warn_asset_list"`
+}

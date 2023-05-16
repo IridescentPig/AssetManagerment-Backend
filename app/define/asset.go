@@ -27,6 +27,8 @@ type AssetInfo struct {
 	NetWorth    decimal.Decimal             `json:"net_worth"`
 	CreatedAt   *model.ModelTime            `json:"created_at"`
 	ImgList     datatypes.JSONSlice[string] `json:"img_list"`
+	Threshold   uint                        `json:"threshold"`
+	Warn        bool                        `json:"warn"`
 }
 
 type AssetUserBasicInfo struct {
@@ -60,6 +62,8 @@ type AssetBasicInfo struct {
 	State        uint                `json:"state"`
 	Property     datatypes.JSON      `json:"property"`
 	NetWorth     decimal.Decimal     `json:"net_worth"`
+	Threshold    uint                `json:"threshold"`
+	Warn         bool                `json:"warn"`
 }
 
 type ModifyAssetInfoReq struct {
@@ -85,6 +89,7 @@ type CreateAssetReq struct {
 	Type        int                         `json:"type"`
 	ParentID    uint                        `json:"parent_id"`
 	Expire      uint                        `json:"expire" binding:"gte=0"`
+	Threshold   uint                        `json:"threshold" binding:"gte=0"`
 	Children    []*CreateAssetReq           `json:"children"`
 	ImgList     datatypes.JSONSlice[string] `json:"img_list" binging:"dive,uri"`
 }

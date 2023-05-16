@@ -232,9 +232,17 @@ func (department *departmentService) GetSubUsers(departmentID uint) (userList []
 	return
 }
 
-func (department *departmentService) ModifyDepartmentTemplateI(departmentID uint, req *define.DepartmentTemplateReq) error {
+func (department *departmentService) ModifyDepartmentTemplate(departmentID uint, req *define.DepartmentTemplateReq) error {
 	err := dao.DepartmentDao.Update(departmentID, map[string]interface{}{
 		"key_list": req.KeyList,
+	})
+
+	return err
+}
+
+func (department *departmentService) ModifyDepartmentThreshold(departmentID uint, threshold uint) error {
+	err := dao.DepartmentDao.Update(departmentID, map[string]interface{}{
+		"threshold": threshold,
 	})
 
 	return err

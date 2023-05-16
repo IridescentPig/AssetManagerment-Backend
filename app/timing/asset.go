@@ -49,9 +49,11 @@ func (depreciate *AssetDepreciate) Run() {
 				} else {
 					rate := 1.0 - float64(interval)/float64(asset.Expire)
 					asset.NetWorth = asset.Price.Mul(decimal.NewFromFloat(rate))
+					asset.Warn = (int(asset.Expire) - interval) < int(asset.Threshold)
 
 					err = dao.AssetDao.Update(asset.ID, map[string]interface{}{
 						"net_worth": asset.NetWorth,
+						"warn":      asset.Warn,
 					})
 
 					if err != nil {

@@ -49,6 +49,8 @@ func (asset *assetService) TransformAssetBasicInfo(assetList []*model.Asset) []*
 			Property:     thisAsset.Property,
 			NetWorth:     thisAsset.NetWorth,
 			DepartmentID: thisAsset.DepartmentID,
+			Threshold:    thisAsset.Threshold,
+			Warn:         thisAsset.Warn,
 		}
 	}).([]*define.AssetBasicInfo)
 
@@ -161,6 +163,9 @@ func (asset *assetService) ModifyAssetInfo(id uint, req define.ModifyAssetInfoRe
 	return err
 }
 
+/*
+Update net worth and warning tag
+*/
 func (asset *assetService) UpdateNetWorth(assetID uint) error {
 	thisAsset, err := dao.AssetDao.GetAssetByID(assetID)
 	if err != nil {
@@ -206,8 +211,10 @@ func (asset *assetService) UpdateNetWorth(assetID uint) error {
 		}
 	} else {
 		rate := 1.0 - float64(interval)/float64(expire)
+		isWarn := (int(expire) - interval) <= int(thisAsset.Threshold)
 		err = dao.AssetDao.UpdateByStruct(assetID, model.Asset{
 			NetWorth: price.Mul(decimal.NewFromFloat(rate)),
+			Warn:     isWarn,
 		})
 	}
 
@@ -230,6 +237,7 @@ func (asset *assetService) CreateAsset(req *define.CreateAssetReq, departmentID 
 		Expire:       req.Expire,
 		NetWorth:     req.Price,
 		ImgList:      req.ImgList,
+		Threshold:    req.Threshold,
 	})
 	if err != nil {
 		return err
@@ -404,4 +412,12 @@ func (asset *assetService) SearchDepartmentAssets(departmentID uint, req *define
 	}
 
 	return dao.AssetDao.SearchDepartmentAsset(departmentID, req)
+}
+
+func (asset *assetService) GetDepartmentAssetCount(departmentID uint) (int64, error) {
+	return dao.AssetDao.GetDepartmentAssetCount(departmentID)
+}
+
+func (asset *assetService) GetDepartmentAssetInWarn(departmentID uint) ([]*model.Asset, error) {
+	return dao.AssetDao.GetDepartmentWarnAsset(departmentID)
 }
