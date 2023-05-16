@@ -210,7 +210,7 @@ func (task *taskApi) CreateNewTask(ctx *utils.Context) {
 		}
 	}
 
-	err = service.TaskService.CreateTask(req, thisUser.UserID, thisUser.DepartmentID, assetList)
+	task_id, err := service.TaskService.CreateTask(req, thisUser.UserID, thisUser.DepartmentID, assetList)
 	if err != nil {
 		ctx.InternalError(err.Error())
 		return
@@ -244,6 +244,7 @@ func (task *taskApi) CreateNewTask(ctx *utils.Context) {
 		return
 	}
 	this_task := model.Task{
+		ID:              task_id,
 		TaskType:        req.TaskType,
 		TaskDescription: req.TaskDescription,
 		UserID:          thisUser.UserID,

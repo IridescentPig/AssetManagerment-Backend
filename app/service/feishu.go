@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"strconv"
 	"time"
 
@@ -168,6 +169,10 @@ func (feishu *feishuService) SendMessage(UserId uint, text string) error {
 	return nil
 }
 
+//var CallBackUrl = "http://0.0.0.0:8070/user/feishu/callback"
+
+var CallBackUrl = "http://AssetManagement-Backend-dev-BinaryAbstract.app.secoder.net/user/feishu/callback"
+
 // 审批相关
 func (feishu *feishuService) CreateApprovalDefination() (approval_code string, err error) {
 	req := larkapproval.NewCreateExternalApprovalReqBuilder().
@@ -186,7 +191,7 @@ func (feishu *feishuService) CreateApprovalDefination() (approval_code string, e
 				SupportBatchRead(false).
 				EnableMarkReaded(false).
 				EnableQuickOperate(true).
-				ActionCallbackUrl(`http://AssetManagement-Backend-dev-BinaryAbstract.app.secoder.net/user/feishu/callback`). //记得改
+				ActionCallbackUrl(CallBackUrl). //记得改
 				ActionCallbackToken(`sdjkljkx9lsadf110`).
 				Build()).
 			Viewers([]*larkapproval.ApprovalCreateViewers{
@@ -233,12 +238,12 @@ func (feishu *feishuService) CreateApprovalDefination() (approval_code string, e
 }
 
 func (feishu *feishuService) PutApproval(task model.Task, FeishuID string, approval_code string) error {
-	//log.Print("test approval:", strconv.FormatInt(int64(task.ID), 10))
+	log.Print("test approval:", strconv.FormatInt(int64(task.ID), 10))
 	StateMap := map[uint]string{
 		0: `PENDING`,
 		1: `APPROVED`,
 		2: `REJECTED`,
-		3: `CANCELED`,
+		3: `REJECTED`,
 	}
 
 	managers, err := dao.DepartmentDao.GetDepartmentManager(task.DepartmentID)
@@ -487,6 +492,7 @@ func (feishu *feishuService) CheckUserAndBind(FeishuUser *larkcontact.User, Enti
 }
 
 func (feishu *feishuService) FeishuSync(EntityID uint) error {
+
 	FeishuIDs, err := feishu.GetAllUsers()
 	if err != nil {
 		return err
