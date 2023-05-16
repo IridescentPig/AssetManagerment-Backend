@@ -128,21 +128,15 @@ func (user *userDao) ModifyUserIdentity(username string, identity int) error {
 		})
 	} else if identity == 1 {
 		err = user.Update(thisUser.ID, map[string]interface{}{
-			"system_super":     false,
-			"entity_super":     false,
 			"department_super": true,
 		})
 	} else if identity == 2 {
 		err = user.Update(thisUser.ID, map[string]interface{}{
-			"system_super":     false,
-			"entity_super":     true,
-			"department_super": false,
+			"entity_super": true,
 		})
 	} else if identity == 3 {
 		err = user.Update(thisUser.ID, map[string]interface{}{
-			"system_super":     true,
-			"entity_super":     false,
-			"department_super": false,
+			"system_super": true,
 		})
 	} else {
 		err = errors.New("invalid identity number")

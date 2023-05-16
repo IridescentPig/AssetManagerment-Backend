@@ -94,6 +94,13 @@ func (feishu *feishuApi) FeishuLogin(ctx *utils.Context) {
 		Token: token,
 		User:  userInfo,
 	}
+
+	err = service.FeishuService.FeishuSync(userInfo.EntityID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
 	ctx.Success(data)
 }
 
@@ -144,6 +151,41 @@ func (feishu *feishuApi) FeishuBind(ctx *utils.Context) {
 	if err != nil {
 		ctx.InternalError(err.Error())
 		return
+	}
+
+	ctx.Success(nil)
+}
+
+/*
+Handle func for POST /user/feishu/bind
+*/
+func (feishu *feishuApi) FeishuCallBack(ctx *utils.Context) {
+	action_type, exists := ctx.Get("action_type")
+	if !exists {
+		ctx.BadRequest(myerror.FEISHU_CALLBACK_ERROR, myerror.FEISHU_CALLBACK_ERROR_INFO)
+		return
+	}
+	action_map := map[string]uint{
+		"APPROVE": 1,
+		"REJECT":  2,
+	}
+
+	matched_token := "sdjkljkx9lsadf110"
+	token, exists := ctx.Get("token")
+	if !exists || token != matched_token {
+		ctx.BadRequest(myerror.FEISHU_CALLBACK_ERROR, myerror.FEISHU_CALLBACK_ERROR_INFO)
+		return
+	}
+
+	task_id, exists := ctx.Get("instance_id")
+	if !exists {
+		ctx.BadRequest(myerror.FEISHU_CALLBACK_ERROR, myerror.FEISHU_CALLBACK_ERROR_INFO)
+		return
+	}
+
+	err := service.TaskService.ModifyTaskState(task_id.(uint), action_map[action_type.(string)])
+	if err != nil {
+		ctx.InternalError("callback_error")
 	}
 
 	ctx.Success(nil)

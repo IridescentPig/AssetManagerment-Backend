@@ -22,9 +22,9 @@ func init() {
 	TaskDao = newTaskDao()
 }
 
-func (task *taskDao) Create(newTask model.Task) error {
+func (task *taskDao) Create(newTask model.Task) (uint, error) {
 	result := db.Model(&model.Task{}).Create(&newTask)
-	return utils.DBError(result)
+	return newTask.ID, utils.DBError(result)
 }
 
 func (task *taskDao) Delete(id []uint) error {

@@ -52,4 +52,5 @@ const (
 	PROPERTY_HAS_EXIST              = 48
 	PROPERTY_NOT_EXIST              = 49
 	OSS_REQUEST_FAILED              = 50
+	FEISHU_CALLBACK_ERROR           = 51
 )
