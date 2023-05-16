@@ -6,7 +6,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"strconv"
 	"time"
 
@@ -243,7 +242,7 @@ func (feishu *feishuService) CreateApprovalDefination() (approval_code string, e
 }
 
 func (feishu *feishuService) PutApproval(task model.Task, FeishuID string, approval_code string) error {
-	log.Print("test approval:", strconv.FormatInt(int64(task.ID), 10))
+	//log.Print("test approval:", strconv.FormatInt(int64(task.ID), 10))
 	StateMap := map[uint]string{
 		0: `PENDING`,
 		1: `APPROVED`,
@@ -465,7 +464,7 @@ func (feishu *feishuService) GetAllUsers() (feishuIDs []*larkcontact.User, err e
 	departments := []*string{&root_department}
 	sub_departments, err := feishu.GetSubDEpartments("")
 	departments = append(departments, sub_departments...)
-	log.Print("FeishuDepartments: ", departments)
+	//log.Print("FeishuDepartments: ", departments)
 	if err != nil {
 		return
 	}
@@ -506,7 +505,7 @@ func (feishu *feishuService) FeishuSync(EntityID uint) error {
 	if err != nil {
 		return err
 	}
-	log.Print("FeishuUsers: ", FeishuIDs)
+	//log.Print("FeishuUsers: ", FeishuIDs)
 	for _, feishuID := range FeishuIDs {
 		_, err = feishu.CheckUserAndBind(feishuID, EntityID)
 		if err != nil {
