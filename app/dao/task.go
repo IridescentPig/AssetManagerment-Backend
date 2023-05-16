@@ -4,6 +4,7 @@ import (
 	"asset-management/app/model"
 	"asset-management/utils"
 	"errors"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -181,7 +182,8 @@ func (task *taskDao) GetTaskListByDepartmentID(departmentID uint) (taskList []*m
 
 func (task *taskDao) ModifyTaskState(taskID uint, state uint) error {
 	result := db.Model(&model.Task{}).Where("id = ?", taskID).Updates(map[string]interface{}{
-		"state": state,
+		"state":     state,
+		"review_at": model.ModelTime(time.Now()),
 	})
 	return utils.DBError(result)
 }

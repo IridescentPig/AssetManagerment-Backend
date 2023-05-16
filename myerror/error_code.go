@@ -49,5 +49,8 @@ const (
 	INVALID_FEISHU_TOKEN            = 45
 	FEISHU_NOT_BIND                 = 46
 	FEISHU_DUPLICATE_BIND           = 47
-	FEISHU_CALLBACK_ERROR           = 48
+	PROPERTY_HAS_EXIST              = 48
+	PROPERTY_NOT_EXIST              = 49
+	OSS_REQUEST_FAILED              = 50
+	FEISHU_CALLBACK_ERROR           = 51
 )

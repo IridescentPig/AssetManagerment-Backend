@@ -48,5 +48,8 @@ const (
 	INVALID_FEISHU_TOKEN_INFO            = "Feishu Token is invalid or expired"
 	FEISHU_NOT_BIND_INFO                 = "This Feishu account hasn't binded with any existing account"
 	FEISHU_DUPLICATE_BIND_INFO           = "Feishu Account has been binded with another account"
+	PROPERTY_HAS_EXIST_INFO              = "Property has existed"
+	PROPERTY_NOT_EXIST_INFO              = "Property does not exist"
+	OSS_REQUEST_FAILED_INFO              = "Get access to oss failed, please try again"
 	FEISHU_CALLBACK_ERROR_INFO           = "Feishu Callback Bad Request"
 )

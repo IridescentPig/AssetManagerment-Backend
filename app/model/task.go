@@ -12,4 +12,6 @@ type Task struct {
 	Department      Department `gorm:"foreignKey:DepartmentID;references:ID;default:null" json:"department"`
 	AssetList       []*Asset   `gorm:"many2many:task_assets;" json:"asset_list"`
 	State           uint       `gorm:"default:0;colunm:state" json:"state"` // 0提交未审批、1批准、2不通过、3自行撤销
+	CreatedAt       *ModelTime `gorm:"column:created_at" json:"created_at"`
+	ReviewAt        *ModelTime `gorm:"column:review_at" json:"review_at"`
 }

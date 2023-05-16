@@ -2,6 +2,7 @@ package main
 
 import (
 	"asset-management/app/api"
+	"asset-management/app/timing"
 	"asset-management/middleware"
 	"asset-management/routers"
 	"os"
@@ -10,6 +11,9 @@ import (
 )
 
 func main() {
+	c := timing.Init()
+	c.Start()
+
 	api.Initial()
 	r := gin.Default()
 	// r.Use(func(ctx *gin.Context) {
