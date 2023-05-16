@@ -231,3 +231,11 @@ func (department *departmentService) GetSubUsers(departmentID uint) (userList []
 	userList, err = dao.DepartmentDao.GetDepartmentDirectUserByID(departmentID)
 	return
 }
+
+func (department *departmentService) ModifyDepartmentTemplateI(departmentID uint, req *define.DepartmentTemplateReq) error {
+	err := dao.DepartmentDao.Update(departmentID, map[string]interface{}{
+		"key_list": req.KeyList,
+	})
+
+	return err
+}

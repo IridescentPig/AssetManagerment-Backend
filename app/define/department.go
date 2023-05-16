@@ -1,6 +1,10 @@
 package define
 
-import "asset-management/app/model"
+import (
+	"asset-management/app/model"
+
+	"gorm.io/datatypes"
+)
 
 type CreateDepartmentReq struct {
 	DepartmentName string `json:"department_name" bind:"required"`
@@ -82,4 +86,8 @@ type DepartmentTreeNodeInfo struct {
 
 type DepartmentTreeResponse struct {
 	DepartmentList []*DepartmentTreeNodeInfo `json:"department_list"`
+}
+
+type DepartmentTemplateReq struct {
+	KeyList datatypes.JSONSlice[string] `json:"key_list" binding:"lte=5,dive,oneof=asset_id asset_name parent_asset_id asset_type asset_description count price position state department asset_class property expire created_at"`
 }

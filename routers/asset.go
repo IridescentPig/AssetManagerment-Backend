@@ -39,4 +39,5 @@ func (asset *assetRouter) routerCheckAtHandler(group *gin.RouterGroup) {
 	group.GET("/:department_id/asset/stat/total", utils.Handler(api.StatApi.GetDepartmentStatTotal))
 	group.GET("/:department_id/asset/stat/distribution", utils.Handler(api.StatApi.GetDepartmentStatDistribution))
 	group.GET("/:department_id/asset/:asset_id", utils.Handler(api.AssetApi.GetAssetInfo))
+	group.POST("/:department_id/template", utils.Handler(api.DepartmentApi.DefineDepartmentAssetTemplate))
 }

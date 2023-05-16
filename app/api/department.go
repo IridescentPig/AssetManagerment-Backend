@@ -615,3 +615,31 @@ func (department *departmentApi) GetDepartmentTree(ctx *utils.Context) {
 
 	ctx.Success(departmentTreeRes)
 }
+
+/*
+Handle func for POST /department/:department_id/template
+*/
+func (department *departmentApi) DefineDepartmentAssetTemplate(ctx *utils.Context) {
+	hasIdentity, departmentID, err := AssetClassApi.CheckAssetIdentity(ctx)
+	if err != nil {
+		return
+	} else if !hasIdentity {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	var req define.DepartmentTemplateReq
+	err = ctx.MustBindWith(&req, binding.JSON)
+	if err != nil {
+		ctx.BadRequest(myerror.INVALID_BODY, myerror.INVALID_BODY_INFO)
+		return
+	}
+
+	err = service.DepartmentService.ModifyDepartmentTemplateI(departmentID, &req)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	ctx.Success(nil)
+}
