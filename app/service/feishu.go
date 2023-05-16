@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	lark "github.com/larksuite/oapi-sdk-go/v3"
 	larkcore "github.com/larksuite/oapi-sdk-go/v3/core"
 	larkapproval "github.com/larksuite/oapi-sdk-go/v3/service/approval/v4"
@@ -171,10 +172,14 @@ func (feishu *feishuService) SendMessage(UserId uint, text string) error {
 
 //var CallBackUrl = "http://0.0.0.0:8070/user/feishu/callback"
 
-var CallBackUrl = "http://AssetManagement-Backend-dev-BinaryAbstract.app.secoder.net/user/feishu/callback"
-
 // 审批相关
 func (feishu *feishuService) CreateApprovalDefination() (approval_code string, err error) {
+	var CallBackUrl string
+	if gin.Mode() == gin.DebugMode {
+		CallBackUrl = "http://AssetManagement-Backend-dev-BinaryAbstract.app.secoder.net/user/feishu/callback"
+	} else {
+		CallBackUrl = "http://AssetManagement-Backend-BinaryAbstract.app.secoder.net/user/feishu/callback"
+	}
 	req := larkapproval.NewCreateExternalApprovalReqBuilder().
 		DepartmentIdType(`open_department_id`).
 		UserIdType("user_id").
