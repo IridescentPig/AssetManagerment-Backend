@@ -48,4 +48,5 @@ const (
 	INVALID_FEISHU_TOKEN_INFO            = "Feishu Token is invalid or expired"
 	FEISHU_NOT_BIND_INFO                 = "This Feishu account hasn't binded with any existing account"
 	FEISHU_DUPLICATE_BIND_INFO           = "Feishu Account has been binded with another account"
+	FEISHU_CALLBACK_ERROR_INFO           = "Feishu Callback Bad Request"
 )

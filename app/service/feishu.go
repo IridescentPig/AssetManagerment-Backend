@@ -185,7 +185,7 @@ func (feishu *feishuService) CreateApprovalDefination() (approval_code string, e
 				SupportBatchRead(false).
 				EnableMarkReaded(false).
 				EnableQuickOperate(true).
-				ActionCallbackUrl(`http://feishu.cn/approval/openapi/operate`). //记得改
+				ActionCallbackUrl(`http://AssetManagement-Backend-dev-BinaryAbstract.app.secoder.net/user/feishu/callback`). //记得改
 				ActionCallbackToken(`sdjkljkx9lsadf110`).
 				Build()).
 			Viewers([]*larkapproval.ApprovalCreateViewers{
@@ -247,7 +247,7 @@ func (feishu *feishuService) PutApproval(task model.Task, FeishuID string, appro
 	for index, manager := range managers {
 		if len(manager.FeishuID) != 0 {
 			TaskList = append(TaskList, larkapproval.NewExternalInstanceTaskNodeBuilder().
-				TaskId((string)(index)).
+				TaskId(strconv.FormatInt(int64(index), 10)).
 				UserId(manager.FeishuID).
 				Title(task.TaskDescription).
 				Links(larkapproval.NewExternalInstanceLinkBuilder().
@@ -285,7 +285,7 @@ func (feishu *feishuService) PutApproval(task model.Task, FeishuID string, appro
 			ApprovalCode(approval_code).
 			Status(StateMap[task.State]).
 			Extra(``).
-			InstanceId((string)(task.ID)).
+			InstanceId(strconv.FormatInt(int64(task.ID), 10)).
 			Links(larkapproval.NewExternalInstanceLinkBuilder().
 				PcLink(`http://assetmanagement-frontend-binaryabstract.app.secoder.net/#/asset/list`).
 				MobileLink(`http://assetmanagement-frontend-binaryabstract.app.secoder.net/#/asset/list`).
