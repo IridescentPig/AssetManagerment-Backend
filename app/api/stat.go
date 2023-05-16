@@ -69,3 +69,34 @@ func (stat *statApi) GetDepartmentStatDistribution(ctx *utils.Context) {
 
 	ctx.Success(distributionRes)
 }
+
+/*
+Handle func for GET /department/:department_id/asset/stat/sub
+*/
+func (stat *statApi) GetSubDepartmentsAssetDistribution(ctx *utils.Context) {
+	hasIdentity, departmentID, err := AssetClassApi.CheckAssetIdentity(ctx)
+	if err != nil {
+		return
+	} else if !hasIdentity {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	subIDs, err := service.DepartmentService.GetSubDepartmentIDs(departmentID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	subStats, err := service.StatService.GetAssetDepartmentDistribution(subIDs)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	subStatsRes := define.DepartmentAssetDistributionResponse{
+		Stats: subStats,
+	}
+
+	ctx.Success(subStatsRes)
+}

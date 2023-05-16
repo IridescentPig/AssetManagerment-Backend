@@ -89,5 +89,9 @@ type DepartmentTreeResponse struct {
 }
 
 type DepartmentTemplateReq struct {
-	KeyList datatypes.JSONSlice[string] `json:"key_list" binding:"lte=5,dive,oneof=asset_id asset_name parent_asset_id asset_type asset_description count price position state department asset_class property expire created_at"`
+	KeyList datatypes.JSONSlice[string] `json:"key_list" binding:"lte=5,dive,oneof=asset_id asset_name asset_type asset_description count price position state department asset_class property expire created_at"`
+}
+
+type DepartmentTemplateResponse struct {
+	Template datatypes.JSONSlice[string] `json:"template"`
 }

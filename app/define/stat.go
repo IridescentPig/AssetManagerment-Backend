@@ -19,3 +19,13 @@ type AssetDistribution struct {
 type AssetDistributionResponse struct {
 	Distribution []*AssetDistribution `json:"distribution"`
 }
+
+type DepartmentAssetDistribution struct {
+	DepartmentID uint            `gorm:"column:department_id" json:"department_id"`
+	Count        uint            `gorm:"column:count" json:"count"`
+	Total        decimal.Decimal `gorm:"total" json:"total_worth"`
+}
+
+type DepartmentAssetDistributionResponse struct {
+	Stats []*DepartmentAssetDistribution `json:"stats"`
+}

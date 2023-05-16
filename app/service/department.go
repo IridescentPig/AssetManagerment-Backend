@@ -239,3 +239,22 @@ func (department *departmentService) ModifyDepartmentTemplateI(departmentID uint
 
 	return err
 }
+
+func (department *departmentService) GetSubDepartmentIDs(departmentID uint) ([]uint, error) {
+	subIDs := []uint{departmentID}
+
+	subDepartments, err := dao.DepartmentDao.GetSubDepartmentByID(departmentID)
+	if err != nil {
+		return []uint{}, err
+	}
+
+	for _, sub := range subDepartments {
+		subsubIDs, err := department.GetSubDepartmentIDs(sub.ID)
+		if err != nil {
+			return []uint{}, err
+		}
+		subIDs = append(subIDs, subsubIDs...)
+	}
+
+	return subIDs, nil
+}

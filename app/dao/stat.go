@@ -49,3 +49,9 @@ func (stat *statDao) GetDepartmentAssetDistribution(departmentID uint) (distribu
 	err = utils.DBError(result)
 	return
 }
+
+func (stat *statDao) GetDepartmentsAssetDistribution(IDs []uint) (distribution []*define.DepartmentAssetDistribution, err error) {
+	result := db.Model(&model.Asset{}).Where("department_id in (?)", IDs).Select("department_id, COUNT(*) as count, SUM(net_worth) as total").Group("department_id").Scan(&distribution)
+	err = utils.DBError(result)
+	return
+}

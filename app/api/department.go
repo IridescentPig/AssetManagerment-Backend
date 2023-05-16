@@ -643,3 +643,34 @@ func (department *departmentApi) DefineDepartmentAssetTemplate(ctx *utils.Contex
 
 	ctx.Success(nil)
 }
+
+func (department *departmentApi) GetDepartmentTemplate(ctx *utils.Context) {
+	departmentID, err := service.EntityService.GetParamID(ctx, "department_id")
+	if err != nil {
+		return
+	}
+	thisDepartment, err := service.DepartmentService.GetDepartmentInfoByID(departmentID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	} else if thisDepartment == nil {
+		ctx.BadRequest(myerror.DEPARTMENT_NOT_FOUND, myerror.DEPARTMENT_NOT_FOUND_INFO)
+		return
+	}
+	isDepartmentSuper := service.UserService.DepartmentSuper(ctx)
+	if !isDepartmentSuper {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+	isInDepartment := service.DepartmentService.CheckIsInDepartment(ctx, departmentID)
+	if !isInDepartment {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	res := define.DepartmentTemplateResponse{
+		Template: thisDepartment.KeyList,
+	}
+
+	ctx.Success(res)
+}
