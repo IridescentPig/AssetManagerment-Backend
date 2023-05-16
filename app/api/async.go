@@ -138,7 +138,7 @@ func (asy *asyncApi) CreateAsyncTask(ctx *utils.Context) {
 }
 
 /*
-Handle func for PATCH /task/async/:task_id
+Handle func for PATCH /user/:user_id/async/:task_id
 */
 func (asy *asyncApi) ModifyAsyncState(ctx *utils.Context) {
 	userID, err := service.EntityService.GetParamID(ctx, "user_id")

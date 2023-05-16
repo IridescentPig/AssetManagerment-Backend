@@ -29,7 +29,7 @@ const (
 	durationSeconds   = 900
 	myAccessKeyId     = "LTAI5tCpT5SSksUNe355TY8V"
 	myAccessKeySecret = "WgkwIjagXCfiu0ykLmrZu1bcXQswV5"
-	endpoint          = "sts.cn-qingdao.aliyuncs.com"
+	endpoint          = "sts.cn-beijing.aliyuncs.com"
 )
 
 /**

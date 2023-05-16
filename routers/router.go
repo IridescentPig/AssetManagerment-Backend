@@ -30,6 +30,7 @@ func (router *router) Init(r *gin.Engine) *gin.Engine {
 	TaskRouter.Init(r.Group(""))
 	LogRouter.Init(r.Group("/entity"))
 	OssRouter.Init(r.Group(""))
+	AsyncRouter.Init(r.Group(""))
 	return r
 }
 
