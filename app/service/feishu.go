@@ -176,6 +176,7 @@ func (feishu *feishuService) CreateApprovalDefination() (approval_code string, e
 	var CallBackUrl string
 	if gin.Mode() == gin.DebugMode {
 		CallBackUrl = "http://AssetManagement-Backend-dev-BinaryAbstract.app.secoder.net/user/feishu/callback"
+		// CallBackUrl = "http://49.233.51.221:8080/user/feishu/callback"
 	} else {
 		CallBackUrl = "http://AssetManagement-Backend-BinaryAbstract.app.secoder.net/user/feishu/callback"
 	}
