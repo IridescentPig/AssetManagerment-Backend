@@ -722,23 +722,7 @@ func (asset *assetApi) SearchAssets(ctx *utils.Context) {
 	ctx.Success(assetListResp)
 }
 
-/*
-Handle func for GET /department/:department_id/asset/:asset_id
-*/
-func (asset *assetApi) GetAssetInfo(ctx *utils.Context) {
-	hasIdentity, departmentID, err := AssetClassApi.CheckAssetIdentity(ctx)
-	if err != nil {
-		return
-	} else if !hasIdentity {
-		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
-		return
-	}
-
-	_, thisAsset, isOK := asset.CheckAssetExistsAndValid(ctx, departmentID)
-	if !isOK {
-		return
-	}
-
+func (asset *assetApi) getAssetInfoFromAssetModel(thisAsset *model.Asset) *define.AssetInfo {
 	assetInfo := define.AssetInfo{
 		AssetID:   thisAsset.ID,
 		AssetName: thisAsset.Name,
@@ -776,6 +760,28 @@ func (asset *assetApi) GetAssetInfo(ctx *utils.Context) {
 			Username: thisAsset.Maintainer.UserName,
 		}
 	}
+
+	return &assetInfo
+}
+
+/*
+Handle func for GET /department/:department_id/asset/:asset_id
+*/
+func (asset *assetApi) GetAssetInfo(ctx *utils.Context) {
+	hasIdentity, departmentID, err := AssetClassApi.CheckAssetIdentity(ctx)
+	if err != nil {
+		return
+	} else if !hasIdentity {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	_, thisAsset, isOK := asset.CheckAssetExistsAndValid(ctx, departmentID)
+	if !isOK {
+		return
+	}
+
+	assetInfo := asset.getAssetInfoFromAssetModel(thisAsset)
 
 	ctx.Success(assetInfo)
 }
@@ -798,43 +804,7 @@ func (asset *assetApi) GetAssetInfoByScan(ctx *utils.Context) {
 		return
 	}
 
-	assetInfo := define.AssetInfo{
-		AssetID:   thisAsset.ID,
-		AssetName: thisAsset.Name,
-		ParentID:  thisAsset.ParentID,
-		User: define.AssetUserBasicInfo{
-			UserID:   thisAsset.UserID,
-			Username: thisAsset.User.UserName,
-		},
-		Department: define.AssetDepartmentBasicInfo{
-			DepartmentID:   thisAsset.DepartmentID,
-			DepartmentName: thisAsset.Department.Name,
-		},
-		Price:       thisAsset.Price,
-		Description: thisAsset.Description,
-		Position:    thisAsset.Position,
-		Expire:      thisAsset.Expire,
-		Class: define.AssetClassBasicInfo{
-			ClassID:   thisAsset.ClassID,
-			ClassName: thisAsset.Class.Name,
-		},
-		Number:    thisAsset.Number,
-		Type:      thisAsset.Type,
-		State:     thisAsset.State,
-		Property:  thisAsset.Property,
-		NetWorth:  thisAsset.NetWorth,
-		CreatedAt: thisAsset.CreatedAt,
-		ImgList:   thisAsset.ImgList,
-		Threshold: thisAsset.Threshold,
-		Warn:      thisAsset.Warn,
-	}
-
-	if thisAsset.MaintainerID != 0 {
-		assetInfo.Maintainer = define.AssetUserBasicInfo{
-			UserID:   thisAsset.MaintainerID,
-			Username: thisAsset.Maintainer.UserName,
-		}
-	}
+	assetInfo := asset.getAssetInfoFromAssetModel(thisAsset)
 
 	ctx.Success(assetInfo)
 }
