@@ -32,6 +32,7 @@ func (asy *asyncService) CreateAsyncTask(userID uint, req *define.CreateAsyncTas
 		FromTime:     req.FromTime,
 		EntityID:     req.EntityID,
 		DownloadLink: req.DownloadLink,
+		LogType:      req.LogType,
 	}
 	if req.DepartmentID != 0 {
 		task.DepartmentID = req.DepartmentID

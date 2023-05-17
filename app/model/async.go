@@ -14,4 +14,5 @@ type AsyncTask struct {
 	State        uint       `gorm:"column:state" json:"state"` // 0-Pending 1-Running 2-Success 3-Fail 4-cancel
 	Message      string     `gorm:"column:message" json:"message"`
 	FromTime     *ModelTime `gorm:"column:from_time" json:"from_time"` // use for export log
+	LogType      uint       `gorm:"column:log_type" json:"log_type"`   // 0-all logs 1-success 2-failed
 }

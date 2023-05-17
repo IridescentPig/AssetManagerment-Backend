@@ -63,6 +63,7 @@ func (asy *asyncApi) GetUserAsyncTasks(ctx *utils.Context) {
 			State:        task.State,
 			DownloadLink: task.DownloadLink,
 			Message:      task.Message,
+			LogType:      task.LogType,
 		}
 	}).([]define.AsyncTaskInfo)
 

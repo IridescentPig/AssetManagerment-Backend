@@ -7,7 +7,9 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
 	"strconv"
+	"time"
 
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/shopspring/decimal"
@@ -36,18 +38,27 @@ const (
 	INSERT_ASSET_FAILED_FORMAT             = "insert asset failed on line %d"
 	IMPORT_ASSET_SUCCESS                   = "Successfully import assets!"
 	GET_LOG_FAILED                         = "failed to get logs"
+	CREATE_LOG_EXCEL_FILE_ERROR            = "fail to create log excel file"
+	UPLOAD_TO_OSS_FAILED                   = "fail to upload log file to oss"
 )
 
 const (
-	endpoint          = "https://oss-cn-beijing.aliyuncs.com"
-	myAccessKeyId     = "LTAI5tCpT5SSksUNe355TY8V"
-	myAccessKeySecret = "WgkwIjagXCfiu0ykLmrZu1bcXQswV5"
-	importBucketName  = "import-bucket"
-	exportBucketName  = "export-bucket-1"
+	endpoint             = "https://oss-cn-beijing.aliyuncs.com"
+	downloadLinkPrefix   = "https://export-bucket-1.oss-cn-beijing.aliyuncs.com/"
+	myAccessKeyId        = "LTAI5tCpT5SSksUNe355TY8V"
+	myAccessKeySecret    = "WgkwIjagXCfiu0ykLmrZu1bcXQswV5"
+	importBucketName     = "import-bucket"
+	exportBucketName     = "export-bucket-1"
+	exportSheetName      = "log"
+	TEMP_LOG_FILE_FORMAT = "/var/tmp/export_log_%d.xlsx"
+	OSS_LOG_FILE_FORMAT  = "logs/log_%d_%s.xlsx"
+	TIME_FORMAT          = "2006-01-02_15-04-05"
 )
 
 var (
-	fieldList = []string{"Name", "Price", "ClassID", "Type", "Count", "Expire", "Threshold", "Description", "Position"}
+	fieldList           = []string{"Name", "Price", "ClassID", "Type", "Count", "Expire", "Threshold", "Description", "Position"}
+	exportFileFiledList = []string{"ID", "Method", "URL", "Status", "ErrorCode", "ErrorMessage", "UserID", "Username", "Time"}
+	cellIndexFormatList = []string{"A%d", "B%d", "C%d", "D%d", "E%d", "F%d", "G%d", "H%d", "I%d"}
 )
 
 func getClient() (*oss.Client, error) {
@@ -163,17 +174,99 @@ func (task *GetPendingAsyncTask) Run() {
 }
 
 func ExportLogs(task *model.AsyncTask) error {
+	var logList []*model.Log
+	var err error
 	if task.Type == 1 {
-		_, err := dao.LogDao.GetLoginLogByEntityIDAndTime(task.EntityID, task.FromTime)
+		logList, err = dao.LogDao.GetLoginLogsForExport(task.EntityID, task.FromTime, task.LogType)
+		if err != nil {
+			return errors.New(GET_LOG_FAILED)
+		}
+	} else {
+		logList, err = dao.LogDao.GetDataLogsForExport(task.EntityID, task.FromTime, task.LogType)
 		if err != nil {
 			return errors.New(GET_LOG_FAILED)
 		}
 	}
 
-	_, err := getExportBucket()
+	exportFile := excelize.NewFile()
+	defer func() {
+		if err := exportFile.Close(); err != nil {
+			log.Println(err.Error())
+		}
+	}()
+
+	sheetID, err := exportFile.NewSheet(exportSheetName)
+	if err != nil {
+		return errors.New(CREATE_LOG_EXCEL_FILE_ERROR)
+	}
+
+	exportFile.SetActiveSheet(sheetID)
+	// for k, v := range exportFileFiledList {
+	// 	_ = exportFile.SetCellStr(exportSheetName, fmt.Sprintf(cellIndexFormatList[k], 1), v)
+	// }
+	exportFile.SetSheetRow(exportSheetName, fmt.Sprintf(cellIndexFormatList[0], 1), &exportFileFiledList)
+
+	for k, thisLog := range logList {
+		// // Set ID
+		// _ = exportFile.SetCellInt(exportSheetName, fmt.Sprintf(cellIndexFormatList[0], k+2), int(thisLog.ID))
+		// // Set Method
+		// _ = exportFile.SetCellStr(exportSheetName, fmt.Sprintf(cellIndexFormatList[1], k+2), thisLog.Method)
+		// // Set URL
+		// _ = exportFile.SetCellStr(exportSheetName, fmt.Sprintf(cellIndexFormatList[2], k+2), thisLog.URL)
+		// // Set Status
+		// _ = exportFile.SetCellInt(exportSheetName, fmt.Sprintf(cellIndexFormatList[3], k+2), thisLog.Status)
+		// // Set ErrorCodr
+		// _ = exportFile.SetCellInt(exportSheetName, fmt.Sprintf(cellIndexFormatList[4], k+2), thisLog.ErrorCode)
+		// // Set ErrorMessage
+		// _ = exportFile.SetCellStr(exportSheetName, fmt.Sprintf(cellIndexFormatList[5], k+2), thisLog.ErrorMessage)
+		// // Set UserID
+		// _ = exportFile.SetCellInt(exportSheetName, fmt.Sprintf(cellIndexFormatList[6], k+2), int(thisLog.UserID))
+		// // Set Username
+		// _ = exportFile.SetCellStr(exportSheetName, fmt.Sprintf(cellIndexFormatList[7], k+2), thisLog.Username)
+		// // Set Time
+		// _ = exportFile.SetCellStr(exportSheetName, fmt.Sprintf(cellIndexFormatList[8], k+2), thisLog.Time.String())
+
+		_ = exportFile.SetSheetRow(exportSheetName,
+			fmt.Sprintf(cellIndexFormatList[0], k+2),
+			&[]interface{}{int(thisLog.ID), thisLog.Method, thisLog.URL, thisLog.Status, thisLog.ErrorCode, thisLog.ErrorMessage,
+				int(thisLog.UserID), thisLog.Username, thisLog.Time.String()})
+	}
+
+	tempLogFilePath := fmt.Sprintf(TEMP_LOG_FILE_FORMAT, task.ID)
+	err = exportFile.SaveAs(tempLogFilePath)
+	defer func() {
+		isExist := false
+		_, err := os.Stat(tempLogFilePath)
+		if err == nil {
+			isExist = true
+		} else {
+			isExist = !os.IsNotExist(err)
+		}
+
+		if isExist {
+			err := os.Remove(tempLogFilePath)
+			if err != nil {
+				log.Println(err.Error())
+				return
+			}
+		}
+	}()
+	if err != nil {
+		return errors.New(CREATE_LOG_EXCEL_FILE_ERROR)
+	}
+
+	exportBucket, err := getExportBucket()
 	if err != nil {
 		return errors.New(ACCESS_TO_OSS_FAILED)
 	}
+
+	objectKey := fmt.Sprintf(OSS_LOG_FILE_FORMAT, task.ID, time.Now().Format(TIME_FORMAT))
+	err = exportBucket.PutObjectFromFile(objectKey, tempLogFilePath)
+	if err != nil {
+		return errors.New(UPLOAD_TO_OSS_FAILED)
+	}
+
+	task.DownloadLink = downloadLinkPrefix + objectKey
 	return nil
 }
 

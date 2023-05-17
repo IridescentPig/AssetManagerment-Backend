@@ -4,7 +4,8 @@ import "asset-management/app/model"
 
 type CreateAsyncTaskReq struct {
 	DownloadLink string           `json:"download_link" binding:"uri"`
-	Type         uint             `json:"type" binding:"oneof=0 1"`
+	Type         uint             `json:"type" binding:"oneof=0 1 2"`
+	LogType      uint             `json:"log_type" binding:"oneof=0 1 2"` // 0-all 1-success 2-failed
 	ObjectKey    string           `json:"object_key"`
 	DepartmentID uint             `json:"department_id"`
 	EntityID     uint             `json:"entity_id"`
@@ -23,6 +24,7 @@ type AsyncTaskInfo struct {
 	State        uint   `json:"state"`
 	DownloadLink string `json:"download_link"`
 	Message      string `json:"message"`
+	LogType      uint   `json:"log_type"`
 }
 
 type AsyncTaskListResponse struct {

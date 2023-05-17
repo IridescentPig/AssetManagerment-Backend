@@ -28,13 +28,13 @@ func (t ModelTime) MarshalJSON() ([]byte, error) {
 // 	return time.Time(t)
 // }
 
-// func (t ModelTime) Format() string {
-// 	return time.Time(t).Format(timeFormart)
-// }
+func (t ModelTime) Format() string {
+	return time.Time(t).Format(timeFormart)
+}
 
-// func (t ModelTime) String() string {
-// 	return time.Time(t).Format(timeFormart)
-// }
+func (t ModelTime) String() string {
+	return time.Time(t).Format(timeFormart)
+}
 
 func (t ModelTime) Value() (driver.Value, error) {
 	var zeroTime time.Time
