@@ -87,6 +87,15 @@ func (mylog *logDao) GetLoginLogByEntityID(entityID uint) (logList []*model.Log,
 	return
 }
 
+func (mylog *logDao) GetLoginLogByEntityIDAndTime(entityID uint, fromTime *model.ModelTime) (logList []*model.Log, err error) {
+	result := db.Model(&model.Log{}).Where("entity_id = ? and url = ? and time >= ?", entityID, "/user/login", fromTime).Find(&logList)
+	if result.Error == gorm.ErrRecordNotFound {
+		return nil, nil
+	}
+	err = utils.DBError(result)
+	return
+}
+
 func (mylog *logDao) GetDataLogByEntityID(entityID uint) (logList []*model.Log, err error) {
 	result := db.Model(&model.Log{}).Where("entity_id = ? and url <> ?", entityID, "/user/login").Find(&logList)
 	if result.Error == gorm.ErrRecordNotFound {

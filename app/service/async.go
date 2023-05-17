@@ -26,11 +26,12 @@ func (asy *asyncService) GetUserAsyncTasks(userID uint) ([]*model.AsyncTask, err
 
 func (asy *asyncService) CreateAsyncTask(userID uint, req *define.CreateAsyncTaskReq) error {
 	task := model.AsyncTask{
-		Type:      req.Type,
-		UserID:    userID,
-		ObjectKey: req.ObjectKey,
-		FromTime:  req.FromTime,
-		EntityID:  req.EntityID,
+		Type:         req.Type,
+		UserID:       userID,
+		ObjectKey:    req.ObjectKey,
+		FromTime:     req.FromTime,
+		EntityID:     req.EntityID,
+		DownloadLink: req.DownloadLink,
 	}
 	if req.DepartmentID != 0 {
 		task.DepartmentID = req.DepartmentID
