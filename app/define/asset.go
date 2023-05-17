@@ -148,6 +148,7 @@ type SearchAssetReq struct {
 	Key         string `json:"key" binding:"ascii"`
 	Value       string `json:"value" binding:"ascii"`
 	State       uint   `json:"state" binding:"gte=0,lte=5"`
+	ClassID     uint   `json:"class_id"`
 }
 
 type AssetInfoResponse struct {

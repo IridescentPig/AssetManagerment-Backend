@@ -40,6 +40,8 @@ const (
 	GET_LOG_FAILED                         = "failed to get logs"
 	CREATE_LOG_EXCEL_FILE_ERROR            = "fail to create log excel file"
 	UPLOAD_TO_OSS_FAILED                   = "fail to upload log file to oss"
+	EXPORT_ASSET_SUCCESS                   = "Successfully export assets!"
+	ASYNC_TASK_SUCCESS                     = "Successfully finish async task!"
 )
 
 const (
@@ -136,13 +138,19 @@ func (task *GetPendingAsyncTask) Run() {
 				"state":   3,
 				"message": err.Error(),
 			})
-			log.Println(err.Error())
+			if err != nil {
+				log.Println(err.Error())
+				return
+			}
 		} else {
 			err = dao.AsyncDao.ModifyAsyncTaskInfo(asyncTask.ID, map[string]interface{}{
 				"state":   2,
 				"message": IMPORT_ASSET_SUCCESS,
 			})
-			log.Println(err.Error())
+			if err != nil {
+				log.Println(err.Error())
+				return
+			}
 		}
 	} else {
 		if !thisUser.EntitySuper || thisUser.EntityID != asyncTask.EntityID {
@@ -162,15 +170,23 @@ func (task *GetPendingAsyncTask) Run() {
 				"state":   3,
 				"message": err.Error(),
 			})
-			log.Println(err.Error())
+			if err != nil {
+				log.Println(err.Error())
+				return
+			}
 		} else {
 			err = dao.AsyncDao.ModifyAsyncTaskInfo(asyncTask.ID, map[string]interface{}{
-				"state":   2,
-				"message": IMPORT_ASSET_SUCCESS,
+				"state":         2,
+				"message":       EXPORT_ASSET_SUCCESS,
+				"download_link": asyncTask.DownloadLink,
 			})
-			log.Println(err.Error())
+			if err != nil {
+				log.Println(err.Error())
+				return
+			}
 		}
 	}
+	log.Println(ASYNC_TASK_SUCCESS)
 }
 
 func ExportLogs(task *model.AsyncTask) error {
@@ -349,9 +365,12 @@ func ImportAssets(task *model.AsyncTask) error {
 }
 
 func parseRowGetAssetInfo(row []string, departmentID uint, userID uint) (*model.Asset, error) {
-	if len(row) != len(fieldList) {
-		return nil, errors.New(FILE_FORMAT_ERROR)
-	}
+	// if len(row) != len(fieldList) {
+	// 	log.Println(row)
+	// 	log.Println(len(row))
+	// 	log.Println(len(fieldList))
+	// 	return nil, errors.New(FILE_FORMAT_ERROR)
+	// }
 	assetName := row[0]
 	assetPrice, _ := decimal.NewFromString(row[1])
 	assetClassID, _ := strconv.ParseUint(row[2], 10, 64)
@@ -359,9 +378,14 @@ func parseRowGetAssetInfo(row []string, departmentID uint, userID uint) (*model.
 	assetCount := 1
 	assetExpire, _ := strconv.ParseUint(row[5], 10, 64)
 	assetThreshold, _ := strconv.ParseUint(row[6], 10, 64)
-	assetDescription := row[7]
-	assetPosition := row[8]
-
+	assetDescription := ""
+	if len(row) >= 8 {
+		assetDescription = row[7]
+	}
+	assetPosition := ""
+	if len(row) >= 9 {
+		assetPosition = row[8]
+	}
 	return &model.Asset{
 		Name:         assetName,
 		Price:        assetPrice,

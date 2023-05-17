@@ -779,3 +779,62 @@ func (asset *assetApi) GetAssetInfo(ctx *utils.Context) {
 
 	ctx.Success(assetInfo)
 }
+
+/*
+Handle func for GET /asset/:asset_id/info
+*/
+func (asset *assetApi) GetAssetInfoByScan(ctx *utils.Context) {
+	assetID, err := service.EntityService.GetParamID(ctx, "asset_id")
+	if err != nil {
+		return
+	}
+
+	thisAsset, err := service.AssetService.GetAssetByID(assetID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	} else if thisAsset == nil {
+		ctx.BadRequest(myerror.ASSET_NOT_FOUND, myerror.ASSET_NOT_FOUND_INFO)
+		return
+	}
+
+	assetInfo := define.AssetInfo{
+		AssetID:   thisAsset.ID,
+		AssetName: thisAsset.Name,
+		ParentID:  thisAsset.ParentID,
+		User: define.AssetUserBasicInfo{
+			UserID:   thisAsset.UserID,
+			Username: thisAsset.User.UserName,
+		},
+		Department: define.AssetDepartmentBasicInfo{
+			DepartmentID:   thisAsset.DepartmentID,
+			DepartmentName: thisAsset.Department.Name,
+		},
+		Price:       thisAsset.Price,
+		Description: thisAsset.Description,
+		Position:    thisAsset.Position,
+		Expire:      thisAsset.Expire,
+		Class: define.AssetClassBasicInfo{
+			ClassID:   thisAsset.ClassID,
+			ClassName: thisAsset.Class.Name,
+		},
+		Number:    thisAsset.Number,
+		Type:      thisAsset.Type,
+		State:     thisAsset.State,
+		Property:  thisAsset.Property,
+		NetWorth:  thisAsset.NetWorth,
+		CreatedAt: thisAsset.CreatedAt,
+		ImgList:   thisAsset.ImgList,
+		Threshold: thisAsset.Threshold,
+		Warn:      thisAsset.Warn,
+	}
+
+	if thisAsset.MaintainerID != 0 {
+		assetInfo.Maintainer = define.AssetUserBasicInfo{
+			UserID:   thisAsset.MaintainerID,
+			Username: thisAsset.Maintainer.UserName,
+		}
+	}
+
+	ctx.Success(assetInfo)
+}

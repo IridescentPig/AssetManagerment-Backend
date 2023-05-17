@@ -21,9 +21,10 @@ type AssetDistributionResponse struct {
 }
 
 type DepartmentAssetDistribution struct {
-	DepartmentID uint            `gorm:"column:department_id" json:"department_id"`
-	Count        uint            `gorm:"column:count" json:"count"`
-	Total        decimal.Decimal `gorm:"column:total" json:"total_worth"`
+	DepartmentID   uint            `gorm:"column:department_id" json:"department_id"`
+	Count          uint            `gorm:"column:count" json:"count"`
+	Total          decimal.Decimal `gorm:"column:total" json:"total_worth"`
+	DepartmentName string          `gorm:"column:department_name" json:"department_name"`
 }
 
 type DepartmentAssetDistributionResponse struct {

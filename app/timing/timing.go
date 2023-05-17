@@ -38,5 +38,14 @@ func Init() *cron.Cron {
 		log.Println("Something error when register daily job")
 	}
 
+	_, err = c.AddJob(
+		"@every 30s",
+		cron.NewChain(cron.SkipIfStillRunning(cron.DefaultLogger), cron.Recover(cron.DefaultLogger)).Then(&GetPendingAsyncTask{}),
+	)
+
+	if err != nil {
+		log.Println("Something error when async task job")
+	}
+
 	return c
 }

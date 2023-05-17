@@ -484,6 +484,10 @@ func (asset *assetDao) SearchDepartmentAsset(departmentID uint, req *define.Sear
 		result = result.Where("state = ?", req.State)
 	}
 
+	if req.ClassID != 0 {
+		result = result.Where("class_id = ?", req.ClassID)
+	}
+
 	if req.Key != "" {
 		if req.Value == "" {
 			result = result.Preload("Parent").Preload("User").

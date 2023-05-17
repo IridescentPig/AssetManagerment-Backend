@@ -3,13 +3,13 @@ package define
 import "asset-management/app/model"
 
 type CreateAsyncTaskReq struct {
-	DownloadLink string           `json:"download_link" binding:"uri"`
+	DownloadLink string           `json:"download_link"`
 	Type         uint             `json:"type" binding:"oneof=0 1 2"`
 	LogType      uint             `json:"log_type" binding:"oneof=0 1 2"` // 0-all 1-success 2-failed
 	ObjectKey    string           `json:"object_key"`
 	DepartmentID uint             `json:"department_id"`
 	EntityID     uint             `json:"entity_id"`
-	FromTime     *model.ModelTime `json:"from_time"`
+	FromTime     *model.ModelTime `json:"from_time" binding:"omitempty"`
 }
 
 type ModifyAsyncTaskStateReq struct {

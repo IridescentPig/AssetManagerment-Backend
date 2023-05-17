@@ -6,6 +6,7 @@ import (
 	"asset-management/app/service"
 	"asset-management/myerror"
 	"asset-management/utils"
+	"log"
 
 	"github.com/gin-gonic/gin/binding"
 	"github.com/thoas/go-funk"
@@ -97,6 +98,7 @@ func (asy *asyncApi) CreateAsyncTask(ctx *utils.Context) {
 	var req define.CreateAsyncTaskReq
 	err = ctx.MustBindWith(&req, binding.JSON)
 	if err != nil {
+		log.Println(err.Error())
 		ctx.BadRequest(myerror.INVALID_BODY, myerror.INVALID_BODY_INFO)
 		return
 	}

@@ -213,9 +213,9 @@ func (asset *assetService) UpdateNetWorth(assetID uint) error {
 	} else {
 		rate := 1.0 - float64(interval)/float64(expire)
 		isWarn := (int(expire) - interval) <= int(thisAsset.Threshold)
-		err = dao.AssetDao.UpdateByStruct(assetID, model.Asset{
-			NetWorth: price.Mul(decimal.NewFromFloat(rate)),
-			Warn:     isWarn,
+		err = dao.AssetDao.Update(assetID, map[string]interface{}{
+			"net_worth": price.Mul(decimal.NewFromFloat(rate)),
+			"warn":      isWarn,
 		})
 	}
 
