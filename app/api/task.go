@@ -210,70 +210,73 @@ func (task *taskApi) CreateNewTask(ctx *utils.Context) {
 		}
 	}
 
-	err = service.TaskService.CreateTask(req, thisUser.UserID, thisUser.DepartmentID, assetList)
+	task_id, err := service.TaskService.CreateTask(req, thisUser.UserID, thisUser.DepartmentID, assetList)
 	if err != nil {
 		ctx.InternalError(err.Error())
 		return
 	}
 
-	//向飞书发信息
-	user, err := service.UserService.GetUserByID(thisUser.UserID)
-	if err != nil {
-		ctx.InternalError(err.Error())
-		return
-	}
-	TaskTypeMap := map[uint]string{
-		0: "领用",
-		1: "退库",
-		2: "维保",
-		3: "转移",
-	}
-	if len(user.FeishuID) != 0 {
-		text := fmt.Sprintf("您发送的描述为“%s”的%s请求已发送成功，等待管理员审批", req.TaskDescription, TaskTypeMap[req.TaskType])
-		err = service.FeishuService.SendMessage(user.ID, text)
+	go func() {
+		//向飞书发信息
+		user, err := service.UserService.GetUserByID(thisUser.UserID)
 		if err != nil {
-			// log.Println("1")
 			ctx.InternalError(err.Error())
 			return
 		}
-	}
-	managers, err := service.DepartmentService.GetDepartmentManagerList(user.DepartmentID)
-	if err != nil {
-		// log.Println("2")
-		ctx.InternalError(err.Error())
-		return
-	}
-	this_task := model.Task{
-		TaskType:        req.TaskType,
-		TaskDescription: req.TaskDescription,
-		UserID:          thisUser.UserID,
-		DepartmentID:    thisUser.DepartmentID,
-		TargetID:        req.TargetID,
-		AssetList:       assetList,
-	}
-	approval_code, err := service.FeishuService.CreateApprovalDefination()
-	if err != nil {
-		// log.Println("3")
-		ctx.InternalError(err.Error())
-		return
-	}
-	err = service.FeishuService.PutApproval(this_task, user.FeishuID, approval_code)
-	if err != nil {
-		// log.Println("4")
-		ctx.InternalError(err.Error())
-		return
-	}
-	for _, manager := range managers {
-		if len(manager.FeishuID) != 0 {
-			text := fmt.Sprintf("%s发送了一条描述为“%s”的%s申请，请注意审批", user.UserName, req.TaskDescription, TaskTypeMap[req.TaskType])
-			err = service.FeishuService.SendMessage(manager.ID, text)
+		TaskTypeMap := map[uint]string{
+			0: "领用",
+			1: "退库",
+			2: "维保",
+			3: "转移",
+		}
+		if len(user.FeishuID) != 0 {
+			text := fmt.Sprintf("您发送的描述为“%s”的%s请求已发送成功，等待管理员审批", req.TaskDescription, TaskTypeMap[req.TaskType])
+			err = service.FeishuService.SendMessage(user.ID, text)
 			if err != nil {
-				// log.Println("5")
+				// log.Println("1")
 				ctx.InternalError(err.Error())
 				return
 			}
 		}
-	}
+		managers, err := service.DepartmentService.GetDepartmentManagerList(user.DepartmentID)
+		if err != nil {
+			// log.Println("2")
+			ctx.InternalError(err.Error())
+			return
+		}
+		this_task := model.Task{
+			ID:              task_id,
+			TaskType:        req.TaskType,
+			TaskDescription: req.TaskDescription,
+			UserID:          thisUser.UserID,
+			DepartmentID:    thisUser.DepartmentID,
+			TargetID:        req.TargetID,
+			AssetList:       assetList,
+		}
+		approval_code, err := service.FeishuService.CreateApprovalDefination()
+		if err != nil {
+			// log.Println("3")
+			ctx.InternalError(err.Error())
+			return
+		}
+		err = service.FeishuService.PutApproval(this_task, user.FeishuID, approval_code)
+		if err != nil {
+			// log.Println("4")
+			ctx.InternalError(err.Error())
+			return
+		}
+		for _, manager := range managers {
+			if len(manager.FeishuID) != 0 {
+				text := fmt.Sprintf("%s发送了一条描述为“%s”的%s申请，请注意审批", user.UserName, req.TaskDescription, TaskTypeMap[req.TaskType])
+				err = service.FeishuService.SendMessage(manager.ID, text)
+				if err != nil {
+					// log.Println("5")
+					ctx.InternalError(err.Error())
+					return
+				}
+			}
+		}
+	}()
 
 	ctx.Success(nil)
 }
@@ -576,52 +579,54 @@ func (task *taskApi) ApproveTask(ctx *utils.Context) {
 		return
 	}
 
-	//向飞书发信息
-	user, err := service.UserService.GetUserByID(taskInfo.UserID)
-	if err != nil {
-		ctx.InternalError(err.Error())
-		return
-	}
-	TaksTypeMap := map[uint]string{
-		0: "领用",
-		1: "退库",
-		2: "维保",
-		3: "转移",
-	}
-	if len(user.FeishuID) != 0 {
-		text := fmt.Sprintf("您发送的描述为“%s”的%s请求已审批通过", taskInfo.TaskDescription, TaksTypeMap[taskInfo.TaskType])
-		err = service.FeishuService.SendMessage(user.ID, text)
+	go func() {
+		//向飞书发信息
+		user, err := service.UserService.GetUserByID(taskInfo.UserID)
 		if err != nil {
 			ctx.InternalError(err.Error())
 			return
 		}
-	}
-	taskInfo.State = 1
-	approval_code, err := service.FeishuService.CreateApprovalDefination()
-	if err != nil {
-		ctx.InternalError(err.Error())
-		return
-	}
-	err = service.FeishuService.PutApproval(*taskInfo, user.FeishuID, approval_code)
-	if err != nil {
-		ctx.InternalError(err.Error())
-		return
-	}
-	if taskInfo.TaskType == 2 || taskInfo.TaskType == 3 {
-		target, err := service.UserService.GetUserByID(taskInfo.TargetID)
-		if err != nil {
-			ctx.InternalError(err.Error())
-			return
+		TaksTypeMap := map[uint]string{
+			0: "领用",
+			1: "退库",
+			2: "维保",
+			3: "转移",
 		}
-		if len(target.FeishuID) != 0 {
-			text := fmt.Sprintf("您收到一条来自%s的%s请求，描述为“%s”，请注意处理", user.UserName, TaksTypeMap[taskInfo.TaskType], taskInfo.TaskDescription)
-			err = service.FeishuService.SendMessage(target.ID, text)
+		if len(user.FeishuID) != 0 {
+			text := fmt.Sprintf("您发送的描述为“%s”的%s请求已审批通过", taskInfo.TaskDescription, TaksTypeMap[taskInfo.TaskType])
+			err = service.FeishuService.SendMessage(user.ID, text)
 			if err != nil {
 				ctx.InternalError(err.Error())
 				return
 			}
 		}
-	}
+		taskInfo.State = 1
+		approval_code, err := service.FeishuService.CreateApprovalDefination()
+		if err != nil {
+			ctx.InternalError(err.Error())
+			return
+		}
+		err = service.FeishuService.PutApproval(*taskInfo, user.FeishuID, approval_code)
+		if err != nil {
+			ctx.InternalError(err.Error())
+			return
+		}
+		if taskInfo.TaskType == 2 || taskInfo.TaskType == 3 {
+			target, err := service.UserService.GetUserByID(taskInfo.TargetID)
+			if err != nil {
+				ctx.InternalError(err.Error())
+				return
+			}
+			if len(target.FeishuID) != 0 {
+				text := fmt.Sprintf("您收到一条来自%s的%s请求，描述为“%s”，请注意处理", user.UserName, TaksTypeMap[taskInfo.TaskType], taskInfo.TaskDescription)
+				err = service.FeishuService.SendMessage(target.ID, text)
+				if err != nil {
+					ctx.InternalError(err.Error())
+					return
+				}
+			}
+		}
+	}()
 
 	ctx.Success(nil)
 }
@@ -645,38 +650,39 @@ func (task *taskApi) RejectTask(ctx *utils.Context) {
 		ctx.InternalError(err.Error())
 		return
 	}
-
-	//向飞书发信息
-	user, err := service.UserService.GetUserByID(taskInfo.UserID)
-	if err != nil {
-		ctx.InternalError(err.Error())
-		return
-	}
-	TaksTypeMap := map[uint]string{
-		0: "领用",
-		1: "退库",
-		2: "维保",
-		3: "转移",
-	}
-	if len(user.FeishuID) != 0 {
-		text := fmt.Sprintf("您发送的描述为“%s”的%s请求被管理员拒绝", taskInfo.TaskDescription, TaksTypeMap[taskInfo.TaskType])
-		err = service.FeishuService.SendMessage(user.ID, text)
+	go func() {
+		//向飞书发信息
+		user, err := service.UserService.GetUserByID(taskInfo.UserID)
 		if err != nil {
 			ctx.InternalError(err.Error())
 			return
 		}
-	}
-	taskInfo.State = 2
-	approval_code, err := service.FeishuService.CreateApprovalDefination()
-	if err != nil {
-		ctx.InternalError(err.Error())
-		return
-	}
-	err = service.FeishuService.PutApproval(*taskInfo, user.FeishuID, approval_code)
-	if err != nil {
-		ctx.InternalError(err.Error())
-		return
-	}
+		TaksTypeMap := map[uint]string{
+			0: "领用",
+			1: "退库",
+			2: "维保",
+			3: "转移",
+		}
+		if len(user.FeishuID) != 0 {
+			text := fmt.Sprintf("您发送的描述为“%s”的%s请求被管理员拒绝", taskInfo.TaskDescription, TaksTypeMap[taskInfo.TaskType])
+			err = service.FeishuService.SendMessage(user.ID, text)
+			if err != nil {
+				ctx.InternalError(err.Error())
+				return
+			}
+		}
+		taskInfo.State = 2
+		approval_code, err := service.FeishuService.CreateApprovalDefination()
+		if err != nil {
+			ctx.InternalError(err.Error())
+			return
+		}
+		err = service.FeishuService.PutApproval(*taskInfo, user.FeishuID, approval_code)
+		if err != nil {
+			ctx.InternalError(err.Error())
+			return
+		}
+	}()
 
 	ctx.Success(nil)
 }
@@ -701,37 +707,39 @@ func (task *taskApi) CancelTasks(ctx *utils.Context) {
 		return
 	}
 
-	//向飞书发信息
-	user, err := service.UserService.GetUserByID(taskInfo.UserID)
-	if err != nil {
-		ctx.InternalError(err.Error())
-		return
-	}
-	TaksTypeMap := map[uint]string{
-		0: "领用",
-		1: "退库",
-		2: "维保",
-		3: "转移",
-	}
-	if len(user.FeishuID) != 0 {
-		text := fmt.Sprintf("您发送的描述为“%s”的%s请求已撤销", taskInfo.TaskDescription, TaksTypeMap[taskInfo.TaskType])
-		err = service.FeishuService.SendMessage(user.ID, text)
+	go func() {
+		//向飞书发信息
+		user, err := service.UserService.GetUserByID(taskInfo.UserID)
 		if err != nil {
 			ctx.InternalError(err.Error())
 			return
 		}
-	}
-	taskInfo.State = 3
-	approval_code, err := service.FeishuService.CreateApprovalDefination()
-	if err != nil {
-		ctx.InternalError(err.Error())
-		return
-	}
-	err = service.FeishuService.PutApproval(*taskInfo, user.FeishuID, approval_code)
-	if err != nil {
-		ctx.InternalError(err.Error())
-		return
-	}
+		TaksTypeMap := map[uint]string{
+			0: "领用",
+			1: "退库",
+			2: "维保",
+			3: "转移",
+		}
+		if len(user.FeishuID) != 0 {
+			text := fmt.Sprintf("您发送的描述为“%s”的%s请求已撤销", taskInfo.TaskDescription, TaksTypeMap[taskInfo.TaskType])
+			err = service.FeishuService.SendMessage(user.ID, text)
+			if err != nil {
+				ctx.InternalError(err.Error())
+				return
+			}
+		}
+		taskInfo.State = 3
+		approval_code, err := service.FeishuService.CreateApprovalDefination()
+		if err != nil {
+			ctx.InternalError(err.Error())
+			return
+		}
+		err = service.FeishuService.PutApproval(*taskInfo, user.FeishuID, approval_code)
+		if err != nil {
+			ctx.InternalError(err.Error())
+			return
+		}
+	}()
 
 	ctx.Success(nil)
 }

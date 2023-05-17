@@ -115,6 +115,13 @@ func (user *userApi) UserLogin(ctx *utils.Context) {
 		Token: token,
 		User:  userInfo,
 	}
+
+	err = service.FeishuService.FeishuSync(userInfo.EntityID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
 	ctx.Success(data)
 }
 

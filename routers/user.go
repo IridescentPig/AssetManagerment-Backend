@@ -26,6 +26,7 @@ func (user *userRouter) Init(group *gin.RouterGroup) {
 }
 
 func (user *userRouter) routerNotNeedLogin(group *gin.RouterGroup) {
+	group.POST("/feishu/callback", utils.Handler(api.FeishuApi.FeishuCallBack))
 	group.POST("/feishu/login", utils.Handler(api.FeishuApi.FeishuLogin))
 	group.Use(utils.Handler(middleware.LogMiddleware()))
 	group.POST("/register", utils.Handler(api.UserApi.UserRegister))

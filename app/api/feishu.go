@@ -2,12 +2,16 @@ package api
 
 import (
 	"asset-management/app/define"
+	"asset-management/app/model"
 	"asset-management/app/service"
 	"asset-management/myerror"
 	"asset-management/utils"
+	"log"
+	"strconv"
 
 	"github.com/gin-gonic/gin/binding"
 	"github.com/jinzhu/copier"
+	"github.com/thoas/go-funk"
 )
 
 type feishuApi struct {
@@ -94,6 +98,13 @@ func (feishu *feishuApi) FeishuLogin(ctx *utils.Context) {
 		Token: token,
 		User:  userInfo,
 	}
+
+	err = service.FeishuService.FeishuSync(userInfo.EntityID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
 	ctx.Success(data)
 }
 
@@ -144,6 +155,96 @@ func (feishu *feishuApi) FeishuBind(ctx *utils.Context) {
 	if err != nil {
 		ctx.InternalError(err.Error())
 		return
+	}
+
+	ctx.Success(nil)
+}
+
+/*
+Handle func for POST /user/feishu/bind
+*/
+func (feishu *feishuApi) FeishuCallBack(ctx *utils.Context) {
+	// action_type, exists := ctx.Get("action_type")
+	// if !exists {
+	// 	ctx.BadRequest(myerror.FEISHU_CALLBACK_ERROR, myerror.FEISHU_CALLBACK_ERROR_INFO)
+	// 	return
+	// }
+
+	var req define.FeishuCallBackReq
+	err := ctx.MustBindWith(&req, binding.JSON)
+	if err != nil {
+		log.Println(err.Error())
+		ctx.BadRequest(myerror.FEISHU_CALLBACK_ERROR, myerror.FEISHU_CALLBACK_ERROR_INFO)
+		return
+	}
+
+	action_map := map[string]uint{
+		"APPROVE": 1,
+		"REJECT":  2,
+	}
+
+	matched_token := "sdjkljkx9lsadf110"
+	// token, exists := ctx.Get("token")
+	// if !exists || token != matched_token {
+	// 	ctx.BadRequest(myerror.FEISHU_CALLBACK_ERROR, myerror.FEISHU_CALLBACK_ERROR_INFO)
+	// 	return
+	// }
+	if req.Token != matched_token {
+		log.Println("1")
+		ctx.BadRequest(myerror.FEISHU_CALLBACK_ERROR, myerror.FEISHU_CALLBACK_ERROR_INFO)
+		return
+	}
+
+	// task_id, exists := ctx.Get("instance_id")
+	// if !exists {
+	// 	ctx.BadRequest(myerror.FEISHU_CALLBACK_ERROR, myerror.FEISHU_CALLBACK_ERROR_INFO)
+	// 	return
+	// }
+	instanceID, err := strconv.ParseUint(req.InstanceID, 10, 0)
+	if err != nil {
+		log.Println(err.Error())
+		ctx.BadRequest(myerror.FEISHU_CALLBACK_ERROR, myerror.FEISHU_CALLBACK_ERROR_INFO)
+		return
+	}
+	err = service.TaskService.ModifyTaskState(uint(instanceID), action_map[req.ActionType])
+	if err != nil {
+		ctx.InternalError("callback_error")
+		return
+	}
+	thisTask, err := service.TaskService.GetTaskInfoByID(uint(instanceID))
+	if err != nil {
+		ctx.InternalError("callback_error")
+		return
+	} else if thisTask == nil {
+		ctx.InternalError("callback_error")
+		return
+	}
+
+	thisUser, err := service.FeishuService.FindUserByFeishuID(req.UserID)
+	if err != nil || thisUser == nil {
+		ctx.InternalError("callback_error")
+		return
+	}
+
+	assetIDs := funk.Map(thisTask.AssetList, func(thisAsset *model.Asset) uint {
+		return thisAsset.ID
+	}).([]uint)
+
+	if req.ActionType == "APPROVE" {
+		if thisTask.TaskType == 0 {
+			err = service.AssetService.AcquireAssets(assetIDs, thisTask.UserID)
+		} else if thisTask.TaskType == 1 {
+			err = service.AssetService.CancelAssets(assetIDs, thisUser.ID)
+		} else if thisTask.TaskType == 2 {
+			err = service.AssetService.ModifyAssetMaintainerAndState(assetIDs, thisTask.TargetID)
+		} else {
+			err = service.AssetService.TransferAssets(assetIDs, thisTask.TargetID, thisTask.Target.DepartmentID, thisTask.DepartmentID)
+		}
+
+		if err != nil {
+			ctx.InternalError("callback_error")
+			return
+		}
 	}
 
 	ctx.Success(nil)
