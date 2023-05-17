@@ -29,7 +29,7 @@ const (
 	durationSeconds   = 900
 	myAccessKeyId     = "LTAI5tCpT5SSksUNe355TY8V"
 	myAccessKeySecret = "WgkwIjagXCfiu0ykLmrZu1bcXQswV5"
-	endpoint          = "sts.cn-qingdao.aliyuncs.com"
+	endpoint          = "sts.cn-beijing.aliyuncs.com"
 )
 
 /**
@@ -57,7 +57,7 @@ func (oss *ossApi) createClient(accessKeyId *string, accessKeySecret *string) (_
 Handle func for GET /oss/key
 */
 func (oss *ossApi) GetTempKey(ctx *utils.Context) {
-	client, err := oss.createClient(tea.String("LTAI5tCpT5SSksUNe355TY8V"), tea.String("WgkwIjagXCfiu0ykLmrZu1bcXQswV5"))
+	client, err := oss.createClient(tea.String(myAccessKeyId), tea.String(myAccessKeySecret))
 
 	if err != nil {
 		ctx.BadRequest(myerror.OSS_REQUEST_FAILED, myerror.OSS_REQUEST_FAILED_INFO)

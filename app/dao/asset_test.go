@@ -1,6 +1,7 @@
 package dao
 
 import (
+	"asset-management/app/define"
 	"asset-management/app/model"
 	"log"
 	"testing"
@@ -93,6 +94,28 @@ func TestUserAsset(t *testing.T) {
 	AssetDao.GetUserMaintainAssets(1)
 	AssetDao.GetUserMaintainAssets(9)
 	AssetDao.ModifyAssetMaintainerAndState([]uint{0}, 1)
-	AssetDao.ModifyAssetMaintainerAndState([]uint{1, 2, 3}, 2)
-
+	AssetDao.ModifyAssetMaintainerAndState([]uint{1, 2, 3}, 0)
+	AssetDao.GetAllAssets()
+	AssetDao.GetAssetDirectDepartment(1)
+	AssetDao.CheckAssetPropertyExist(1, "line")
+	AssetDao.SetAssetProperty(3, "line", "1")
+	AssetDao.GetAssetProperty(1)
+	AssetDao.GetAssetTask(1)
+	AssetDao.SearchDepartmentAsset(1, &define.SearchAssetReq{
+		Name:        "a",
+		Description: "a",
+		UserID:      1,
+		State:       1,
+		ClassID:     1,
+	})
+	AssetDao.SearchDepartmentAsset(1, &define.SearchAssetReq{
+		Name:        "a",
+		Description: "a",
+		UserID:      1,
+		State:       1,
+		ClassID:     1,
+		Key:         "line",
+	})
+	AssetDao.GetDepartmentAssetCount(1)
+	AssetDao.GetDepartmentWarnAsset(1)
 }

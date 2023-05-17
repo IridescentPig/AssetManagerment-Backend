@@ -615,3 +615,155 @@ func (department *departmentApi) GetDepartmentTree(ctx *utils.Context) {
 
 	ctx.Success(departmentTreeRes)
 }
+
+/*
+Handle func for POST /department/:department_id/template
+*/
+func (department *departmentApi) DefineDepartmentAssetTemplate(ctx *utils.Context) {
+	hasIdentity, departmentID, err := AssetClassApi.CheckAssetIdentity(ctx)
+	if err != nil {
+		return
+	} else if !hasIdentity {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	var req define.DepartmentTemplateReq
+	err = ctx.MustBindWith(&req, binding.JSON)
+	if err != nil {
+		ctx.BadRequest(myerror.INVALID_BODY, myerror.INVALID_BODY_INFO)
+		return
+	}
+
+	err = service.DepartmentService.ModifyDepartmentTemplate(departmentID, &req)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	ctx.Success(nil)
+}
+
+/*
+Handle func for GET /department/:department_id/template
+*/
+func (department *departmentApi) GetDepartmentTemplate(ctx *utils.Context) {
+	departmentID, err := service.EntityService.GetParamID(ctx, "department_id")
+	if err != nil {
+		return
+	}
+	thisDepartment, err := service.DepartmentService.GetDepartmentInfoByID(departmentID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	} else if thisDepartment == nil {
+		ctx.BadRequest(myerror.DEPARTMENT_NOT_FOUND, myerror.DEPARTMENT_NOT_FOUND_INFO)
+		return
+	}
+	isDepartmentSuper := service.UserService.DepartmentSuper(ctx)
+	if !isDepartmentSuper {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+	isInDepartment := service.DepartmentService.CheckIsInDepartment(ctx, departmentID)
+	if !isInDepartment {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	res := define.DepartmentTemplateResponse{
+		Template: thisDepartment.KeyList,
+	}
+
+	ctx.Success(res)
+}
+
+/*
+Handle func for POST /department/:department_id/warn
+*/
+func (department *departmentApi) SetDepartmentWarnStrategy(ctx *utils.Context) {
+	hasIdentity, departmentID, err := AssetClassApi.CheckAssetIdentity(ctx)
+	if err != nil {
+		return
+	} else if !hasIdentity {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	var req define.DepartmentThresholdReq
+	err = ctx.MustBindWith(&req, binding.JSON)
+	if err != nil {
+		ctx.BadRequest(myerror.INVALID_BODY, myerror.INVALID_BODY_INFO)
+		return
+	}
+
+	err = service.DepartmentService.ModifyDepartmentThreshold(departmentID, req.Threshold)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	ctx.Success(nil)
+}
+
+/*
+Handle func for GET /department/:department_id/warn
+*/
+func (department *departmentApi) GetDepartmentAssetWarnInfo(ctx *utils.Context) {
+	hasIdentity, thisDepartment, err := AssetClassApi.CheckAssetIdentityReturnDepartment(ctx)
+	if err != nil {
+		return
+	} else if !hasIdentity {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	count, err := service.AssetService.GetDepartmentAssetCount(thisDepartment.ID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	isWarn := (count <= int64(thisDepartment.Threshold))
+	assetList, err := service.AssetService.GetDepartmentAssetInWarn(thisDepartment.ID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	// warnAssetBasicInfos := funk.Map(assetList, func(warnAsset *model.Asset) define.AssetBasicInfo {
+	// 	return define.AssetBasicInfo{
+	// 		AssetID: warnAsset.ID,
+	// 		AssetName: warnAsset.Name,
+	// 		ParentID: warnAsset.ParentID,
+	// 		DepartmentID: warnAsset.DepartmentID,
+	// 		User: define.AssetUserBasicInfo{
+	// 			UserID: warnAsset.UserID,
+	// 			Username: warnAsset.User.UserName,
+	// 		},
+	// 		Price: warnAsset.Price,
+	// 		Position: warnAsset.Position,
+	// 		Expire: warnAsset.Expire,
+	// 		Class: define.AssetClassBasicInfo{
+	// 			ClassID: warnAsset.ClassID,
+	// 			ClassName: warnAsset.Class.Name,
+	// 		},
+	// 		Number: warnAsset.Number,
+	// 		Type: warnAsset.Type,
+	// 		State: warnAsset.State,
+	// 		Property: warnAsset.Property,
+	// 		NetWorth: warnAsset.NetWorth,
+	// 		Threshold: warnAsset.Threshold,
+	// 		Warn: warnAsset.Warn,
+	// 	}
+	// }).([]define.AssetBasicInfo)
+	warnAssets := service.AssetService.TransformAssetBasicInfo(assetList)
+	warnInfoRes := define.DepartmentWarnInfo{
+		Count:          count,
+		CountThreshold: thisDepartment.Threshold,
+		CountWarn:      isWarn,
+		WarnAssetList:  warnAssets,
+	}
+
+	ctx.Success(warnInfoRes)
+}

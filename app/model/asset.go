@@ -30,4 +30,6 @@ type Asset struct {
 	CreatedAt    *ModelTime                  `gorm:"column:created_at" json:"created_at"`
 	NetWorth     decimal.Decimal             `gorm:"type:decimal(10,2);column:net_worth" json:"net_worth"`
 	ImgList      datatypes.JSONSlice[string] `gorm:"column:img_list" json:"img_list"`
+	Warn         bool                        `gorm:"default:false;colimn:warn" json:"warn"`
+	Threshold    uint                        `gorm:"default:0;column:threshold" json:"threshold"`
 }

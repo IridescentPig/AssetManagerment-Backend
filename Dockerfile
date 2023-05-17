@@ -10,6 +10,8 @@ RUN go env -w GOPROXY=https://goproxy.cn,direct
 
 RUN go mod tidy
 
-EXPOSE 8080
+RUN GOOS=linux GOARCH=amd64 go build .
 
-CMD ["go", "run", "main.go"]
+EXPOSE 80, 8080
+
+CMD ["./asset-management"]

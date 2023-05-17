@@ -484,6 +484,10 @@ func (asset *assetDao) SearchDepartmentAsset(departmentID uint, req *define.Sear
 		result = result.Where("state = ?", req.State)
 	}
 
+	if req.ClassID != 0 {
+		result = result.Where("class_id = ?", req.ClassID)
+	}
+
 	if req.Key != "" {
 		if req.Value == "" {
 			result = result.Preload("Parent").Preload("User").
@@ -507,5 +511,17 @@ func (asset *assetDao) SearchDepartmentAsset(departmentID uint, req *define.Sear
 		err = nil
 	}
 
+	return
+}
+
+func (asset *assetDao) GetDepartmentAssetCount(departmentID uint) (count int64, err error) {
+	result := db.Model(&model.Asset{}).Where("department_id = ? and state <= ?", departmentID, 2).Count(&count)
+	err = utils.DBError(result)
+	return
+}
+
+func (asset *assetDao) GetDepartmentWarnAsset(departmentID uint) (assetList []*model.Asset, err error) {
+	result := db.Model(&model.Asset{}).Where("department_id = ? and state <= ? and warn = ?", departmentID, 2, true).Find(&assetList)
+	err = utils.DBError(result)
 	return
 }

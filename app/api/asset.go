@@ -667,6 +667,11 @@ func (asset *assetApi) GetAssetHistory(ctx *utils.Context) {
 	}).([]*define.AssetHistory)
 
 	sort.Slice(assetHistory, func(i, j int) bool {
+		if assetHistory[i].ReviewTime == nil {
+			return false
+		} else if assetHistory[j].ReviewTime == nil {
+			return true
+		}
 		return time.Time(*assetHistory[i].ReviewTime).After(time.Time(*assetHistory[j].ReviewTime))
 	})
 
@@ -717,23 +722,7 @@ func (asset *assetApi) SearchAssets(ctx *utils.Context) {
 	ctx.Success(assetListResp)
 }
 
-/*
-Handle func for GET /department/:department_id/asset/:asset_id
-*/
-func (asset *assetApi) GetAssetInfo(ctx *utils.Context) {
-	hasIdentity, departmentID, err := AssetClassApi.CheckAssetIdentity(ctx)
-	if err != nil {
-		return
-	} else if !hasIdentity {
-		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
-		return
-	}
-
-	_, thisAsset, isOK := asset.CheckAssetExistsAndValid(ctx, departmentID)
-	if !isOK {
-		return
-	}
-
+func (asset *assetApi) getAssetInfoFromAssetModel(thisAsset *model.Asset) *define.AssetInfo {
 	assetInfo := define.AssetInfo{
 		AssetID:   thisAsset.ID,
 		AssetName: thisAsset.Name,
@@ -761,6 +750,8 @@ func (asset *assetApi) GetAssetInfo(ctx *utils.Context) {
 		NetWorth:  thisAsset.NetWorth,
 		CreatedAt: thisAsset.CreatedAt,
 		ImgList:   thisAsset.ImgList,
+		Threshold: thisAsset.Threshold,
+		Warn:      thisAsset.Warn,
 	}
 
 	if thisAsset.MaintainerID != 0 {
@@ -769,6 +760,51 @@ func (asset *assetApi) GetAssetInfo(ctx *utils.Context) {
 			Username: thisAsset.Maintainer.UserName,
 		}
 	}
+
+	return &assetInfo
+}
+
+/*
+Handle func for GET /department/:department_id/asset/:asset_id
+*/
+func (asset *assetApi) GetAssetInfo(ctx *utils.Context) {
+	hasIdentity, departmentID, err := AssetClassApi.CheckAssetIdentity(ctx)
+	if err != nil {
+		return
+	} else if !hasIdentity {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	_, thisAsset, isOK := asset.CheckAssetExistsAndValid(ctx, departmentID)
+	if !isOK {
+		return
+	}
+
+	assetInfo := asset.getAssetInfoFromAssetModel(thisAsset)
+
+	ctx.Success(assetInfo)
+}
+
+/*
+Handle func for GET /asset/:asset_id/info
+*/
+func (asset *assetApi) GetAssetInfoByScan(ctx *utils.Context) {
+	assetID, err := service.EntityService.GetParamID(ctx, "asset_id")
+	if err != nil {
+		return
+	}
+
+	thisAsset, err := service.AssetService.GetAssetByID(assetID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	} else if thisAsset == nil {
+		ctx.BadRequest(myerror.ASSET_NOT_FOUND, myerror.ASSET_NOT_FOUND_INFO)
+		return
+	}
+
+	assetInfo := asset.getAssetInfoFromAssetModel(thisAsset)
 
 	ctx.Success(assetInfo)
 }

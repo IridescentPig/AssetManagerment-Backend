@@ -26,3 +26,7 @@ func (stat *statService) GetDepartmentStat(departmentID uint) ([]*model.Stat, er
 func (stat *statService) GetDepartmentAssetDistribution(departmentID uint) ([]*define.AssetDistribution, error) {
 	return dao.StatDao.GetDepartmentAssetDistribution(departmentID)
 }
+
+func (stat *statService) GetAssetDepartmentDistribution(departmentIDs []uint, subStats []*define.DepartmentAssetDistribution) error {
+	return dao.StatDao.GetDepartmentsAssetDistribution(departmentIDs, subStats)
+}

@@ -6,45 +6,10 @@ import (
 	"log"
 	"time"
 
-	"github.com/robfig/cron/v3"
 	"github.com/shopspring/decimal"
 	"github.com/thoas/go-funk"
 	"gorm.io/gorm"
 )
-
-var timezone *time.Location
-
-/*
-This package is for timing task: asset depreciate and statistics
-*/
-func Init() *cron.Cron {
-	timezone, _ = time.LoadLocation("Asia/Shanghai")
-	c := cron.New(cron.WithLocation(timezone))
-
-	// _, _ = c.AddFunc("@every 1s", func() {
-	// 	log.Println("Hello")
-	// })
-
-	_, err := c.AddJob(
-		"0 3 * * *",
-		cron.NewChain(cron.Recover(cron.DefaultLogger)).Then(&AssetDepreciate{}),
-	)
-
-	if err != nil {
-		log.Println("Something error when register daily job")
-	}
-
-	_, err = c.AddJob(
-		"0 4 * * *",
-		cron.NewChain(cron.Recover(cron.DefaultLogger)).Then(&AssetStat{}),
-	)
-
-	if err != nil {
-		log.Println("Something error when register daily job")
-	}
-
-	return c
-}
 
 type AssetDepreciate struct {
 }
@@ -84,9 +49,11 @@ func (depreciate *AssetDepreciate) Run() {
 				} else {
 					rate := 1.0 - float64(interval)/float64(asset.Expire)
 					asset.NetWorth = asset.Price.Mul(decimal.NewFromFloat(rate))
+					asset.Warn = (int(asset.Expire) - interval) < int(asset.Threshold)
 
 					err = dao.AssetDao.Update(asset.ID, map[string]interface{}{
 						"net_worth": asset.NetWorth,
+						"warn":      asset.Warn,
 					})
 
 					if err != nil {
