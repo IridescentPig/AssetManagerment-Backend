@@ -116,10 +116,12 @@ func (user *userApi) UserLogin(ctx *utils.Context) {
 		User:  userInfo,
 	}
 
-	err = service.FeishuService.FeishuSync(userInfo.EntityID)
-	if err != nil {
-		ctx.InternalError(err.Error())
-		return
+	if len(thisUser.FeishuID) != 0 {
+		err = service.FeishuService.FeishuSync(userInfo.EntityID)
+		if err != nil {
+			ctx.InternalError(err.Error())
+			return
+		}
 	}
 
 	ctx.Success(data)
