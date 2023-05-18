@@ -14,6 +14,7 @@ import (
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/shopspring/decimal"
 	"github.com/xuri/excelize/v2"
+	"gorm.io/datatypes"
 )
 
 const (
@@ -399,6 +400,7 @@ func parseRowGetAssetInfo(row []string, departmentID uint, userID uint) (*model.
 		Position:     assetPosition,
 		DepartmentID: departmentID,
 		UserID:       userID,
+		Property:     datatypes.JSON([]byte(`{}`)),
 	}, nil
 }
 
