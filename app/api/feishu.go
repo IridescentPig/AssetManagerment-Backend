@@ -177,6 +177,7 @@ func (feishu *feishuApi) FeishuCallBack(ctx *utils.Context) {
 		ctx.BadRequest(myerror.FEISHU_CALLBACK_ERROR, myerror.FEISHU_CALLBACK_ERROR_INFO)
 		return
 	}
+	// log.Println(req)
 
 	action_map := map[string]uint{
 		"APPROVE": 1,
@@ -206,16 +207,22 @@ func (feishu *feishuApi) FeishuCallBack(ctx *utils.Context) {
 		ctx.BadRequest(myerror.FEISHU_CALLBACK_ERROR, myerror.FEISHU_CALLBACK_ERROR_INFO)
 		return
 	}
-	err = service.TaskService.ModifyTaskState(uint(instanceID), action_map[req.ActionType])
-	if err != nil {
-		ctx.InternalError("callback_error")
-		return
-	}
 	thisTask, err := service.TaskService.GetTaskInfoByID(uint(instanceID))
 	if err != nil {
 		ctx.InternalError("callback_error")
 		return
 	} else if thisTask == nil {
+		ctx.InternalError("callback_error")
+		return
+	}
+	// log.Println(instanceID)
+	// if thisTask.State != 0 {
+	// 	ctx.InternalError(myerror.TASK_NOT_PENDING_INFO)
+	// 	return
+	// }
+	err = service.TaskService.ModifyTaskState(uint(instanceID), action_map[req.ActionType])
+	thisTask.State = action_map[req.ActionType]
+	if err != nil {
 		ctx.InternalError("callback_error")
 		return
 	}
@@ -245,6 +252,19 @@ func (feishu *feishuApi) FeishuCallBack(ctx *utils.Context) {
 			ctx.InternalError("callback_error")
 			return
 		}
+	}
+
+	approvalCode, err := service.FeishuService.CreateApprovalDefination()
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	thisTask.State = action_map[req.ActionType]
+	err = service.FeishuService.PutApproval(*thisTask, thisTask.User.FeishuID, approvalCode)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
 	}
 
 	ctx.Success(nil)

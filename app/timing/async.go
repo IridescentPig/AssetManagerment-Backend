@@ -41,7 +41,7 @@ const (
 	GET_LOG_FAILED                         = "failed to get logs"
 	CREATE_LOG_EXCEL_FILE_ERROR            = "fail to create log excel file"
 	UPLOAD_TO_OSS_FAILED                   = "fail to upload log file to oss"
-	EXPORT_ASSET_SUCCESS                   = "Successfully export assets!"
+	EXPORT_ASSET_SUCCESS                   = "Successfully export logs!"
 	ASYNC_TASK_SUCCESS                     = "Successfully finish async task!"
 )
 
