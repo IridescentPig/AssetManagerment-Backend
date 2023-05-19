@@ -97,9 +97,11 @@ func (entity *entityService) GetEntityInfoByID(id uint) (*model.Entity, error) {
 	}
 }
 
-func (entity *entityService) GetUsersUnderEntity(id uint) ([]*model.User, error) {
-	userList, err := dao.EntityDao.GetEntityAllUser(id)
-	return userList, err
+func (entity *entityService) GetUsersUnderEntity(id uint, page_size uint, page_num uint) ([]*model.User, int64, error) {
+	offset := page_size * page_num
+	limit := page_size
+	userList, count, err := dao.EntityDao.GetEntityAllUser(id, int(offset), int(limit))
+	return userList, count, err
 }
 
 func (entity *entityService) GetAllDepartmentsUnderEntity(id uint) ([]*model.Department, error) {
@@ -164,7 +166,7 @@ func (entity *entityService) ModifyEntity(entityID uint, modifyInfo define.Modif
 }
 
 func (entity *entityService) EntityHasUser(entityID uint) (bool, error) {
-	userList, err := dao.EntityDao.GetEntityAllUser(entityID)
+	userList, _, err := dao.EntityDao.GetEntityAllUser(entityID, -1, -1)
 	if err != nil {
 		return true, err
 	}

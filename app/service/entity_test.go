@@ -42,7 +42,7 @@ func TestEntity(t *testing.T) {
 	err = EntityService.SetManager("test_manager")
 	assert.Equal(t, nil, err, "service error")
 
-	users, err := EntityService.GetUsersUnderEntity(1)
+	users, _, err := EntityService.GetUsersUnderEntity(1, 50, 0)
 	assert.Equal(t, nil, err, "service error")
 	assert.Equal(t, 1, len(users), "service error")
 
