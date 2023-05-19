@@ -107,7 +107,7 @@ func TestUserAsset(t *testing.T) {
 		UserID:      1,
 		State:       1,
 		ClassID:     1,
-	})
+	}, -1, -1)
 	AssetDao.SearchDepartmentAsset(1, &define.SearchAssetReq{
 		Name:        "a",
 		Description: "a",
@@ -115,7 +115,7 @@ func TestUserAsset(t *testing.T) {
 		State:       1,
 		ClassID:     1,
 		Key:         "line",
-	})
+	}, -1, -1)
 	AssetDao.GetDepartmentAssetCount(1)
 	AssetDao.GetDepartmentWarnAsset(1)
 }
