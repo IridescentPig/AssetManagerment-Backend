@@ -113,8 +113,9 @@ func (user *userApi) UserLogin(ctx *utils.Context) {
 	}
 
 	data := define.UserLoginResponse{
-		Token: token,
-		User:  userInfo,
+		Token:    token,
+		User:     userInfo,
+		FeishuID: thisUser.FeishuID,
 	}
 
 	if len(thisUser.FeishuID) != 0 {

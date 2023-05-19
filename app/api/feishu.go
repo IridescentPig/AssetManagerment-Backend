@@ -95,8 +95,9 @@ func (feishu *feishuApi) FeishuLogin(ctx *utils.Context) {
 	}
 
 	data := define.UserLoginResponse{
-		Token: token,
-		User:  userInfo,
+		Token:    token,
+		User:     userInfo,
+		FeishuID: user.FeishuID,
 	}
 
 	err = service.FeishuService.FeishuSync(userInfo.EntityID)

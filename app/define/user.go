@@ -74,8 +74,9 @@ type UserInfo struct {
 }
 
 type UserLoginResponse struct {
-	Token string   `json:"token"`
-	User  UserInfo `json:"user"`
+	Token    string   `json:"token"`
+	User     UserInfo `json:"user"`
+	FeishuID string   `json:"feishu_id"`
 }
 
 type UserInfoResponse struct {
