@@ -488,7 +488,7 @@ func TestAsset(t *testing.T) {
 	new_line, err = AssetDao.GetParentAsset(2)
 	assert.Equal(t, nil, err, database_error)
 	//assert.Equal(t, new_line.Name, "test_asset_line", database_error)
-	sub_s, err := AssetDao.GetSubAsset(1)
+	sub_s, _, err := AssetDao.GetSubAsset(1, -1, -1)
 	assert.Equal(t, nil, err, database_error)
 	assert.Equal(t, 1, len(sub_s), database_error)
 	//assert.Equal(t, sub_s[0].Name, "test_asset_num", database_error)

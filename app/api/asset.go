@@ -7,6 +7,7 @@ import (
 	"asset-management/myerror"
 	"asset-management/utils"
 	"sort"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin/binding"
@@ -105,7 +106,18 @@ func (asset *assetApi) GetAssetList(ctx *utils.Context) {
 		return
 	}
 
-	assetTree, err := service.AssetService.GetSubAsset(0, departmentID)
+	page_size, err := strconv.ParseUint(ctx.Query("page_size"), 10, 64)
+	if err != nil {
+		ctx.BadRequest(myerror.INVALID_PAGE_SIZE, myerror.INVALID_PAGE_SIZE_INFO)
+		return
+	}
+	page_num, err := strconv.ParseUint(ctx.Query("page_num"), 10, 64)
+	if err != nil {
+		ctx.BadRequest(myerror.INVALID_PAGE_NUM, myerror.INVALID_PAGE_NUM_INFO)
+		return
+	}
+
+	assetTree, count, err := service.AssetService.GetSubAssetPage(0, departmentID, uint(page_size), uint(page_num))
 	if err != nil {
 		ctx.InternalError(err.Error())
 		return
@@ -113,6 +125,7 @@ func (asset *assetApi) GetAssetList(ctx *utils.Context) {
 
 	assetListRespone := define.AssetListResponse{
 		AssetList: assetTree,
+		AllCount:  uint(count),
 	}
 
 	ctx.Success(assetListRespone)

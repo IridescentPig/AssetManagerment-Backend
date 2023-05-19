@@ -109,6 +109,7 @@ type ExpireAssetListReq struct {
 
 type AssetListResponse struct {
 	AssetList []*AssetBasicInfo `json:"asset_list"`
+	AllCount  uint              `json:"all_count"`
 }
 
 // 暂时借用 Expire 的请求体结构

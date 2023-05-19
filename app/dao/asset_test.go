@@ -67,7 +67,7 @@ func TestUserAsset(t *testing.T) {
 	err = AssetDao.ModifyAssetUser(3, "test")
 	assert.Equal(t, nil, err, "database error")
 
-	children, err := AssetDao.GetSubAsset(1)
+	children, _, err := AssetDao.GetSubAsset(1, -1, -1)
 	assert.Equal(t, nil, err, "database error")
 	log.Print(children[0].Name)
 	log.Print(children[0].User.UserName)
@@ -96,7 +96,7 @@ func TestUserAsset(t *testing.T) {
 	AssetDao.ModifyAssetMaintainerAndState([]uint{0}, 1)
 	AssetDao.ModifyAssetMaintainerAndState([]uint{1, 2, 3}, 0)
 	AssetDao.GetAllAssets()
-	AssetDao.GetAssetDirectDepartment(1)
+	AssetDao.GetAssetDirectDepartment(1, -1, -1)
 	AssetDao.CheckAssetPropertyExist(1, "line")
 	AssetDao.SetAssetProperty(3, "line", "1")
 	AssetDao.GetAssetProperty(1)

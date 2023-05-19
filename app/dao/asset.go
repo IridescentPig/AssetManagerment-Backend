@@ -224,17 +224,17 @@ func (asset *assetDao) ExpireAsset(ids []uint) error {
 }
 
 // asset and asset
-func (asset *assetDao) GetSubAsset(id uint) (assets []*model.Asset, err error) {
+func (asset *assetDao) GetSubAsset(id uint, offset int, limit int) (assets []*model.Asset, count int64, err error) {
 	err = utils.DBError(db.Model(&model.Asset{}).Preload("Parent").Preload("User").
 		Preload("Department").Preload("Class").Preload("Maintainer").
-		Where("parent_id = ?", id).Find(&assets))
+		Where("parent_id = ?", id).Count(&count).Offset(offset).Limit(limit).Find(&assets))
 	return
 }
 
-func (asset *assetDao) GetAssetDirectDepartment(departmentID uint) (assets []*model.Asset, err error) {
+func (asset *assetDao) GetAssetDirectDepartment(departmentID uint, offset int, limit int) (assets []*model.Asset, count int64, err error) {
 	err = utils.DBError(db.Model(&model.Asset{}).Preload("Parent").Preload("User").
 		Preload("Department").Preload("Class").Preload("Maintainer").
-		Where("department_id = ? and parent_id IS NULL", departmentID).Find(&assets))
+		Where("department_id = ? and parent_id IS NULL", departmentID).Count(&count).Offset(offset).Limit(limit).Find(&assets))
 	return
 }
 
