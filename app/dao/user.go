@@ -41,8 +41,8 @@ func (user *userDao) Delete(id []uint) error {
 	return utils.DBError(result)
 }
 
-func (user *userDao) AllUser() (list []*model.User, err error) {
-	result := db.Model(&model.User{}).Preload("Department").Preload("Entity").Find(&list)
+func (user *userDao) AllUser(Offset int, Limit int) (list []*model.User, count int64, err error) {
+	result := db.Model(&model.User{}).Preload("Department").Preload("Entity").Count(&count).Offset(Offset).Limit(Limit).Find(&list)
 	err = utils.DBError(result)
 	return
 }

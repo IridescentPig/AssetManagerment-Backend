@@ -54,4 +54,6 @@ const (
 	CANCEL_TASK_CANNOT_BE_RESTART_INFO   = "Cancel task cannot be restart"
 	RUNNING_TASK_CANNOT_BE_RESTART_INFO  = "Running task cannot be restart"
 	FEISHU_CALLBACK_ERROR_INFO           = "Feishu Callback Bad Request"
+	INVALID_PAGE_SIZE_INFO               = "Invalid page size"
+	INVALID_PAGE_NUM_INFO                = "Invalid page num"
 )

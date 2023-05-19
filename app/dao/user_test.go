@@ -77,7 +77,7 @@ func TestUser(t *testing.T) {
 	assert.Equal(t, int64(3), count, "database error")
 
 	var userList []*model.User
-	userList, err = UserDao.AllUser()
+	userList, _, err = UserDao.AllUser(-1, -1)
 	assert.Equal(t, nil, err, "database error")
 	assert.Equal(t, "test", userList[0].UserName, "database error")
 

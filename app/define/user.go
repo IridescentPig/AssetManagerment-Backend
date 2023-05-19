@@ -33,6 +33,11 @@ type ChangePasswordReq struct {
 	Password string `json:"password" binding:"required"`
 }
 
+type GetAllUsersReq struct {
+	PageSize uint `json:"page_size"`
+	PageNum  uint `json:"page_num"`
+}
+
 /*
 Basic info of user, can be included in other info struct
 */
@@ -79,4 +84,5 @@ type UserInfoResponse struct {
 
 type UserListResponse struct {
 	UserList []UserInfo `json:"user_list"`
+	AllCount uint       `json:"all_count"`
 }

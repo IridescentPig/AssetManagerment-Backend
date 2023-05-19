@@ -151,8 +151,10 @@ func (user *userService) DeleteUser(userID uint) error {
 	return dao.UserDao.Delete([]uint{userID})
 }
 
-func (user *userService) GetAllUsers() ([]*model.User, error) {
-	return dao.UserDao.AllUser()
+func (user *userService) GetAllUsers(page_size uint, page_num uint) ([]*model.User, int64, error) {
+	offset := page_size * page_num
+	limit := page_size
+	return dao.UserDao.AllUser(int(offset), int(limit))
 }
 
 func (user *userService) ModifyUserEntity(userID uint, entityID uint) error {
