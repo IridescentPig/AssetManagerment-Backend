@@ -714,7 +714,18 @@ func (asset *assetApi) SearchAssets(ctx *utils.Context) {
 		return
 	}
 
-	assetList, err := service.AssetService.SearchDepartmentAssets(departmentID, &req)
+	page_size, err := strconv.ParseUint(ctx.Query("page_size"), 10, 64)
+	if err != nil {
+		ctx.BadRequest(myerror.INVALID_PAGE_SIZE, myerror.INVALID_PAGE_SIZE_INFO)
+		return
+	}
+	page_num, err := strconv.ParseUint(ctx.Query("page_num"), 10, 64)
+	if err != nil {
+		ctx.BadRequest(myerror.INVALID_PAGE_NUM, myerror.INVALID_PAGE_NUM_INFO)
+		return
+	}
+
+	assetList, count, err := service.AssetService.SearchDepartmentAssets(departmentID, &req, uint(page_size), uint(page_num))
 	if err != nil {
 		ctx.InternalError(err.Error())
 		return
@@ -730,6 +741,7 @@ func (asset *assetApi) SearchAssets(ctx *utils.Context) {
 
 	assetListResp := define.AssetListResponse{
 		AssetList: assetBasicInfoList,
+		AllCount:  uint(count),
 	}
 
 	ctx.Success(assetListResp)

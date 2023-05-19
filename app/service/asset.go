@@ -439,7 +439,7 @@ func (asset *assetService) GetAssetHistory(assetID uint) ([]*model.Task, error) 
 	return approvedTaskList, nil
 }
 
-func (asset *assetService) SearchDepartmentAssets(departmentID uint, req *define.SearchAssetReq) ([]*model.Asset, error) {
+func (asset *assetService) SearchDepartmentAssets(departmentID uint, req *define.SearchAssetReq, page_size uint, page_num uint) ([]*model.Asset, int64, error) {
 	if req.Name != "" {
 		req.Name = "%" + req.Name + "%"
 	}
@@ -448,7 +448,10 @@ func (asset *assetService) SearchDepartmentAssets(departmentID uint, req *define
 		req.Description = "%" + req.Description + "%"
 	}
 
-	return dao.AssetDao.SearchDepartmentAsset(departmentID, req)
+	offset := page_num * page_size
+	limit := page_size
+
+	return dao.AssetDao.SearchDepartmentAsset(departmentID, req, int(offset), int(limit))
 }
 
 func (asset *assetService) GetDepartmentAssetCount(departmentID uint) (int64, error) {

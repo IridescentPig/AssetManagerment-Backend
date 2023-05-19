@@ -465,7 +465,7 @@ func (asset *assetDao) GetAssetTask(assetID uint) ([]*model.Task, error) {
 	return taskList, utils.DBError(result)
 }
 
-func (asset *assetDao) SearchDepartmentAsset(departmentID uint, req *define.SearchAssetReq) (assetList []*model.Asset, err error) {
+func (asset *assetDao) SearchDepartmentAsset(departmentID uint, req *define.SearchAssetReq, offset int, limit int) (assetList []*model.Asset, count int64, err error) {
 	result := db.Model(&model.Asset{}).Where("department_id = ?", departmentID)
 
 	if req.Name != "" {
@@ -491,16 +491,16 @@ func (asset *assetDao) SearchDepartmentAsset(departmentID uint, req *define.Sear
 	if req.Key != "" {
 		if req.Value == "" {
 			result = result.Preload("Parent").Preload("User").
-				Preload("Department").Preload("Class").Preload("Maintainer").
+				Preload("Department").Preload("Class").Preload("Maintainer").Count(&count).Offset(offset).Limit(limit).
 				Find(&assetList, datatypes.JSONQuery("property").HasKey(req.Key))
 		} else {
 			result = result.Preload("Parent").Preload("User").
-				Preload("Department").Preload("Class").Preload("Maintainer").
+				Preload("Department").Preload("Class").Preload("Maintainer").Count(&count).Offset(offset).Limit(limit).
 				Find(&assetList, datatypes.JSONQuery("property").Equals(req.Value, req.Key))
 		}
 	} else {
 		result = result.Preload("Parent").Preload("User").
-			Preload("Department").Preload("Class").Preload("Maintainer").
+			Preload("Department").Preload("Class").Preload("Maintainer").Count(&count).Offset(offset).Limit(limit).
 			Find(&assetList)
 	}
 
