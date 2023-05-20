@@ -32,7 +32,7 @@ func (depreciate *AssetDepreciate) Run() {
 						continue
 					}
 
-					subAssets, err := dao.AssetDao.GetSubAsset(asset.ID)
+					subAssets, _, err := dao.AssetDao.GetSubAsset(asset.ID, -1, -1)
 					if err == nil {
 						subAssetIDs := funk.Map(subAssets, func(thisAsset *model.Asset) uint {
 							return thisAsset.ID

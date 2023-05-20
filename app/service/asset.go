@@ -62,9 +62,9 @@ func (asset *assetService) GetSubAsset(parentID uint, departmentID uint) ([]*def
 	var err error
 
 	if parentID == 0 {
-		subAssetList, err = dao.AssetDao.GetAssetDirectDepartment(departmentID)
+		subAssetList, _, err = dao.AssetDao.GetAssetDirectDepartment(departmentID, -1, -1)
 	} else {
-		subAssetList, err = dao.AssetDao.GetSubAsset(parentID)
+		subAssetList, _, err = dao.AssetDao.GetSubAsset(parentID, -1, -1)
 	}
 
 	if err != nil {
@@ -88,6 +88,42 @@ func (asset *assetService) GetSubAsset(parentID uint, departmentID uint) ([]*def
 	}
 
 	return subAssetTreeNodeList, err
+}
+
+func (asset *assetService) GetSubAssetPage(parentID uint, departmentID uint, page_size uint, page_num uint) ([]*define.AssetBasicInfo, int64, error) {
+	var subAssetList []*model.Asset
+	var count int64
+	var err error
+	offset := page_size * page_num
+	limit := page_size
+
+	if parentID == 0 {
+		subAssetList, count, err = dao.AssetDao.GetAssetDirectDepartment(departmentID, int(offset), int(limit))
+	} else {
+		subAssetList, count, err = dao.AssetDao.GetSubAsset(parentID, int(offset), int(limit))
+	}
+
+	if err != nil {
+		return nil, count, err
+	}
+
+	// subAssetTreeNodeList := []*define.AssetInfo{}
+	// err = copier.Copy(&subAssetTreeNodeList, subAssetList)
+
+	subAssetTreeNodeList := asset.TransformAssetBasicInfo(subAssetList)
+
+	if err != nil {
+		return nil, count, err
+	}
+
+	for _, subNode := range subAssetTreeNodeList {
+		subNode.Children, err = asset.GetSubAsset(subNode.AssetID, departmentID)
+		if err != nil {
+			return nil, count, err
+		}
+	}
+
+	return subAssetTreeNodeList, count, err
 }
 
 func (asset *assetService) GetAssetByID(assetID uint) (*model.Asset, error) {
@@ -187,12 +223,13 @@ func (asset *assetService) UpdateNetWorth(assetID uint) error {
 		err = dao.AssetDao.Update(assetID, map[string]interface{}{
 			"net_worth": decimal.Zero,
 			"state":     3,
+			"parent_id": gorm.Expr("NULL"),
 		})
 		if err != nil {
 			return err
 		}
 
-		subAssets, err := dao.AssetDao.GetSubAsset(assetID)
+		subAssets, _, err := dao.AssetDao.GetSubAsset(assetID, -1, -1)
 		if err != nil {
 			return err
 		}
@@ -308,6 +345,16 @@ func (asset *assetService) GetAssetByUser(userID uint) (assets []*define.AssetBa
 	return
 }
 
+func (asset *assetService) GetUserUsedAssets(userID uint) (assets []*define.AssetBasicInfo, err error) {
+	assetList, err := dao.AssetDao.GetUserAssetsInUsed(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	assets = asset.TransformAssetBasicInfo(assetList)
+	return
+}
+
 func (asset *assetService) GetDepartmentAssetsByIDs(ids []uint, departmentID uint) ([]*model.Asset, error) {
 	assetList, err := dao.AssetDao.GetDepartmentAssetsByIDs(ids, departmentID)
 	if err != nil {
@@ -403,7 +450,7 @@ func (asset *assetService) GetAssetHistory(assetID uint) ([]*model.Task, error) 
 	return approvedTaskList, nil
 }
 
-func (asset *assetService) SearchDepartmentAssets(departmentID uint, req *define.SearchAssetReq) ([]*model.Asset, error) {
+func (asset *assetService) SearchDepartmentAssets(departmentID uint, req *define.SearchAssetReq, page_size uint, page_num uint) ([]*model.Asset, int64, error) {
 	if req.Name != "" {
 		req.Name = "%" + req.Name + "%"
 	}
@@ -412,7 +459,10 @@ func (asset *assetService) SearchDepartmentAssets(departmentID uint, req *define
 		req.Description = "%" + req.Description + "%"
 	}
 
-	return dao.AssetDao.SearchDepartmentAsset(departmentID, req)
+	offset := page_num * page_size
+	limit := page_size
+
+	return dao.AssetDao.SearchDepartmentAsset(departmentID, req, int(offset), int(limit))
 }
 
 func (asset *assetService) GetDepartmentAssetCount(departmentID uint) (int64, error) {
@@ -421,4 +471,8 @@ func (asset *assetService) GetDepartmentAssetCount(departmentID uint) (int64, er
 
 func (asset *assetService) GetDepartmentAssetInWarn(departmentID uint) ([]*model.Asset, error) {
 	return dao.AssetDao.GetDepartmentWarnAsset(departmentID)
+}
+
+func (asset *assetService) GetDepartmentAssetBasicList(departmentID uint) ([]*model.Asset, error) {
+	return dao.AssetDao.GetDepartmentAssetBasicList(departmentID)
 }

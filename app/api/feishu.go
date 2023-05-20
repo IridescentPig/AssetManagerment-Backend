@@ -95,15 +95,19 @@ func (feishu *feishuApi) FeishuLogin(ctx *utils.Context) {
 	}
 
 	data := define.UserLoginResponse{
-		Token: token,
-		User:  userInfo,
+		Token:    token,
+		User:     userInfo,
+		FeishuID: user.FeishuID,
 	}
 
-	err = service.FeishuService.FeishuSync(userInfo.EntityID)
-	if err != nil {
-		ctx.InternalError(err.Error())
-		return
-	}
+	go func() {
+		err = service.FeishuService.FeishuSync(userInfo.EntityID)
+		if err != nil {
+			// ctx.InternalError(err.Error())
+			log.Println(err.Error())
+			return
+		}
+	}()
 
 	ctx.Success(data)
 }
@@ -157,6 +161,19 @@ func (feishu *feishuApi) FeishuBind(ctx *utils.Context) {
 		return
 	}
 
+	ctx.Success(nil)
+}
+
+/*
+Handle func for DELETE /user/feishu/bind
+*/
+func (feishu *feishuApi) FeishuUnBind(ctx *utils.Context) {
+	current_user_id := UserApi.GetOperatorID(ctx)
+	err := service.FeishuService.BindFeishu(current_user_id, "")
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
 	ctx.Success(nil)
 }
 

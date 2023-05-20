@@ -36,6 +36,7 @@ func (asset *assetRouter) routerCheckAtHandler(group *gin.RouterGroup) {
 	group.DELETE("/:department_id/asset/:asset_id/property", utils.Handler(api.AssetApi.DeleteAssetProperty))
 	group.GET("/:department_id/asset/:asset_id/history", utils.Handler(api.AssetApi.GetAssetHistory))
 	group.POST("/:department_id/asset/search", utils.Handler(api.AssetApi.SearchAssets))
+	group.POST("/:department_id/asset/search/spare", utils.Handler(api.AssetApi.SearchSpareAssets))
 	group.GET("/:department_id/asset/stat/total", utils.Handler(api.StatApi.GetDepartmentStatTotal))
 	group.GET("/:department_id/asset/stat/distribution", utils.Handler(api.StatApi.GetDepartmentStatDistribution))
 	group.GET("/:department_id/asset/stat/sub", utils.Handler(api.StatApi.GetSubDepartmentsAssetDistribution))
@@ -44,4 +45,5 @@ func (asset *assetRouter) routerCheckAtHandler(group *gin.RouterGroup) {
 	group.GET("/:department_id/template", utils.Handler(api.DepartmentApi.GetDepartmentTemplate))
 	group.POST("/:department_id/warn", utils.Handler(api.DepartmentApi.SetDepartmentWarnStrategy))
 	group.GET("/:department_id/warn", utils.Handler(api.DepartmentApi.GetDepartmentAssetWarnInfo))
+	group.GET("/:department_id/asset/list/basic", utils.Handler(api.AssetApi.GetDepartmentAssetBasicList))
 }

@@ -55,4 +55,9 @@ const (
 	CANCEL_TASK_CANNOT_BE_RESTART   = 51
 	RUNNING_TASK_CANNOT_BE_RESTART  = 52
 	FEISHU_CALLBACK_ERROR           = 53
+	INVALID_PAGE_SIZE               = 54
+	INVALID_PAGE_NUM                = 55
+	USER_HAS_ASSETS                 = 56
+	USER_HAS_TASKS                  = 57
+	CANNOT_MODIFY_SELF_IDENTITY     = 58
 )

@@ -5,6 +5,7 @@ import (
 	"asset-management/app/service"
 	"asset-management/myerror"
 	"asset-management/utils"
+	"strconv"
 
 	"github.com/jinzhu/copier"
 )
@@ -42,7 +43,18 @@ func (mylog *logApi) GetLoginLog(ctx *utils.Context) {
 		return
 	}
 
-	logList, err := service.LogService.GetLoginLog(entityID)
+	page_size, err := strconv.ParseUint(ctx.Query("page_size"), 10, 64)
+	if err != nil {
+		ctx.BadRequest(myerror.INVALID_PAGE_SIZE, myerror.INVALID_PAGE_SIZE_INFO)
+		return
+	}
+	page_num, err := strconv.ParseUint(ctx.Query("page_num"), 10, 64)
+	if err != nil {
+		ctx.BadRequest(myerror.INVALID_PAGE_NUM, myerror.INVALID_PAGE_NUM_INFO)
+		return
+	}
+
+	logList, count, err := service.LogService.GetLoginLog(entityID, uint(page_size), uint(page_num))
 	if err != nil {
 		ctx.InternalError(err.Error())
 		return
@@ -57,7 +69,8 @@ func (mylog *logApi) GetLoginLog(ctx *utils.Context) {
 	}
 
 	logListResponse := define.LogListResponse{
-		LogList: logListRes,
+		LogList:  logListRes,
+		AllCount: uint(count),
 	}
 
 	ctx.Success(logListResponse)
@@ -83,7 +96,18 @@ func (mylog *logApi) GetDataLog(ctx *utils.Context) {
 		return
 	}
 
-	logList, err := service.LogService.GetDataLog(entityID)
+	page_size, err := strconv.ParseUint(ctx.Query("page_size"), 10, 64)
+	if err != nil {
+		ctx.BadRequest(myerror.INVALID_PAGE_SIZE, myerror.INVALID_PAGE_SIZE_INFO)
+		return
+	}
+	page_num, err := strconv.ParseUint(ctx.Query("page_num"), 10, 64)
+	if err != nil {
+		ctx.BadRequest(myerror.INVALID_PAGE_NUM, myerror.INVALID_PAGE_NUM_INFO)
+		return
+	}
+
+	logList, count, err := service.LogService.GetDataLog(entityID, uint(page_size), uint(page_num))
 	if err != nil {
 		ctx.InternalError(err.Error())
 		return
@@ -98,7 +122,8 @@ func (mylog *logApi) GetDataLog(ctx *utils.Context) {
 	}
 
 	logListResponse := define.LogListResponse{
-		LogList: logListRes,
+		LogList:  logListRes,
+		AllCount: uint(count),
 	}
 
 	ctx.Success(logListResponse)

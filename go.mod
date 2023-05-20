@@ -22,7 +22,9 @@ require (
 	github.com/alibabacloud-go/sts-20150401/v2 v2.0.1
 	github.com/alibabacloud-go/tea v1.1.19
 	github.com/alibabacloud-go/tea-utils/v2 v2.0.1
+	github.com/aliyun/aliyun-oss-go-sdk v2.2.7+incompatible
 	github.com/robfig/cron/v3 v3.0.1
+	github.com/xuri/excelize/v2 v2.7.1
 	gorm.io/datatypes v1.2.0
 )
 
@@ -33,7 +35,6 @@ require (
 	github.com/alibabacloud-go/openapi-util v0.1.0 // indirect
 	github.com/alibabacloud-go/tea-utils v1.3.1 // indirect
 	github.com/alibabacloud-go/tea-xml v1.1.2 // indirect
-	github.com/aliyun/aliyun-oss-go-sdk v2.2.7+incompatible // indirect
 	github.com/aliyun/credentials-go v1.1.2 // indirect
 	github.com/clbanning/mxj/v2 v2.5.5 // indirect
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
@@ -41,7 +42,6 @@ require (
 	github.com/richardlehane/msoleps v1.0.3 // indirect
 	github.com/tjfoc/gmsm v1.3.2 // indirect
 	github.com/xuri/efp v0.0.0-20220603152613-6918739fd470 // indirect
-	github.com/xuri/excelize/v2 v2.7.1 // indirect
 	github.com/xuri/nfp v0.0.0-20220409054826-5e722a1d9e22 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	gopkg.in/ini.v1 v1.56.0 // indirect

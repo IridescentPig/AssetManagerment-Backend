@@ -35,7 +35,7 @@ const (
 	ENTITY_NAME_CANNOT_BE_EMPTY_INFO     = "Entity name cannot be empty"
 	DEPARTMENT_NAME_CANNOT_BE_EMPTY_INFO = "Department name cannot be empty"
 	TARGET_EMPTY_INFO                    = "Target user cannot be empty"
-	ASSET_LIST_INVALID_INFO              = "Asset list invalid"
+	ASSET_LIST_INVALID_INFO              = "Asset list invalid, please check assets' states"
 	TASK_NOT_FOUND_INFO                  = "Task not found"
 	TASK_NOT_IN_DEPARTMENT_INFO          = "Task not in department"
 	TASK_NOT_BELONG_TO_USER_INFO         = "Task does not belong to this user"
@@ -54,4 +54,9 @@ const (
 	CANCEL_TASK_CANNOT_BE_RESTART_INFO   = "Cancel task cannot be restart"
 	RUNNING_TASK_CANNOT_BE_RESTART_INFO  = "Running task cannot be restart"
 	FEISHU_CALLBACK_ERROR_INFO           = "Feishu Callback Bad Request"
+	INVALID_PAGE_SIZE_INFO               = "Invalid page size"
+	INVALID_PAGE_NUM_INFO                = "Invalid page num"
+	USER_HAS_ASSETS_INFO                 = "This user has assets, cannot modify their entity or department"
+	USER_HAS_TASKS_INFO                  = "This user has uncompleted tasks, cannot modify their entity or department"
+	CANNOT_MODIFY_SELF_IDENTITY_INFO     = "Cannot modify yourself's identity"
 )

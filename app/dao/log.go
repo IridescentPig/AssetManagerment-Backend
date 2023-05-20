@@ -78,10 +78,11 @@ func (hook *mysqlHook) Levels() []logrus.Level {
 	return logrus.AllLevels
 }
 
-func (mylog *logDao) GetLoginLogByEntityID(entityID uint) (logList []*model.Log, err error) {
-	result := db.Model(&model.Log{}).Where("entity_id = ? and url = ?", entityID, "/user/login").Find(&logList)
+func (mylog *logDao) GetLoginLogByEntityID(entityID uint, offset int, limit int) (logList []*model.Log, count int64, err error) {
+	result := db.Model(&model.Log{}).Where("entity_id = ? and url = ?", entityID, "/user/login").Count(&count).Offset(offset).Limit(limit).Find(&logList)
 	if result.Error == gorm.ErrRecordNotFound {
-		return nil, nil
+		err = nil
+		return
 	}
 	err = utils.DBError(result)
 	return
@@ -106,10 +107,11 @@ func (mylog *logDao) GetLoginLogsForExport(entityID uint, fromTime *model.ModelT
 	return
 }
 
-func (mylog *logDao) GetDataLogByEntityID(entityID uint) (logList []*model.Log, err error) {
-	result := db.Model(&model.Log{}).Where("entity_id = ? and url <> ?", entityID, "/user/login").Find(&logList)
+func (mylog *logDao) GetDataLogByEntityID(entityID uint, offset int, limit int) (logList []*model.Log, count int64, err error) {
+	result := db.Model(&model.Log{}).Where("entity_id = ? and url <> ?", entityID, "/user/login").Count(&count).Offset(offset).Limit(limit).Find(&logList)
 	if result.Error == gorm.ErrRecordNotFound {
-		return nil, nil
+		err = nil
+		return
 	}
 	err = utils.DBError(result)
 	return

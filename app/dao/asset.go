@@ -224,17 +224,17 @@ func (asset *assetDao) ExpireAsset(ids []uint) error {
 }
 
 // asset and asset
-func (asset *assetDao) GetSubAsset(id uint) (assets []*model.Asset, err error) {
+func (asset *assetDao) GetSubAsset(id uint, offset int, limit int) (assets []*model.Asset, count int64, err error) {
 	err = utils.DBError(db.Model(&model.Asset{}).Preload("Parent").Preload("User").
 		Preload("Department").Preload("Class").Preload("Maintainer").
-		Where("parent_id = ?", id).Find(&assets))
+		Where("parent_id = ?", id).Count(&count).Offset(offset).Limit(limit).Find(&assets))
 	return
 }
 
-func (asset *assetDao) GetAssetDirectDepartment(departmentID uint) (assets []*model.Asset, err error) {
+func (asset *assetDao) GetAssetDirectDepartment(departmentID uint, offset int, limit int) (assets []*model.Asset, count int64, err error) {
 	err = utils.DBError(db.Model(&model.Asset{}).Preload("Parent").Preload("User").
 		Preload("Department").Preload("Class").Preload("Maintainer").
-		Where("department_id = ? and parent_id IS NULL", departmentID).Find(&assets))
+		Where("department_id = ? and parent_id IS NULL", departmentID).Count(&count).Offset(offset).Limit(limit).Find(&assets))
 	return
 }
 
@@ -299,6 +299,18 @@ func (asset *assetDao) GetDirectAssetsByUser(userID uint) (assets []*model.Asset
 		Preload("Department").Preload("Class").Preload("Maintainer").
 		Where("user_id = ?", userID).Where("parent_id not in (?) or parent_id is null", all_assets).Find(&assets)
 	//log.Print("fliter: ", len(assets) /*assets[0].ParentID, assets[1].ParentID*/)
+	if result.Error == gorm.ErrRecordNotFound {
+		return nil, nil
+	}
+	err = utils.DBError(result)
+	return
+}
+
+func (asset *assetDao) GetUserAssetsInUsed(userID uint) (assetList []*model.Asset, err error) {
+	result := db.Model(&model.Asset{}).Preload("Parent").Preload("User").
+		Preload("Department").Preload("Class").Preload("Maintainer").
+		Where("user_id = ? and state > ? and state < ?", userID, 0, 3).Find(&assetList)
+
 	if result.Error == gorm.ErrRecordNotFound {
 		return nil, nil
 	}
@@ -465,7 +477,7 @@ func (asset *assetDao) GetAssetTask(assetID uint) ([]*model.Task, error) {
 	return taskList, utils.DBError(result)
 }
 
-func (asset *assetDao) SearchDepartmentAsset(departmentID uint, req *define.SearchAssetReq) (assetList []*model.Asset, err error) {
+func (asset *assetDao) SearchDepartmentAsset(departmentID uint, req *define.SearchAssetReq, offset int, limit int) (assetList []*model.Asset, count int64, err error) {
 	result := db.Model(&model.Asset{}).Where("department_id = ?", departmentID)
 
 	if req.Name != "" {
@@ -491,16 +503,16 @@ func (asset *assetDao) SearchDepartmentAsset(departmentID uint, req *define.Sear
 	if req.Key != "" {
 		if req.Value == "" {
 			result = result.Preload("Parent").Preload("User").
-				Preload("Department").Preload("Class").Preload("Maintainer").
+				Preload("Department").Preload("Class").Preload("Maintainer").Count(&count).Offset(offset).Limit(limit).
 				Find(&assetList, datatypes.JSONQuery("property").HasKey(req.Key))
 		} else {
 			result = result.Preload("Parent").Preload("User").
-				Preload("Department").Preload("Class").Preload("Maintainer").
+				Preload("Department").Preload("Class").Preload("Maintainer").Count(&count).Offset(offset).Limit(limit).
 				Find(&assetList, datatypes.JSONQuery("property").Equals(req.Value, req.Key))
 		}
 	} else {
 		result = result.Preload("Parent").Preload("User").
-			Preload("Department").Preload("Class").Preload("Maintainer").
+			Preload("Department").Preload("Class").Preload("Maintainer").Count(&count).Offset(offset).Limit(limit).
 			Find(&assetList)
 	}
 
@@ -522,6 +534,12 @@ func (asset *assetDao) GetDepartmentAssetCount(departmentID uint) (count int64, 
 
 func (asset *assetDao) GetDepartmentWarnAsset(departmentID uint) (assetList []*model.Asset, err error) {
 	result := db.Model(&model.Asset{}).Where("department_id = ? and state <= ? and warn = ?", departmentID, 2, true).Find(&assetList)
+	err = utils.DBError(result)
+	return
+}
+
+func (asset *assetDao) GetDepartmentAssetBasicList(departmentID uint) (assetList []*model.Asset, err error) {
+	result := db.Model(&model.Asset{}).Where("department_id = ?", departmentID).Find(&assetList)
 	err = utils.DBError(result)
 	return
 }

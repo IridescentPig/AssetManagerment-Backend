@@ -7,6 +7,7 @@ import (
 	"asset-management/myerror"
 	"asset-management/utils"
 	"sort"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin/binding"
@@ -78,34 +79,45 @@ func (asset *assetApi) CheckAssetsValid(ctx *utils.Context, departmentID uint, a
 Handle func for GET /department/{department_id}/asset/list
 */
 func (asset *assetApi) GetAssetList(ctx *utils.Context) {
-	// hasIdentity, departmentID, err := AssetClassApi.CheckAssetIdentity(ctx)
-	// if err != nil {
-	// 	return
-	// } else if !hasIdentity {
-	// 	ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
-	// 	return
-	// }
-	departmentID, err := service.EntityService.GetParamID(ctx, "department_id")
+	hasIdentity, departmentID, err := AssetClassApi.CheckAssetIdentity(ctx)
 	if err != nil {
 		return
-	}
-
-	existsDepartment, err := service.DepartmentService.ExistsDepartmentByID(departmentID)
-	if err != nil {
-		ctx.InternalError(err.Error())
-		return
-	} else if !existsDepartment {
-		ctx.NotFound(myerror.DEPARTMENT_NOT_FOUND, myerror.DEPARTMENT_NOT_FOUND_INFO)
-		return
-	}
-
-	thisUser := UserApi.GetOperatorInfo(ctx)
-	if thisUser.DepartmentID != departmentID {
+	} else if !hasIdentity {
 		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
 		return
 	}
+	// departmentID, err := service.EntityService.GetParamID(ctx, "department_id")
+	// if err != nil {
+	// 	return
+	// }
 
-	assetTree, err := service.AssetService.GetSubAsset(0, departmentID)
+	// existsDepartment, err := service.DepartmentService.ExistsDepartmentByID(departmentID)
+	// if err != nil {
+	// 	ctx.InternalError(err.Error())
+	// 	return
+	// } else if !existsDepartment {
+	// 	ctx.NotFound(myerror.DEPARTMENT_NOT_FOUND, myerror.DEPARTMENT_NOT_FOUND_INFO)
+	// 	return
+	// }
+
+	// thisUser := UserApi.GetOperatorInfo(ctx)
+	// if thisUser.DepartmentID != departmentID {
+	// 	ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+	// 	return
+	// }
+
+	page_size, err := strconv.ParseUint(ctx.Query("page_size"), 10, 64)
+	if err != nil {
+		ctx.BadRequest(myerror.INVALID_PAGE_SIZE, myerror.INVALID_PAGE_SIZE_INFO)
+		return
+	}
+	page_num, err := strconv.ParseUint(ctx.Query("page_num"), 10, 64)
+	if err != nil {
+		ctx.BadRequest(myerror.INVALID_PAGE_NUM, myerror.INVALID_PAGE_NUM_INFO)
+		return
+	}
+
+	assetTree, count, err := service.AssetService.GetSubAssetPage(0, departmentID, uint(page_size), uint(page_num))
 	if err != nil {
 		ctx.InternalError(err.Error())
 		return
@@ -113,9 +125,42 @@ func (asset *assetApi) GetAssetList(ctx *utils.Context) {
 
 	assetListRespone := define.AssetListResponse{
 		AssetList: assetTree,
+		AllCount:  uint(count),
 	}
 
 	ctx.Success(assetListRespone)
+}
+
+/*
+Handle func for GET /department/{department_id}/asset/list/basic
+*/
+func (asset *assetApi) GetDepartmentAssetBasicList(ctx *utils.Context) {
+	hasIdentity, departmentID, err := AssetClassApi.CheckAssetIdentity(ctx)
+	if err != nil {
+		return
+	} else if !hasIdentity {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	assetList, err := service.AssetService.GetDepartmentAssetBasicList(departmentID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	assetBasicList := funk.Map(assetList, func(thisAsset *model.Asset) *define.AssetIDAndNameInfo {
+		return &define.AssetIDAndNameInfo{
+			AssetID:   thisAsset.ID,
+			AssetName: thisAsset.Name,
+		}
+	}).([]*define.AssetIDAndNameInfo)
+
+	res := define.AssetSimpleListRes{
+		AssetBasicList: assetBasicList,
+	}
+
+	ctx.Success(res)
 }
 
 /*
@@ -701,7 +746,18 @@ func (asset *assetApi) SearchAssets(ctx *utils.Context) {
 		return
 	}
 
-	assetList, err := service.AssetService.SearchDepartmentAssets(departmentID, &req)
+	page_size, err := strconv.ParseUint(ctx.Query("page_size"), 10, 64)
+	if err != nil {
+		ctx.BadRequest(myerror.INVALID_PAGE_SIZE, myerror.INVALID_PAGE_SIZE_INFO)
+		return
+	}
+	page_num, err := strconv.ParseUint(ctx.Query("page_num"), 10, 64)
+	if err != nil {
+		ctx.BadRequest(myerror.INVALID_PAGE_NUM, myerror.INVALID_PAGE_NUM_INFO)
+		return
+	}
+
+	assetList, count, err := service.AssetService.SearchDepartmentAssets(departmentID, &req, uint(page_size), uint(page_num))
 	if err != nil {
 		ctx.InternalError(err.Error())
 		return
@@ -717,6 +773,54 @@ func (asset *assetApi) SearchAssets(ctx *utils.Context) {
 
 	assetListResp := define.AssetListResponse{
 		AssetList: assetBasicInfoList,
+		AllCount:  uint(count),
+	}
+
+	ctx.Success(assetListResp)
+}
+
+/*
+Handle func for POST /department/:department_id/asset/search/spare
+*/
+func (asset *assetApi) SearchSpareAssets(ctx *utils.Context) {
+	hasIdentity, departmentID, err := AssetClassApi.CheckAssetViewIdentity(ctx)
+	if err != nil {
+		return
+	} else if !hasIdentity {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	var req define.SearchAssetReq
+	err = ctx.MustBindWith(&req, binding.JSON)
+	if err != nil {
+		ctx.BadRequest(myerror.INVALID_BODY, myerror.INVALID_BODY_INFO)
+		return
+	}
+	req.State = 0
+
+	page_size, err := strconv.ParseUint(ctx.Query("page_size"), 10, 64)
+	if err != nil {
+		ctx.BadRequest(myerror.INVALID_PAGE_SIZE, myerror.INVALID_PAGE_SIZE_INFO)
+		return
+	}
+	page_num, err := strconv.ParseUint(ctx.Query("page_num"), 10, 64)
+	if err != nil {
+		ctx.BadRequest(myerror.INVALID_PAGE_NUM, myerror.INVALID_PAGE_NUM_INFO)
+		return
+	}
+
+	assetList, count, err := service.AssetService.SearchDepartmentAssets(departmentID, &req, uint(page_size), uint(page_num))
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	assetBasicInfoList := service.AssetService.TransformAssetBasicInfo(assetList)
+
+	assetListResp := define.AssetListResponse{
+		AssetList: assetBasicInfoList,
+		AllCount:  uint(count),
 	}
 
 	ctx.Success(assetListResp)
