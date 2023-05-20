@@ -162,6 +162,19 @@ func (feishu *feishuApi) FeishuBind(ctx *utils.Context) {
 }
 
 /*
+Handle func for DELETE /user/feishu/bind
+*/
+func (feishu *feishuApi) FeishuUnBind(ctx *utils.Context) {
+	current_user_id := UserApi.GetOperatorID(ctx)
+	err := service.FeishuService.BindFeishu(current_user_id, "")
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+	ctx.Success(nil)
+}
+
+/*
 Handle func for POST /user/feishu/bind
 */
 func (feishu *feishuApi) FeishuCallBack(ctx *utils.Context) {

@@ -49,4 +49,5 @@ func (user *userRouter) routerNeedLogin(group *gin.RouterGroup) {
 	group.POST("/info/:user_id/entity", utils.Handler(api.UserApi.ChangeUserEntity))
 	group.POST("/info/:user_id/department", utils.Handler(api.UserApi.ChangeUserDepartment))
 	group.POST("/feishu/bind", utils.Handler(api.FeishuApi.FeishuBind))
+	group.DELETE("/feishu/bind", utils.Handler(api.FeishuApi.FeishuUnBind))
 }
