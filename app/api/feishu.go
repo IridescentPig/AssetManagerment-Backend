@@ -100,11 +100,14 @@ func (feishu *feishuApi) FeishuLogin(ctx *utils.Context) {
 		FeishuID: user.FeishuID,
 	}
 
-	err = service.FeishuService.FeishuSync(userInfo.EntityID)
-	if err != nil {
-		ctx.InternalError(err.Error())
-		return
-	}
+	go func() {
+		err = service.FeishuService.FeishuSync(userInfo.EntityID)
+		if err != nil {
+			// ctx.InternalError(err.Error())
+			log.Println(err.Error())
+			return
+		}
+	}()
 
 	ctx.Success(data)
 }

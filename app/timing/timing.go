@@ -39,7 +39,7 @@ func Init() *cron.Cron {
 	}
 
 	_, err = c.AddJob(
-		"@every 30s",
+		"@every 10s",
 		cron.NewChain(cron.SkipIfStillRunning(cron.DefaultLogger), cron.Recover(cron.DefaultLogger)).Then(&GetPendingAsyncTask{}),
 	)
 

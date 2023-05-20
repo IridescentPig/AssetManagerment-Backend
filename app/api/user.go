@@ -118,13 +118,16 @@ func (user *userApi) UserLogin(ctx *utils.Context) {
 		FeishuID: thisUser.FeishuID,
 	}
 
-	if len(thisUser.FeishuID) != 0 {
-		err = service.FeishuService.FeishuSync(userInfo.EntityID)
-		if err != nil {
-			ctx.InternalError(err.Error())
-			return
-		}
-	}
+	// if len(thisUser.FeishuID) != 0 {
+	// 	go func() {
+	// 		err = service.FeishuService.FeishuSync(userInfo.EntityID)
+	// 		if err != nil {
+	// 			// ctx.InternalError(err.Error())
+	// 			log.Println(err.Error())
+	// 			return
+	// 		}
+	// 	}()
+	// }
 
 	ctx.Success(data)
 }
@@ -445,6 +448,60 @@ func (user *userApi) ChangePassword(ctx *utils.Context) {
 }
 
 /*
+Handle func for PATCH /user/info/:user_id/identity
+*/
+func (user *userApi) ModifyUserIdentity(ctx *utils.Context) {
+	userID, err := service.EntityService.GetParamID(ctx, "user_id")
+	if err != nil {
+		return
+	}
+
+	thisUser, err := service.UserService.GetUserByID(userID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	} else if thisUser == nil {
+		ctx.BadRequest(myerror.USER_NOT_FOUND, myerror.USER_NOT_FOUND_INFO)
+		return
+	}
+
+	var req define.ModifyUserIdentityReq
+	err = ctx.MustBindWith(&req, binding.JSON)
+	if err != nil {
+		ctx.BadRequest(myerror.INVALID_BODY, myerror.INVALID_BODY_INFO)
+		return
+	}
+
+	identity := false
+	operatorInfo := user.GetOperatorInfo(ctx)
+	if operatorInfo.UserID == userID {
+		ctx.BadRequest(myerror.CANNOT_MODIFY_SELF_IDENTITY, myerror.CANNOT_MODIFY_SELF_IDENTITY_INFO)
+		return
+	}
+	if req.SystemSuper {
+		identity = operatorInfo.SystemSuper
+	} else {
+		if operatorInfo.SystemSuper {
+			identity = true
+		} else if operatorInfo.EntitySuper {
+			identity = (thisUser.EntityID == operatorInfo.EntityID)
+		}
+	}
+	if !identity {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	err = service.UserService.ModifyUserIdentityUpdate(userID, &req)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	ctx.Success(nil)
+}
+
+/*
 Handle func for POST /user/info/:user_id/entity
 */
 func (user *userApi) ChangeUserEntity(ctx *utils.Context) {
@@ -628,5 +685,34 @@ func (user *userApi) GetAssetsByUser(ctx *utils.Context) {
 	}
 
 	ctx.Success(assets)
+}
 
+/*
+Handle func for GET /users/{userId}/assets
+*/
+func (user *userApi) GetUserUsedAssets(ctx *utils.Context) {
+	userID, err := service.EntityService.GetParamID(ctx, "user_id")
+	if err != nil {
+		return
+	}
+
+	thisUser, err := service.UserService.GetUserByID(userID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	} else if thisUser == nil {
+		ctx.BadRequest(myerror.USER_NOT_FOUND, myerror.USER_NOT_FOUND_INFO)
+		return
+	} else if thisUser.ID != userID {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	assets, err := service.AssetService.GetUserUsedAssets(userID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	ctx.Success(assets)
 }

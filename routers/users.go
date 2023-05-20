@@ -26,5 +26,5 @@ func (users *usersRouter) Init(group *gin.RouterGroup) {
 }
 
 func (users *usersRouter) routerCheckAtHandler(group *gin.RouterGroup) {
-	group.GET("/:user_id/assets", utils.Handler(api.UserApi.GetAssetsByUser))
+	group.GET("/:user_id/assets", utils.Handler(api.UserApi.GetUserUsedAssets))
 }

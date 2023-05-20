@@ -44,6 +44,7 @@ func (user *userRouter) routerNeedLogin(group *gin.RouterGroup) {
 	group.GET("/list", utils.Handler(api.UserApi.GetAllUsers))
 	group.DELETE("/:user_id", utils.Handler(api.UserApi.DeleteUser))
 	group.POST("/info/:user_id/password", utils.Handler(api.UserApi.ChangePassword))
+	group.PATCH("/info/:user_id/identity", utils.Handler(api.UserApi.ModifyUserIdentity))
 	group.DELETE("/info/:user_id/entity", utils.Handler(middleware.CheckSystemSuper()), utils.Handler(api.UserApi.ChangeUserEntity))
 	group.DELETE("/info/:user_id/department", utils.Handler(api.UserApi.ChangeUserDepartment))
 	group.POST("/info/:user_id/entity", utils.Handler(api.UserApi.ChangeUserEntity))

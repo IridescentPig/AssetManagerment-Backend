@@ -155,3 +155,12 @@ type SearchAssetReq struct {
 type AssetInfoResponse struct {
 	AssetInfo AssetInfo `json:"asset_info"`
 }
+
+type AssetIDAndNameInfo struct {
+	AssetID   uint   `json:"asset_id"`
+	AssetName string `json:"asset_name"`
+}
+
+type AssetSimpleListRes struct {
+	AssetBasicList []*AssetIDAndNameInfo `json:"asset_basic_list"`
+}

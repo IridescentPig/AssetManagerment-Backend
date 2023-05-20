@@ -223,6 +223,7 @@ func (asset *assetService) UpdateNetWorth(assetID uint) error {
 		err = dao.AssetDao.Update(assetID, map[string]interface{}{
 			"net_worth": decimal.Zero,
 			"state":     3,
+			"parent_id": gorm.Expr("NULL"),
 		})
 		if err != nil {
 			return err
@@ -344,6 +345,16 @@ func (asset *assetService) GetAssetByUser(userID uint) (assets []*define.AssetBa
 	return
 }
 
+func (asset *assetService) GetUserUsedAssets(userID uint) (assets []*define.AssetBasicInfo, err error) {
+	assetList, err := dao.AssetDao.GetUserAssetsInUsed(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	assets = asset.TransformAssetBasicInfo(assetList)
+	return
+}
+
 func (asset *assetService) GetDepartmentAssetsByIDs(ids []uint, departmentID uint) ([]*model.Asset, error) {
 	assetList, err := dao.AssetDao.GetDepartmentAssetsByIDs(ids, departmentID)
 	if err != nil {
@@ -460,4 +471,8 @@ func (asset *assetService) GetDepartmentAssetCount(departmentID uint) (int64, er
 
 func (asset *assetService) GetDepartmentAssetInWarn(departmentID uint) ([]*model.Asset, error) {
 	return dao.AssetDao.GetDepartmentWarnAsset(departmentID)
+}
+
+func (asset *assetService) GetDepartmentAssetBasicList(departmentID uint) ([]*model.Asset, error) {
+	return dao.AssetDao.GetDepartmentAssetBasicList(departmentID)
 }

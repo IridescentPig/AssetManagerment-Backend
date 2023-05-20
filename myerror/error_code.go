@@ -59,4 +59,5 @@ const (
 	INVALID_PAGE_NUM                = 55
 	USER_HAS_ASSETS                 = 56
 	USER_HAS_TASKS                  = 57
+	CANNOT_MODIFY_SELF_IDENTITY     = 58
 )

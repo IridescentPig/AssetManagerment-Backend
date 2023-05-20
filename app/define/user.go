@@ -87,3 +87,9 @@ type UserListResponse struct {
 	UserList []UserInfo `json:"user_list"`
 	AllCount uint       `json:"all_count"`
 }
+
+type ModifyUserIdentityReq struct {
+	SystemSuper     bool `json:"system_super"`
+	EntitySuper     bool `json:"entity_super"`
+	DepartmentSuper bool `json:"department_super"`
+}

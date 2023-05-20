@@ -306,6 +306,18 @@ func (asset *assetDao) GetDirectAssetsByUser(userID uint) (assets []*model.Asset
 	return
 }
 
+func (asset *assetDao) GetUserAssetsInUsed(userID uint) (assetList []*model.Asset, err error) {
+	result := db.Model(&model.Asset{}).Preload("Parent").Preload("User").
+		Preload("Department").Preload("Class").Preload("Maintainer").
+		Where("user_id = ? and state > ? and state < ?", userID, 0, 3).Find(&assetList)
+
+	if result.Error == gorm.ErrRecordNotFound {
+		return nil, nil
+	}
+	err = utils.DBError(result)
+	return
+}
+
 // asset and asset_class
 func (asset *assetDao) GetAssetClass(id uint) (class model.AssetClass, err error) {
 	query_asset, err := asset.GetAssetByID(id)
@@ -522,6 +534,12 @@ func (asset *assetDao) GetDepartmentAssetCount(departmentID uint) (count int64, 
 
 func (asset *assetDao) GetDepartmentWarnAsset(departmentID uint) (assetList []*model.Asset, err error) {
 	result := db.Model(&model.Asset{}).Where("department_id = ? and state <= ? and warn = ?", departmentID, 2, true).Find(&assetList)
+	err = utils.DBError(result)
+	return
+}
+
+func (asset *assetDao) GetDepartmentAssetBasicList(departmentID uint) (assetList []*model.Asset, err error) {
+	result := db.Model(&model.Asset{}).Where("department_id = ?", departmentID).Find(&assetList)
 	err = utils.DBError(result)
 	return
 }

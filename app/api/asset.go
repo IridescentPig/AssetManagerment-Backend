@@ -79,32 +79,32 @@ func (asset *assetApi) CheckAssetsValid(ctx *utils.Context, departmentID uint, a
 Handle func for GET /department/{department_id}/asset/list
 */
 func (asset *assetApi) GetAssetList(ctx *utils.Context) {
-	// hasIdentity, departmentID, err := AssetClassApi.CheckAssetIdentity(ctx)
-	// if err != nil {
-	// 	return
-	// } else if !hasIdentity {
-	// 	ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
-	// 	return
-	// }
-	departmentID, err := service.EntityService.GetParamID(ctx, "department_id")
+	hasIdentity, departmentID, err := AssetClassApi.CheckAssetIdentity(ctx)
 	if err != nil {
 		return
-	}
-
-	existsDepartment, err := service.DepartmentService.ExistsDepartmentByID(departmentID)
-	if err != nil {
-		ctx.InternalError(err.Error())
-		return
-	} else if !existsDepartment {
-		ctx.NotFound(myerror.DEPARTMENT_NOT_FOUND, myerror.DEPARTMENT_NOT_FOUND_INFO)
-		return
-	}
-
-	thisUser := UserApi.GetOperatorInfo(ctx)
-	if thisUser.DepartmentID != departmentID {
+	} else if !hasIdentity {
 		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
 		return
 	}
+	// departmentID, err := service.EntityService.GetParamID(ctx, "department_id")
+	// if err != nil {
+	// 	return
+	// }
+
+	// existsDepartment, err := service.DepartmentService.ExistsDepartmentByID(departmentID)
+	// if err != nil {
+	// 	ctx.InternalError(err.Error())
+	// 	return
+	// } else if !existsDepartment {
+	// 	ctx.NotFound(myerror.DEPARTMENT_NOT_FOUND, myerror.DEPARTMENT_NOT_FOUND_INFO)
+	// 	return
+	// }
+
+	// thisUser := UserApi.GetOperatorInfo(ctx)
+	// if thisUser.DepartmentID != departmentID {
+	// 	ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+	// 	return
+	// }
 
 	page_size, err := strconv.ParseUint(ctx.Query("page_size"), 10, 64)
 	if err != nil {
@@ -129,6 +129,38 @@ func (asset *assetApi) GetAssetList(ctx *utils.Context) {
 	}
 
 	ctx.Success(assetListRespone)
+}
+
+/*
+Handle func for GET /department/{department_id}/asset/list/basic
+*/
+func (asset *assetApi) GetDepartmentAssetBasicList(ctx *utils.Context) {
+	hasIdentity, departmentID, err := AssetClassApi.CheckAssetIdentity(ctx)
+	if err != nil {
+		return
+	} else if !hasIdentity {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	assetList, err := service.AssetService.GetDepartmentAssetBasicList(departmentID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	assetBasicList := funk.Map(assetList, func(thisAsset *model.Asset) *define.AssetIDAndNameInfo {
+		return &define.AssetIDAndNameInfo{
+			AssetID:   thisAsset.ID,
+			AssetName: thisAsset.Name,
+		}
+	}).([]*define.AssetIDAndNameInfo)
+
+	res := define.AssetSimpleListRes{
+		AssetBasicList: assetBasicList,
+	}
+
+	ctx.Success(res)
 }
 
 /*

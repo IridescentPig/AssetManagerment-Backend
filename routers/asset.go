@@ -45,4 +45,5 @@ func (asset *assetRouter) routerCheckAtHandler(group *gin.RouterGroup) {
 	group.GET("/:department_id/template", utils.Handler(api.DepartmentApi.GetDepartmentTemplate))
 	group.POST("/:department_id/warn", utils.Handler(api.DepartmentApi.SetDepartmentWarnStrategy))
 	group.GET("/:department_id/warn", utils.Handler(api.DepartmentApi.GetDepartmentAssetWarnInfo))
+	group.GET("/:department_id/asset/list/basic", utils.Handler(api.AssetApi.GetDepartmentAssetBasicList))
 }

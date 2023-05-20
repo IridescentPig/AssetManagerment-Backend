@@ -267,8 +267,9 @@ func (user *userDao) BindFeishu(UserID uint, FeishuID string) error {
 	if thisUser == nil {
 		return errors.New("user doesn't exist")
 	}
-	thisUser.FeishuID = FeishuID
-	err = utils.DBError(db.Session(&gorm.Session{FullSaveAssociations: true}).Updates(&thisUser))
+	err = utils.DBError(db.Model(&model.User{}).Where("id = ?", UserID).Updates(map[string]interface{}{
+		"feishu_id": FeishuID,
+	}))
 	return err
 }
 

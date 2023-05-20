@@ -164,3 +164,11 @@ func (user *userService) ModifyUserEntity(userID uint, entityID uint) error {
 func (user *userService) ModifyUserDepartment(userID uint, departmentID uint) error {
 	return dao.UserDao.ModifyUserDepartmentByID(userID, departmentID)
 }
+
+func (user *userService) ModifyUserIdentityUpdate(userID uint, req *define.ModifyUserIdentityReq) error {
+	return dao.UserDao.Update(userID, map[string]interface{}{
+		"system_super":     req.SystemSuper,
+		"entity_super":     req.EntitySuper,
+		"department_super": req.DepartmentSuper,
+	})
+}
