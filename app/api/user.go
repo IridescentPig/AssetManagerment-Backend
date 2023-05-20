@@ -478,6 +478,40 @@ func (user *userApi) ChangeUserEntity(ctx *utils.Context) {
 		return
 	}
 
+	Assets, err := service.AssetService.GetAssetByUser(userID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+	if len(Assets) != 0 {
+		ctx.BadRequest(myerror.USER_HAS_ASSETS, myerror.USER_HAS_ASSETS_INFO)
+		return
+	}
+
+	Tasks, err := service.TaskService.GetTasksByUserID(userID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+	for _, task := range Tasks {
+		if task.State == 0 {
+			ctx.BadRequest(myerror.USER_HAS_TASKS, myerror.USER_HAS_TASKS_INFO)
+			return
+		}
+	}
+
+	Asyns, err := service.AsyncService.GetUserAsyncTasks(userID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+	for _, asyn := range Asyns {
+		if asyn.State == 0 || asyn.State == 1 {
+			ctx.BadRequest(myerror.USER_HAS_TASKS, myerror.USER_HAS_TASKS_INFO)
+			return
+		}
+	}
+
 	err = service.UserService.ModifyUserEntity(userID, changeUserEntityReq.EntityID)
 	if err != nil {
 		ctx.InternalError(err.Error())
@@ -524,6 +558,40 @@ func (user *userApi) ChangeUserDepartment(ctx *utils.Context) {
 	isValid := DepartmentApi.CheckEntityDepartmentValid(ctx, thisUser.EntityID, changeUserDepartmentReq.DepartmentID)
 	if !isValid {
 		return
+	}
+
+	Assets, err := service.AssetService.GetAssetByUser(userID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+	if len(Assets) != 0 {
+		ctx.BadRequest(myerror.USER_HAS_ASSETS, myerror.USER_HAS_ASSETS_INFO)
+		return
+	}
+
+	Tasks, err := service.TaskService.GetTasksByUserID(userID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+	for _, task := range Tasks {
+		if task.State == 0 {
+			ctx.BadRequest(myerror.USER_HAS_TASKS, myerror.USER_HAS_TASKS_INFO)
+			return
+		}
+	}
+
+	Asyns, err := service.AsyncService.GetUserAsyncTasks(userID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+	for _, asyn := range Asyns {
+		if asyn.State == 0 || asyn.State == 1 {
+			ctx.BadRequest(myerror.USER_HAS_TASKS, myerror.USER_HAS_TASKS_INFO)
+			return
+		}
 	}
 
 	err = service.UserService.ModifyUserDepartment(userID, changeUserDepartmentReq.DepartmentID)

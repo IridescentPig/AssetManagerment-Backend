@@ -56,4 +56,6 @@ const (
 	FEISHU_CALLBACK_ERROR_INFO           = "Feishu Callback Bad Request"
 	INVALID_PAGE_SIZE_INFO               = "Invalid page size"
 	INVALID_PAGE_NUM_INFO                = "Invalid page num"
+	USER_HAS_ASSETS_INFO                 = "This user has assets, cannot modify their entity or department"
+	USER_HAS_TASKS_INFO                  = "This user has uncompleted tasks, cannot modify their entity or department"
 )

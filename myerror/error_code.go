@@ -57,4 +57,6 @@ const (
 	FEISHU_CALLBACK_ERROR           = 53
 	INVALID_PAGE_SIZE               = 54
 	INVALID_PAGE_NUM                = 55
+	USER_HAS_ASSETS                 = 56
+	USER_HAS_TASKS                  = 57
 )
