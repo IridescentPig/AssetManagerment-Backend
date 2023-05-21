@@ -64,4 +64,5 @@ Response format of GET /entity/{entity_id}/user/list
 */
 type EntityUserListResponse struct {
 	UserList []EntityUserInfo `json:"user_list"`
+	AllCount uint             `json:"all_count"`
 }

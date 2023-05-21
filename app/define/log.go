@@ -18,5 +18,6 @@ type LogInfo struct {
 }
 
 type LogListResponse struct {
-	LogList []*LogInfo `json:"log_list"`
+	LogList  []*LogInfo `json:"log_list"`
+	AllCount uint       `json:"all_count"`
 }

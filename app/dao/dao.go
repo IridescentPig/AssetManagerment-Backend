@@ -31,6 +31,8 @@ func connect() {
 		&model.Task{},
 		&model.Url{},
 		&model.Log{},
+		&model.Stat{},
+		&model.AsyncTask{},
 	)
 
 	//tables := make([]string, 0)

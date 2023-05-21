@@ -86,6 +86,35 @@ func (department *departmentApi) CheckDepartmentModifyIdentity(ctx *utils.Contex
 }
 
 /*
+本实体内的资产/系统管理员的权限
+*/
+func (department *departmentApi) CheckDepartmentSuperIdentity(ctx *utils.Context) (uint, uint, bool) {
+	entityID, departmentID, err := department.GetTwoIDs(ctx)
+	if err != nil {
+		return 0, 0, false
+	}
+
+	isValid := department.CheckEntityDepartmentValid(ctx, entityID, departmentID)
+	if !isValid {
+		return 0, 0, false
+	}
+
+	entitySuper := service.UserService.EntitySuper(ctx)
+	departmentSuper := service.UserService.DepartmentSuper(ctx)
+	if !entitySuper && !departmentSuper {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return 0, 0, false
+	}
+	identity := service.EntityService.CheckIsInEntity(ctx, entityID)
+	if !identity {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return 0, 0, false
+	}
+
+	return entityID, departmentID, true
+}
+
+/*
 Handle func for POST /entity/{entity_id}/department and /entity/{entity_id}/department/{department_id}/department
 */
 func (department *departmentApi) CreateDepartment(ctx *utils.Context) {
@@ -255,30 +284,8 @@ func (department *departmentApi) GetDepartmentByID(ctx *utils.Context) {
 Handle func for GET /entity/{entity_id}/department/{department_id}/department/list
 */
 func (department *departmentApi) GetSubDepartments(ctx *utils.Context) {
-	entityID, departmentID, err := department.GetTwoIDs(ctx)
-	if err != nil {
-		return
-	}
-
-	isValid := department.CheckEntityDepartmentValid(ctx, entityID, departmentID)
-	if !isValid {
-		return
-	}
-
-	entitySuper := service.UserService.EntitySuper(ctx)
-	departmentSuper := service.UserService.DepartmentSuper(ctx)
-	if !entitySuper && !departmentSuper {
-		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
-		return
-	}
-	// identity, err := service.DepartmentService.CheckDepartmentIdentity(ctx, entityID, departmentID)
-	identity := service.EntityService.CheckIsInEntity(ctx, entityID)
-	// if err != nil {
-	// 	ctx.InternalError(err.Error())
-	// 	return
-	// }
-	if !identity {
-		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+	_, departmentID, isOK := department.CheckDepartmentSuperIdentity(ctx)
+	if !isOK {
 		return
 	}
 
@@ -532,11 +539,6 @@ func (department *departmentApi) DeleteDepartmentManager(ctx *utils.Context) {
 Handle func for GET /entity/{entity_id}/department/{department_id}/manager
 */
 func (department *departmentApi) GetDepartmentManager(ctx *utils.Context) {
-	entityID, departmentID, err := department.GetTwoIDs(ctx)
-	if err != nil {
-		return
-	}
-
 	// abandon later
 	// entitySuper := service.UserService.EntitySuper(ctx)
 	// if !entitySuper {
@@ -549,27 +551,10 @@ func (department *departmentApi) GetDepartmentManager(ctx *utils.Context) {
 	// 	return
 	// }
 
-	isValid := department.CheckEntityDepartmentValid(ctx, entityID, departmentID)
-	if !isValid {
+	_, departmentID, isOK := department.CheckDepartmentSuperIdentity(ctx)
+	if !isOK {
 		return
 	}
-
-	entitySuper := service.UserService.EntitySuper(ctx)
-	departmentSuper := service.UserService.DepartmentSuper(ctx)
-	if !entitySuper && !departmentSuper {
-		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
-		return
-	}
-	identity := service.EntityService.CheckIsInEntity(ctx, entityID)
-	if !identity {
-		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
-		return
-	}
-
-	// hasIdentity := department.CheckDepartmentModifyIdentity(ctx, entityID)
-	// if !hasIdentity {
-	// 	return
-	// }
 
 	managerList, err := service.DepartmentService.GetDepartmentManagerList(departmentID)
 	if err != nil {
@@ -629,4 +614,156 @@ func (department *departmentApi) GetDepartmentTree(ctx *utils.Context) {
 	}
 
 	ctx.Success(departmentTreeRes)
+}
+
+/*
+Handle func for POST /department/:department_id/template
+*/
+func (department *departmentApi) DefineDepartmentAssetTemplate(ctx *utils.Context) {
+	hasIdentity, departmentID, err := AssetClassApi.CheckAssetIdentity(ctx)
+	if err != nil {
+		return
+	} else if !hasIdentity {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	var req define.DepartmentTemplateReq
+	err = ctx.MustBindWith(&req, binding.JSON)
+	if err != nil {
+		ctx.BadRequest(myerror.INVALID_BODY, myerror.INVALID_BODY_INFO)
+		return
+	}
+
+	err = service.DepartmentService.ModifyDepartmentTemplate(departmentID, &req)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	ctx.Success(nil)
+}
+
+/*
+Handle func for GET /department/:department_id/template
+*/
+func (department *departmentApi) GetDepartmentTemplate(ctx *utils.Context) {
+	departmentID, err := service.EntityService.GetParamID(ctx, "department_id")
+	if err != nil {
+		return
+	}
+	thisDepartment, err := service.DepartmentService.GetDepartmentInfoByID(departmentID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	} else if thisDepartment == nil {
+		ctx.BadRequest(myerror.DEPARTMENT_NOT_FOUND, myerror.DEPARTMENT_NOT_FOUND_INFO)
+		return
+	}
+	isDepartmentSuper := service.UserService.DepartmentSuper(ctx)
+	if !isDepartmentSuper {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+	isInDepartment := service.DepartmentService.CheckIsInDepartment(ctx, departmentID)
+	if !isInDepartment {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	res := define.DepartmentTemplateResponse{
+		Template: thisDepartment.KeyList,
+	}
+
+	ctx.Success(res)
+}
+
+/*
+Handle func for POST /department/:department_id/warn
+*/
+func (department *departmentApi) SetDepartmentWarnStrategy(ctx *utils.Context) {
+	hasIdentity, departmentID, err := AssetClassApi.CheckAssetIdentity(ctx)
+	if err != nil {
+		return
+	} else if !hasIdentity {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	var req define.DepartmentThresholdReq
+	err = ctx.MustBindWith(&req, binding.JSON)
+	if err != nil {
+		ctx.BadRequest(myerror.INVALID_BODY, myerror.INVALID_BODY_INFO)
+		return
+	}
+
+	err = service.DepartmentService.ModifyDepartmentThreshold(departmentID, req.Threshold)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	ctx.Success(nil)
+}
+
+/*
+Handle func for GET /department/:department_id/warn
+*/
+func (department *departmentApi) GetDepartmentAssetWarnInfo(ctx *utils.Context) {
+	hasIdentity, thisDepartment, err := AssetClassApi.CheckAssetIdentityReturnDepartment(ctx)
+	if err != nil {
+		return
+	} else if !hasIdentity {
+		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+		return
+	}
+
+	count, err := service.AssetService.GetDepartmentAssetCount(thisDepartment.ID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	isWarn := (count <= int64(thisDepartment.Threshold))
+	assetList, err := service.AssetService.GetDepartmentAssetInWarn(thisDepartment.ID)
+	if err != nil {
+		ctx.InternalError(err.Error())
+		return
+	}
+
+	// warnAssetBasicInfos := funk.Map(assetList, func(warnAsset *model.Asset) define.AssetBasicInfo {
+	// 	return define.AssetBasicInfo{
+	// 		AssetID: warnAsset.ID,
+	// 		AssetName: warnAsset.Name,
+	// 		ParentID: warnAsset.ParentID,
+	// 		DepartmentID: warnAsset.DepartmentID,
+	// 		User: define.AssetUserBasicInfo{
+	// 			UserID: warnAsset.UserID,
+	// 			Username: warnAsset.User.UserName,
+	// 		},
+	// 		Price: warnAsset.Price,
+	// 		Position: warnAsset.Position,
+	// 		Expire: warnAsset.Expire,
+	// 		Class: define.AssetClassBasicInfo{
+	// 			ClassID: warnAsset.ClassID,
+	// 			ClassName: warnAsset.Class.Name,
+	// 		},
+	// 		Number: warnAsset.Number,
+	// 		Type: warnAsset.Type,
+	// 		State: warnAsset.State,
+	// 		Property: warnAsset.Property,
+	// 		NetWorth: warnAsset.NetWorth,
+	// 		Threshold: warnAsset.Threshold,
+	// 		Warn: warnAsset.Warn,
+	// 	}
+	// }).([]define.AssetBasicInfo)
+	warnAssets := service.AssetService.TransformAssetBasicInfo(assetList)
+	warnInfoRes := define.DepartmentWarnInfo{
+		Count:          count,
+		CountThreshold: thisDepartment.Threshold,
+		CountWarn:      isWarn,
+		WarnAssetList:  warnAssets,
+	}
+
+	ctx.Success(warnInfoRes)
 }

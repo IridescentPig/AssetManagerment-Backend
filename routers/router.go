@@ -1,6 +1,7 @@
 package routers
 
 import (
+	"asset-management/app/api"
 	"asset-management/utils"
 
 	"github.com/gin-gonic/gin"
@@ -29,6 +30,9 @@ func (router *router) Init(r *gin.Engine) *gin.Engine {
 	AssetRouter.Init(r.Group("/department"))
 	TaskRouter.Init(r.Group(""))
 	LogRouter.Init(r.Group("/entity"))
+	OssRouter.Init(r.Group(""))
+	AsyncRouter.Init(r.Group(""))
+	r.GET("/asset/:asset_id/info", utils.Handler(api.AssetApi.GetAssetInfoByScan))
 	return r
 }
 

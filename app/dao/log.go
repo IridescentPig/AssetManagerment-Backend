@@ -78,8 +78,28 @@ func (hook *mysqlHook) Levels() []logrus.Level {
 	return logrus.AllLevels
 }
 
-func (mylog *logDao) GetLoginLogByEntityID(entityID uint) (logList []*model.Log, err error) {
-	result := db.Model(&model.Log{}).Where("entity_id = ? and url = ?", entityID, "/user/login").Find(&logList)
+func (mylog *logDao) GetLoginLogByEntityID(entityID uint, offset int, limit int) (logList []*model.Log, count int64, err error) {
+	result := db.Model(&model.Log{}).Where("entity_id = ? and url = ?", entityID, "/user/login").Count(&count).Offset(offset).Limit(limit).Find(&logList)
+	if result.Error == gorm.ErrRecordNotFound {
+		err = nil
+		return
+	}
+	err = utils.DBError(result)
+	return
+}
+
+func (mylog *logDao) GetLoginLogsForExport(entityID uint, fromTime *model.ModelTime, logType uint) (logList []*model.Log, err error) {
+	var result *gorm.DB
+	if logType == 0 {
+		result = db.Model(&model.Log{}).Where("entity_id = ? and url = ? and time >= ?", entityID, "/user/login", fromTime)
+	} else if logType == 1 {
+		result = db.Model(&model.Log{}).Where("entity_id = ? and url = ? and time >= ? and status = ?", entityID, "/user/login", fromTime, 200)
+	} else {
+		result = db.Model(&model.Log{}).Where("entity_id = ? and url = ? and time >= ? and status <> ?", entityID, "/user/login", fromTime, 200)
+	}
+
+	result = result.Find(&logList)
+
 	if result.Error == gorm.ErrRecordNotFound {
 		return nil, nil
 	}
@@ -87,8 +107,28 @@ func (mylog *logDao) GetLoginLogByEntityID(entityID uint) (logList []*model.Log,
 	return
 }
 
-func (mylog *logDao) GetDataLogByEntityID(entityID uint) (logList []*model.Log, err error) {
-	result := db.Model(&model.Log{}).Where("entity_id = ? and url <> ?", entityID, "/user/login").Find(&logList)
+func (mylog *logDao) GetDataLogByEntityID(entityID uint, offset int, limit int) (logList []*model.Log, count int64, err error) {
+	result := db.Model(&model.Log{}).Where("entity_id = ? and url <> ?", entityID, "/user/login").Count(&count).Offset(offset).Limit(limit).Find(&logList)
+	if result.Error == gorm.ErrRecordNotFound {
+		err = nil
+		return
+	}
+	err = utils.DBError(result)
+	return
+}
+
+func (mylog *logDao) GetDataLogsForExport(entityID uint, fromTime *model.ModelTime, logType uint) (logList []*model.Log, err error) {
+	var result *gorm.DB
+	if logType == 0 {
+		result = db.Model(&model.Log{}).Where("entity_id = ? and url <> ? and time >= ?", entityID, "/user/login", fromTime)
+	} else if logType == 1 {
+		result = db.Model(&model.Log{}).Where("entity_id = ? and url <> ? and time >= ? and status = ?", entityID, "/user/login", fromTime, 200)
+	} else {
+		result = db.Model(&model.Log{}).Where("entity_id = ? and url <> ? and time >= ? and status <> ?", entityID, "/user/login", fromTime, 200)
+	}
+
+	result = result.Find(&logList)
+
 	if result.Error == gorm.ErrRecordNotFound {
 		return nil, nil
 	}

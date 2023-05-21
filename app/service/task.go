@@ -19,8 +19,8 @@ func init() {
 	TaskService = newTaskService()
 }
 
-func (task *taskService) CreateTask(req define.CreateTaskReq, userID uint, departmentID uint, assetList []*model.Asset) error {
-	err := dao.TaskDao.Create(model.Task{
+func (task *taskService) CreateTask(req define.CreateTaskReq, userID uint, departmentID uint, assetList []*model.Asset) (uint, error) {
+	return dao.TaskDao.Create(model.Task{
 		TaskType:        req.TaskType,
 		TaskDescription: req.TaskDescription,
 		UserID:          userID,
@@ -28,8 +28,6 @@ func (task *taskService) CreateTask(req define.CreateTaskReq, userID uint, depar
 		TargetID:        req.TargetID,
 		AssetList:       assetList,
 	})
-
-	return err
 }
 
 func (task *taskService) GetTasksByUserID(userID uint) (taskList []*model.Task, err error) {

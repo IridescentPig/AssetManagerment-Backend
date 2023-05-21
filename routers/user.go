@@ -26,10 +26,11 @@ func (user *userRouter) Init(group *gin.RouterGroup) {
 }
 
 func (user *userRouter) routerNotNeedLogin(group *gin.RouterGroup) {
+	group.POST("/feishu/callback", utils.Handler(api.FeishuApi.FeishuCallBack))
+	group.POST("/feishu/login", utils.Handler(api.FeishuApi.FeishuLogin))
 	group.Use(utils.Handler(middleware.LogMiddleware()))
 	group.POST("/register", utils.Handler(api.UserApi.UserRegister))
 	group.POST("/login", utils.Handler(api.UserApi.UserLogin))
-
 }
 
 func (user *userRouter) routerNeedLogin(group *gin.RouterGroup) {
@@ -43,8 +44,11 @@ func (user *userRouter) routerNeedLogin(group *gin.RouterGroup) {
 	group.GET("/list", utils.Handler(api.UserApi.GetAllUsers))
 	group.DELETE("/:user_id", utils.Handler(api.UserApi.DeleteUser))
 	group.POST("/info/:user_id/password", utils.Handler(api.UserApi.ChangePassword))
+	group.PATCH("/info/:user_id/identity", utils.Handler(api.UserApi.ModifyUserIdentity))
 	group.DELETE("/info/:user_id/entity", utils.Handler(middleware.CheckSystemSuper()), utils.Handler(api.UserApi.ChangeUserEntity))
 	group.DELETE("/info/:user_id/department", utils.Handler(api.UserApi.ChangeUserDepartment))
 	group.POST("/info/:user_id/entity", utils.Handler(api.UserApi.ChangeUserEntity))
 	group.POST("/info/:user_id/department", utils.Handler(api.UserApi.ChangeUserDepartment))
+	group.POST("/feishu/bind", utils.Handler(api.FeishuApi.FeishuBind))
+	group.DELETE("/feishu/bind", utils.Handler(api.FeishuApi.FeishuUnBind))
 }

@@ -5,6 +5,7 @@ import (
 	"asset-management/app/service"
 	"asset-management/myerror"
 	"asset-management/utils"
+	"strconv"
 
 	"github.com/gin-gonic/gin/binding"
 	"github.com/jinzhu/copier"
@@ -243,7 +244,18 @@ func (entity *entityApi) UsersInEntity(ctx *utils.Context) {
 		return
 	}
 
-	userList, err := service.EntityService.GetUsersUnderEntity(entityID)
+	page_size, err := strconv.ParseUint(ctx.Query("page_size"), 10, 64)
+	if err != nil {
+		ctx.BadRequest(myerror.INVALID_PAGE_SIZE, myerror.INVALID_PAGE_SIZE_INFO)
+		return
+	}
+	page_num, err := strconv.ParseUint(ctx.Query("page_num"), 10, 64)
+	if err != nil {
+		ctx.BadRequest(myerror.INVALID_PAGE_NUM, myerror.INVALID_PAGE_NUM_INFO)
+		return
+	}
+
+	userList, count, err := service.EntityService.GetUsersUnderEntity(entityID, uint(page_size), uint(page_num))
 	if err != nil {
 		ctx.InternalError(err.Error())
 		return
@@ -256,6 +268,7 @@ func (entity *entityApi) UsersInEntity(ctx *utils.Context) {
 	}
 	userListResponse := define.EntityUserListResponse{
 		UserList: userListRes,
+		AllCount: uint(count),
 	}
 	ctx.Success(userListResponse)
 }

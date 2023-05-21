@@ -231,3 +231,38 @@ func (department *departmentService) GetSubUsers(departmentID uint) (userList []
 	userList, err = dao.DepartmentDao.GetDepartmentDirectUserByID(departmentID)
 	return
 }
+
+func (department *departmentService) ModifyDepartmentTemplate(departmentID uint, req *define.DepartmentTemplateReq) error {
+	err := dao.DepartmentDao.Update(departmentID, map[string]interface{}{
+		"key_list": req.KeyList,
+	})
+
+	return err
+}
+
+func (department *departmentService) ModifyDepartmentThreshold(departmentID uint, threshold uint) error {
+	err := dao.DepartmentDao.Update(departmentID, map[string]interface{}{
+		"threshold": threshold,
+	})
+
+	return err
+}
+
+func (department *departmentService) GetSubDepartmentIDs(departmentID uint) ([]uint, error) {
+	subIDs := []uint{departmentID}
+
+	subDepartments, err := dao.DepartmentDao.GetSubDepartmentByID(departmentID)
+	if err != nil {
+		return []uint{}, err
+	}
+
+	for _, sub := range subDepartments {
+		subsubIDs, err := department.GetSubDepartmentIDs(sub.ID)
+		if err != nil {
+			return []uint{}, err
+		}
+		subIDs = append(subIDs, subsubIDs...)
+	}
+
+	return subIDs, nil
+}

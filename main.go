@@ -2,21 +2,26 @@ package main
 
 import (
 	"asset-management/app/api"
+	"asset-management/app/timing"
 	"asset-management/middleware"
 	"asset-management/routers"
 	"os"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
+	timezone, _ := time.LoadLocation("Asia/Shanghai")
+	time.Local = timezone
+	c := timing.Init()
+	c.Start()
+
 	api.Initial()
+	if os.Getenv("RELEASE") != "" {
+		gin.SetMode(gin.ReleaseMode)
+	}
 	r := gin.Default()
-	// r.Use(func(ctx *gin.Context) {
-	// 	ctx.Header("Access-Control-Allow-Origin", "http://0.0.0.0:8080")
-	// 	ctx.Header("Access-Control-Allow-Credentials", "true")
-	// 	ctx.Next()
-	// })
 
 	r.Use(middleware.Cors())
 
@@ -34,6 +39,6 @@ func main() {
 			r.Run("0.0.0.0:80")
 		}
 	} else {
-		r.Run("0.0.0.0:8080")
+		r.Run("0.0.0.0:80")
 	}
 }

@@ -72,12 +72,12 @@ func (entity *entityDao) EntityCount() (count int64, err error) {
 }
 
 // entity and user
-func (entity *entityDao) GetEntityAllUser(id uint) (users []*model.User, err error) {
+func (entity *entityDao) GetEntityAllUser(id uint, offset int, limit int) (users []*model.User, count int64, err error) {
 	// query_entity, err := entity.GetEntityByName(name)
 	// if err != nil {
 	// 	return
 	// }
-	err = utils.DBError(db.Model(&model.User{}).Preload("Department").Preload("Entity").Where("entity_id = ?", id).Find(&users))
+	err = utils.DBError(db.Model(&model.User{}).Preload("Department").Preload("Entity").Where("entity_id = ?", id).Count(&count).Offset(offset).Limit(limit).Find(&users))
 	return
 }
 

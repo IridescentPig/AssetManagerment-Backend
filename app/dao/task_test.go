@@ -28,17 +28,17 @@ func TestTask(t *testing.T) {
 		TaskType:        2,
 		TaskDescription: "aaa",
 	}
-	err = TaskDao.Create(task)
+	_, err = TaskDao.Create(task)
 	task = model.Task{
 		TaskType:        3,
 		TaskDescription: "asfdsag",
 	}
-	err = TaskDao.Create(task)
+	_, err = TaskDao.Create(task)
 	task = model.Task{
 		TaskType:        1,
 		TaskDescription: "asgrah",
 	}
-	err = TaskDao.Create(task)
+	_, err = TaskDao.Create(task)
 	assert.Equal(t, nil, err, err)
 	err = TaskDao.Update(1, map[string]interface{}{
 		"TaskType": 3,

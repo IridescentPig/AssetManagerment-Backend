@@ -41,8 +41,8 @@ func (user *userDao) Delete(id []uint) error {
 	return utils.DBError(result)
 }
 
-func (user *userDao) AllUser() (list []*model.User, err error) {
-	result := db.Model(&model.User{}).Preload("Department").Preload("Entity").Find(&list)
+func (user *userDao) AllUser(Offset int, Limit int) (list []*model.User, count int64, err error) {
+	result := db.Model(&model.User{}).Preload("Department").Preload("Entity").Count(&count).Offset(Offset).Limit(Limit).Find(&list)
 	err = utils.DBError(result)
 	return
 }
@@ -128,21 +128,15 @@ func (user *userDao) ModifyUserIdentity(username string, identity int) error {
 		})
 	} else if identity == 1 {
 		err = user.Update(thisUser.ID, map[string]interface{}{
-			"system_super":     false,
-			"entity_super":     false,
 			"department_super": true,
 		})
 	} else if identity == 2 {
 		err = user.Update(thisUser.ID, map[string]interface{}{
-			"system_super":     false,
-			"entity_super":     true,
-			"department_super": false,
+			"entity_super": true,
 		})
 	} else if identity == 3 {
 		err = user.Update(thisUser.ID, map[string]interface{}{
-			"system_super":     true,
-			"entity_super":     false,
-			"department_super": false,
+			"system_super": true,
 		})
 	} else {
 		err = errors.New("invalid identity number")
@@ -214,8 +208,9 @@ func (user *userDao) ModifyUserEntityByID(id uint, entityID uint) error {
 	if thisUser == nil {
 		return errors.New("user doesn't exist")
 	}
-	thisUser.EntityID = entityID
-	err = utils.DBError(db.Session(&gorm.Session{FullSaveAssociations: true}).Updates(&thisUser))
+	err = utils.DBError(db.Model(&model.User{}).Where("id = ?", id).Updates(map[string]interface{}{
+		"entity_id": entityID,
+	}))
 	return err
 }
 
@@ -259,7 +254,72 @@ func (user *userDao) ModifyUserDepartmentByID(id uint, departmentID uint) error 
 	if thisUser == nil {
 		return errors.New("user doesn't exist")
 	}
-	thisUser.DepartmentID = departmentID
+	err = utils.DBError(db.Model(&model.User{}).Where("id = ?", id).Updates(map[string]interface{}{
+		"department_id": departmentID,
+	}))
+	return err
+}
+
+// feishu
+func (user *userDao) BindFeishu(UserID uint, FeishuID string) error {
+	thisUser, err := user.GetUserByID(UserID)
+	if err != nil {
+		return err
+	}
+	if thisUser == nil {
+		return errors.New("user doesn't exist")
+	}
+	err = utils.DBError(db.Model(&model.User{}).Where("id = ?", UserID).Updates(map[string]interface{}{
+		"feishu_id": FeishuID,
+	}))
+	return err
+}
+
+func (user *userDao) UpdateFeishuToken(UserID uint, FeishuToken string, RefreshToken string) error {
+	thisUser, err := user.GetUserByID(UserID)
+	if err != nil {
+		return err
+	}
+	if thisUser == nil {
+		return errors.New("user doesn't exist")
+	}
+	thisUser.FeishuToken = FeishuToken
+	thisUser.RefreshToken = RefreshToken
 	err = utils.DBError(db.Session(&gorm.Session{FullSaveAssociations: true}).Updates(&thisUser))
 	return err
 }
+
+func (user *userDao) GetUserByFeishuID(FeishuID string) (*model.User, error) {
+	ret := &model.User{}
+	result := db.Model(&model.User{}).Preload("Department").Preload("Entity").Where("feishu_id = ?", FeishuID).First(ret)
+	if result.Error == gorm.ErrRecordNotFound {
+		return nil, nil
+	}
+	return ret, utils.DBError(result)
+}
+
+/*func (user *userDao) GetFeishuTokenByID(UserID uint) (token string, err error) {
+	thisUser, err := user.GetUserByID(UserID)
+	if err != nil {
+		return
+	}
+	if thisUser == nil {
+		err = errors.New("user doesn't exist")
+		return
+	}
+	token = thisUser.FeishuToken
+	return
+}
+
+func (user *userDao) GetRefreshTokenByID(UserID uint) (token string, err error) {
+	thisUser, err := user.GetUserByID(UserID)
+	if err != nil {
+		return
+	}
+	if thisUser == nil {
+		err = errors.New("user doesn't exist")
+		return
+	}
+	token = thisUser.RefreshToken
+	return
+}*/
