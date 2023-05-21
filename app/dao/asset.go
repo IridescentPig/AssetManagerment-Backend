@@ -539,7 +539,7 @@ func (asset *assetDao) GetDepartmentWarnAsset(departmentID uint) (assetList []*m
 }
 
 func (asset *assetDao) GetDepartmentAssetBasicList(departmentID uint) (assetList []*model.Asset, err error) {
-	result := db.Model(&model.Asset{}).Where("department_id = ?", departmentID).Find(&assetList)
+	result := db.Model(&model.Asset{}).Where("department_id = ? and state <= ?", departmentID, 2).Find(&assetList)
 	err = utils.DBError(result)
 	return
 }

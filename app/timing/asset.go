@@ -26,6 +26,7 @@ func (depreciate *AssetDepreciate) Run() {
 					err = dao.AssetDao.Update(asset.ID, map[string]interface{}{
 						"net_worth": decimal.Zero,
 						"state":     3,
+						"parent_id": gorm.Expr("NULL"),
 					})
 
 					if err != nil {

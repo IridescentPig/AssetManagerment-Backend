@@ -208,8 +208,9 @@ func (user *userDao) ModifyUserEntityByID(id uint, entityID uint) error {
 	if thisUser == nil {
 		return errors.New("user doesn't exist")
 	}
-	thisUser.EntityID = entityID
-	err = utils.DBError(db.Session(&gorm.Session{FullSaveAssociations: true}).Updates(&thisUser))
+	err = utils.DBError(db.Model(&model.User{}).Where("id = ?", id).Updates(map[string]interface{}{
+		"entity_id": entityID,
+	}))
 	return err
 }
 
@@ -253,8 +254,9 @@ func (user *userDao) ModifyUserDepartmentByID(id uint, departmentID uint) error 
 	if thisUser == nil {
 		return errors.New("user doesn't exist")
 	}
-	thisUser.DepartmentID = departmentID
-	err = utils.DBError(db.Session(&gorm.Session{FullSaveAssociations: true}).Updates(&thisUser))
+	err = utils.DBError(db.Model(&model.User{}).Where("id = ?", id).Updates(map[string]interface{}{
+		"department_id": departmentID,
+	}))
 	return err
 }
 

@@ -596,11 +596,7 @@ func (user *userApi) ChangeUserDepartment(ctx *utils.Context) {
 		return
 	}
 
-	entityID, err := service.EntityService.GetParamID(ctx, "entity_id")
-	if err != nil {
-		return
-	}
-	hasIdentity := DepartmentApi.CheckDepartmentModifyIdentity(ctx, entityID)
+	hasIdentity := DepartmentApi.CheckDepartmentModifyIdentity(ctx, thisUser.EntityID)
 	if !hasIdentity {
 		return
 	}
