@@ -95,7 +95,7 @@ func TestUserAsset(t *testing.T) {
 	AssetDao.GetUserMaintainAssets(9)
 	AssetDao.ModifyAssetMaintainerAndState([]uint{0}, 1)
 	AssetDao.ModifyAssetMaintainerAndState([]uint{1, 2, 3}, 0)
-	AssetDao.GetAllAssets()
+	AssetDao.GetAllAssets(-1, -1)
 	AssetDao.GetAssetDirectDepartment(1, -1, -1)
 	AssetDao.CheckAssetPropertyExist(1, "line")
 	AssetDao.SetAssetProperty(3, "line", "1")

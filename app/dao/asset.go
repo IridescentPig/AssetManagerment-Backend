@@ -82,13 +82,19 @@ func (asset *assetDao) SaveAsset(thisAsset *model.Asset) error {
 /*
 Note: This function doesn't preload any association function
 */
-func (asset *assetDao) GetAllAssets() (assetList []*model.Asset, err error) {
-	result := db.Model(&model.Asset{}).Find(&assetList)
+func (asset *assetDao) GetAllAssets(offset int, limit int) (assetList []*model.Asset, err error) {
+	result := db.Model(&model.Asset{}).Offset(offset).Limit(limit).Find(&assetList)
 
 	if result.Error == gorm.ErrRecordNotFound {
 		return nil, nil
 	}
 
+	return
+}
+
+func (asset *assetDao) GetAllAssetsCount() (count int64, err error) {
+	result := db.Model(&model.Asset{}).Count(&count)
+	err = result.Error
 	return
 }
 
@@ -218,8 +224,8 @@ func (asset *assetDao) ModifyAssetState(id uint, state uint) error {
 
 func (asset *assetDao) ExpireAsset(ids []uint) error {
 	return asset.AllUpdate(ids, map[string]interface{}{
-		"state": 3,
-		"price": decimal.NewFromFloat(0),
+		"state":     3,
+		"net_worth": decimal.NewFromFloat(0),
 	})
 }
 
