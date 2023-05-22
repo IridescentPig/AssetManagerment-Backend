@@ -11,59 +11,76 @@ import (
 	"gorm.io/gorm"
 )
 
+const (
+	SIZE_PER_BATCH = 2000
+)
+
 type AssetDepreciate struct {
 }
 
 func (depreciate *AssetDepreciate) Run() {
-	assetList, err := dao.AssetDao.GetAllAssets()
+	count, err := dao.AssetDao.AssetCount()
+	log.Println(count)
+	// assetList, err := dao.AssetDao.GetAllAssets()
 
 	if err == nil {
-		for _, asset := range assetList {
-			if asset.State < 3 && asset.Expire != 0 {
-				// log.Println(asset)
-				interval := getDiffDays(time.Time(*asset.CreatedAt), time.Now())
-				if interval >= int(asset.Expire) {
-					err = dao.AssetDao.Update(asset.ID, map[string]interface{}{
-						"net_worth": decimal.Zero,
-						"state":     3,
-						"parent_id": gorm.Expr("NULL"),
-					})
+		var i int64
+		for i = 0; i < count; i += SIZE_PER_BATCH {
+			assetList, err := dao.AssetDao.GetAllAssets(int(i), SIZE_PER_BATCH)
+			if err == nil {
+				for _, asset := range assetList {
+					if asset.State < 3 && asset.Expire != 0 {
+						// log.Println(asset)
+						interval := getDiffDays(time.Time(*asset.CreatedAt), time.Now())
+						if interval >= int(asset.Expire) {
+							err = dao.AssetDao.Update(asset.ID, map[string]interface{}{
+								"net_worth": decimal.Zero,
+								"state":     3,
+								"parent_id": gorm.Expr("NULL"),
+							})
 
-					if err != nil {
-						continue
-					}
+							if err != nil {
+								continue
+							}
 
-					subAssets, _, err := dao.AssetDao.GetSubAsset(asset.ID, -1, -1)
-					if err == nil {
-						subAssetIDs := funk.Map(subAssets, func(thisAsset *model.Asset) uint {
-							return thisAsset.ID
-						}).([]uint)
+							subAssets, _, err := dao.AssetDao.GetSubAsset(asset.ID, -1, -1)
+							if err == nil {
+								subAssetIDs := funk.Map(subAssets, func(thisAsset *model.Asset) uint {
+									return thisAsset.ID
+								}).([]uint)
 
-						err := dao.AssetDao.AllUpdate(subAssetIDs, map[string]interface{}{
-							"parent_id": gorm.Expr("NULL"),
-						})
+								err := dao.AssetDao.AllUpdate(subAssetIDs, map[string]interface{}{
+									"parent_id": gorm.Expr("NULL"),
+								})
 
-						if err != nil {
-							continue
+								if err != nil {
+									continue
+								}
+							}
+						} else {
+							rate := 1.0 - float64(interval)/float64(asset.Expire)
+							asset.NetWorth = asset.Price.Mul(decimal.NewFromFloat(rate))
+							asset.Warn = (int(asset.Expire) - interval) < int(asset.Threshold)
+
+							err = dao.AssetDao.Update(asset.ID, map[string]interface{}{
+								"net_worth": asset.NetWorth,
+								"warn":      asset.Warn,
+							})
+
+							if err != nil {
+								continue
+							}
 						}
 					}
-				} else {
-					rate := 1.0 - float64(interval)/float64(asset.Expire)
-					asset.NetWorth = asset.Price.Mul(decimal.NewFromFloat(rate))
-					asset.Warn = (int(asset.Expire) - interval) < int(asset.Threshold)
-
-					err = dao.AssetDao.Update(asset.ID, map[string]interface{}{
-						"net_worth": asset.NetWorth,
-						"warn":      asset.Warn,
-					})
-
-					if err != nil {
-						continue
-					}
 				}
+			} else {
+				log.Println("AssetDepreciate Failed")
+				break
 			}
 		}
-		log.Println("AssetDepreciate Succeed")
+		if err == nil {
+			log.Println("AssetDepreciate Succeed")
+		}
 	} else {
 		log.Println("AssetDepreciate Failed")
 	}

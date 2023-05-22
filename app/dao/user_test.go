@@ -510,9 +510,9 @@ func TestAsset(t *testing.T) {
 	new_num_s, err = AssetDao.GetAssetByID(2)
 	assert.Equal(t, nil, err, database_error)
 	// assert.Equal(t, true, new_line.Expire, database_error)
-	assert.Equal(t, decimal.New(0, 0), new_line.Price, database_error)
+	assert.Equal(t, decimal.New(0, 0), new_line.NetWorth, database_error)
 	// assert.Equal(t, true, new_num_s.Expire, database_error)
-	assert.Equal(t, decimal.New(0, 0), new_num_s.Price, database_error)
+	assert.Equal(t, decimal.New(0, 0), new_num_s.NetWorth, database_error)
 
 	AssetClassDao.Update(1, map[string]interface{}{
 		"name": "asdkfjhjk",
