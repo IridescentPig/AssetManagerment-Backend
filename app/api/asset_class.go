@@ -135,7 +135,7 @@ func (assetClass *assetClassApi) CreateAssetClass(ctx *utils.Context) {
 Handler func for GET /department/{department_id}/asset_class
 */
 func (assetClass *assetClassApi) GetAssetClassTree(ctx *utils.Context) {
-	hasIdentity, departmentID, err := assetClass.CheckAssetIdentity(ctx)
+	hasIdentity, departmentID, err := assetClass.CheckAssetViewIdentity(ctx)
 	if err != nil {
 		return
 	} else if !hasIdentity {
