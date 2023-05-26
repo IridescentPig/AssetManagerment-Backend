@@ -135,7 +135,7 @@ func (asset *assetApi) GetAssetList(ctx *utils.Context) {
 Handle func for GET /department/{department_id}/asset/list/basic
 */
 func (asset *assetApi) GetDepartmentAssetBasicList(ctx *utils.Context) {
-	hasIdentity, departmentID, err := AssetClassApi.CheckAssetIdentity(ctx)
+	hasIdentity, departmentID, err := AssetClassApi.CheckAssetViewIdentity(ctx)
 	if err != nil {
 		return
 	} else if !hasIdentity {
