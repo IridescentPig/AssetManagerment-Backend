@@ -660,11 +660,11 @@ func (department *departmentApi) GetDepartmentTemplate(ctx *utils.Context) {
 		ctx.BadRequest(myerror.DEPARTMENT_NOT_FOUND, myerror.DEPARTMENT_NOT_FOUND_INFO)
 		return
 	}
-	isDepartmentSuper := service.UserService.DepartmentSuper(ctx)
-	if !isDepartmentSuper {
-		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
-		return
-	}
+	// isDepartmentSuper := service.UserService.DepartmentSuper(ctx)
+	// if !isDepartmentSuper {
+	// 	ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
+	// 	return
+	// }
 	isInDepartment := service.DepartmentService.CheckIsInDepartment(ctx, departmentID)
 	if !isInDepartment {
 		ctx.Forbidden(myerror.PERMISSION_DENIED, myerror.PERMISSION_DENIED_INFO)
