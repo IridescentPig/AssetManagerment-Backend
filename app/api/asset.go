@@ -872,7 +872,7 @@ func (asset *assetApi) getAssetInfoFromAssetModel(thisAsset *model.Asset) *defin
 Handle func for GET /department/:department_id/asset/:asset_id
 */
 func (asset *assetApi) GetAssetInfo(ctx *utils.Context) {
-	hasIdentity, departmentID, err := AssetClassApi.CheckAssetIdentity(ctx)
+	hasIdentity, departmentID, err := AssetClassApi.CheckAssetViewIdentity(ctx)
 	if err != nil {
 		return
 	} else if !hasIdentity {
